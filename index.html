@@ -280,7 +280,7 @@ textarea.paste{border-color:var(--accent)}
     <div style="display:grid;gap:10px">
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
       <div class="grid2">
-        <label class="f">อายุ (ปี)<input id="age" type="number" inputmode="decimal" min="0" step="1"></label>
+        <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>
         <label class="f">น้ำหนัก (kg)<input id="bw" type="number" inputmode="decimal" min="0" step="0.1"></label>
         <label class="f">ส่วนสูง (cm)<input id="ht" type="number" inputmode="decimal" min="0" step="1"></label>
         <label class="f">SCr (mg/dL)<input id="scr" type="number" inputmode="decimal" min="0" step="0.01"></label>
@@ -451,7 +451,7 @@ textarea.paste{border-color:var(--accent)}
             <label class="f">Interval ที่ได้รับ (hr)<input id="vTau" type="number" step="any" inputmode="decimal"></label>
             <label class="f">Interval สำหรับคำนวณขนาดยา (hr)<input id="vTau2" type="number" step="any" inputmode="decimal" placeholder="อัตโนมัติ ≈ t½"></label>
           </div>
-          <h2 style="margin-top:18px">Colistin — loading / maintenance (Garonzik)</h2>
+          <h2 style="margin-top:18px">Colistin — loading / maintenance (คู่มือปรับยาตามไต รพ.)</h2>
           <div class="hint">ใช้น้ำหนัก ส่วนสูง และ CrCl จากแผงข้อมูลผู้ป่วย · ผลอยู่ด้านล่างของผลคำนวณ</div>
         </div>
         <div class="panel sec hres" style="margin:0" id="pkOut"></div>
@@ -757,7 +757,7 @@ const KB=[
  renal:{bands:[B(80,999,'LD 300 mg แล้ว 150 mg q8-12h',300,[300,450]),B(40,80,'LD 300 mg แล้ว 150 mg q12h',300,300),B(20,40,'LD 300 mg แล้ว 100 mg q12h',300,200),B(0,20,'LD 300 mg แล้ว 150 mg q24h',300,150)],
   HD:M('LD 300 mg แล้ว: วันไม่ฟอก 150 mg q24h / วันฟอก 200 mg หลังฟอก',300,200),CAPD:M('LD 300 mg แล้ว 100 mg q24h',300,100),CRRT:M('150 mg q24h + 13 mg ต่อชั่วโมงที่ทำ CRRT',300,470),
   hdNote:'HD: ให้ตามรอบปกติ ถ้าเวลาปกติอยู่ก่อนฟอก วันฟอกให้เลื่อนมาหลังฟอก'},
- note:'Pre-authorized DUE: ระบุ indication + ระยะเวลา + loading dose ใน note',src:SRC_RENAL},
+ note:'Colistin: ระบุ indication + ระยะเวลา + loading dose ใน note (ป้ายห้องยา รพ.)',src:SRC_RENAL},
 
 {id:'cotrim',name:'Co-trimoxazole (mg TMP)',match:/co-?trimox|bactrim|sulfameth|smx|tmp\s*\/\s*smx/i,fam:'sulfa',unit:'mg TMP',kgDose:true,
  forms:[[/200\s*mg\s*\/\s*5|syr|susp/i,'200/40 mg per 5 ml',8,'ml'],[/800|forte|960/i,'800/160 tab',160],[/400|480/i,'400/80 tab',80]],
@@ -1042,9 +1042,9 @@ const ALT={
 ALT.cipro=ALT.ciproiv;
 const ALT_GEN='ALT ใช้ร่วมกับ systemic ATB · ค้างไว้อย่างน้อย 8-12 ชม./วัน เปลี่ยนใหม่ทุก 24 ชม. (HD: ทุกครั้งที่ฟอก) · ถอดสายถ้ายังมีอาการ >36 ชม. หรือเชื้อยังขึ้น >72 ชม.';
 
-/* ---------- ATB DUE: Pre-authorized (ID) / Post-authorized (GP) — ป้ายหน้าห้องยา รพ.มค ---------- */
+/* ---------- ATB DUE: FLOW ประเมินการใช้ยา ATB รพ.มค (Pre-authorized ID / Post-authorized; เวรเช้า 08-16 น.) ---------- */
 const DUE=[
- {re:/colistin|polymyxin\s*e/i,name:'Colistin',t:'pre',x:'ระบุ indication + ระยะเวลา + loading dose ใน note'},
+ {re:/colistin|polymyxin\s*e/i,name:'Colistin',t:'pre'},
  {re:/ceftaz\w*\s*[+\/]\s*avi|avibactam|zavicefta/i,name:'Ceftazidime/avibactam',t:'pre'},
  {re:/tigecyc|tigacil|tygacil/i,name:'Tigecycline',t:'pre'},
  {re:/sitaflox|gracevit/i,name:'Sitafloxacin',t:'pre'},
@@ -1183,7 +1183,7 @@ const fmtN=x=>{if(x==null||isNaN(x))return'–';const a=Math.abs(x);return a>=10
 function calcPatient(p){
   const o={...p};
   const age=+p.age, bw=+p.bw, ht=+p.ht, scr=+p.scr, fem=p.sex==='F';
-  o.isPed = age>0 && age<15;
+  o.isPed = age>0 && age<15; o.pna=age>0?Math.round(age*365):null; o.neo=age>0&&age*365<28; o.infant=age>0&&age<1;
   if(ht>0){const inch=ht/2.54; o.ibw = (fem?45.5:50)+2.3*(inch-60); if(o.ibw<0)o.ibw=null;}
   if(o.isPed && age>0) o.ibw = age<=6 ? 2*age+8 : (7*age-5)/2;
   if(bw>0&&ht>0){o.bmi=bw/((ht/100)**2); o.bsa=Math.sqrt(ht*bw/3600);}
@@ -1469,8 +1469,17 @@ function evaluate(row,pt,rows){
     if(f.includes('H')&&!(d&&d.special)) add('info','HAD ตามบัญชียา รพ. — ตรวจข้อบ่งใช้ ขนาด และวิธีบริหาร');
     if(f.includes('N')) add('info','ยาเสพติด — ตรวจ dose/rate และความครบถ้วนใบ ยส.5 / บจ.8'); };
   const dueChk=()=>{ const t=row.raw+' '+(mm?mm[1]+' '+mm[2]:''); const u=DUE.find(x=>x.re.test(t)); if(!u||/\block\b/i.test(row.raw)) return;
-    if(u.t==='pre') add('warn',`DUE Pre-authorized (ID): ${u.name} — ต้องได้รับอนุมัติจาก ID ก่อนจ่าย ตรวจใบ DUE${u.x?' · '+u.x:''}`);
-    else add('info',`DUE Post-authorized (GP): ${u.name} — จ่ายได้ ตรวจใบ DUE ตามเงื่อนไขที่กำหนด`); };
+    const h=(pt.now||new Date()).getHours(), morning=h>=8&&h<16, shift=morning?'เวรเช้า':h>=16?'เวรบ่าย':'เวรดึก';
+    const POST='แพทย์ไม่ต้อง consult ID · เภสัชกรจ่ายยาไปก่อน · ASP team ติดตาม/ประเมินการใช้ยาทุกสัปดาห์';
+    const PRE=morning?'เวรเช้า: แพทย์ต้อง consult ID · เภสัชกรจ่ายยาเมื่อ ID อนุมัติ':`${shift}: แพทย์ยังไม่ต้อง consult ID · เภสัชกรจ่ายยาไปก่อนจนถึง dose เวรเช้า · เวรเช้าแพทย์ consult ID แล้วจ่ายต่อเมื่อ ID อนุมัติ`;
+    const xtra=u.x?' · '+u.x:'';
+    if(u.name==='Colistin'){ const doc=/document|culture|c\/s|sensitiv|เพาะเชื้อ|ผลเชื้อ|ผล\s*c\/s|\bdx\b.*(?:acinetobacter|pseudomonas|kleb|cre|crab)/i.test(row.raw), emp=/empiric/i.test(row.raw);
+      if(doc&&!emp) add('info',`DUE Colistin (Documented): ${POST}${xtra}`);
+      else if(emp) add('warn',`DUE Pre-authorized (ID): Colistin (Empiric) — ${PRE}${xtra}`);
+      else add('warn',`DUE Colistin — ยืนยันว่า Empiric หรือ Documented · Empiric = Pre-authorized (${PRE}) · Documented (มีผลเพาะเชื้อ) = ${POST}${xtra}`);
+      return; }
+    if(u.t==='pre') add('warn',`DUE Pre-authorized (ID): ${u.name} — ${PRE}${xtra}`);
+    else add('info',`DUE Post-authorized: ${u.name} — ${POST}`); };
   const alChk=(nm)=>{ const al=(pt.allergy||'').toLowerCase().trim(); if(!al) return; const gen=(nm||'').toLowerCase().split(/[\s(\/]/)[0]; const mmn=mm?mm[1]+' '+mm[2]:'';
     const xs=typeof xaCheck==='function'?xaCheck(pt.allergy,(nm||'')+' '+row.raw+' '+mmn):[];
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
@@ -1515,11 +1524,11 @@ function evaluate(row,pt,rows){
   if(row.stated&&D!=null&&F!=null){ const bw=pt.dw||+pt.bw||null, st=row.stated, perTxt=st.per==='day'?'day':'dose';
     if(!bw) add('warn','แพทย์ระบุเป็น mg/kg — กรอกน้ำหนักเพื่อคำนวณกลับ');
     else if(row.fromStated){ const fm2=d.forms&&row.formIdx>=0?d.forms[row.formIdx]:null, mlp=fm2&&fm2[3]==='ml'?fm2[2]:row.mlMg; 
-      add('info',`คำนวณจาก ${st.v} mg/kg/${perTxt} × ${r1(bw)} kg = ${fmtN(D)} ${unitTxt(d)}/ครั้ง${mlp?` = ${r1(D/mlp)} ml`:''} (${fmtN(T)}/วัน) — ใช้ตัวเลขนี้จ่ายยา`); }
+      add('info',`คำนวณจาก ${st.v} mg/kg/${perTxt} × ${fmtN(bw)} kg = ${fmtN(D)} ${unitTxt(d)}/ครั้ง${mlp?` = ${r1(D/mlp)} ml`:''} (${fmtN(T)}/วัน) — ใช้ตัวเลขนี้จ่ายยา`); }
     else { const exp=st.per==='day'?st.v*bw/F:st.v*bw, diff=(D-exp)/exp;
-      const back=`${fmtN(D)} ÷ ${r1(bw)} kg = ${fmtN(D/bw)} mg/kg/dose (${fmtN(D*F/bw)} mg/kg/day)`;
+      const back=`${fmtN(D)} ÷ ${fmtN(bw)} kg = ${fmtN(D/bw)} mg/kg/dose (${fmtN(D*F/bw)} mg/kg/day)`;
       if(Math.abs(diff)<=0.1) add('ok',`คำนวณกลับ: ${back} ตรงกับที่แพทย์ระบุ ${st.v} mg/kg/${perTxt}`);
-      else add('flag',`ตัวเลขไม่ตรง: ${st.v} mg/kg/${perTxt} × ${r1(bw)} kg = ${fmtN(exp)} mg/ครั้ง แต่สั่ง ${fmtN(D)} mg (${diff>0?'มากกว่า':'น้อยกว่า'} ${r0(Math.abs(diff)*100)}%) · คำนวณกลับ: ${back}`); } }
+      else add('flag',`ตัวเลขไม่ตรง: ${st.v} mg/kg/${perTxt} × ${fmtN(bw)} kg = ${fmtN(exp)} mg/ครั้ง แต่สั่ง ${fmtN(D)} mg (${diff>0?'มากกว่า':'น้อยกว่า'} ${r0(Math.abs(diff)*100)}%) · คำนวณกลับ: ${back}`); } }
   if(row.iv&&D!=null){ const iv=row.iv; const parts=[];
     if(iv.vol){ parts.push(`ผสม ${iv.vol} ml → ${fmtN(D/iv.vol)} ${unitTxt(d)}/ml`); }
     let min=iv.min; if(!min&&iv.rate&&iv.vol) min=iv.vol/iv.rate*60;
@@ -1532,7 +1541,7 @@ function evaluate(row,pt,rows){
   // ---- TB
   if(useTB && D!=null && F!=null){hit=true; evalTB(d,D,F,pt,add,res);}
   // ---- pediatrics
-  else if(pt.isPed){
+  else if(pt.isPed){ if(pt.neo) add('warn',`ทารกแรกเกิด (อายุ ${pt.pna} วัน): ขนาดยาเด็กในฐานกฎเป็นของเด็กโต ไม่ครอบคลุมทารกแรกเกิด — ขนาดและช่วงห่างขึ้นกับ GA (อายุครรภ์) และ PNA (อายุหลังคลอด) ตรวจกับ Neofax / Lexicomp neonatal หรือแนวทางกุมารเวช`);
     if(d.peds&&D!=null&&F!=null){hit=true;evalPed(d,row,D,F,pt,add,res);}
     else if(d.renal||d.variants||d.adult) add('info','ผู้ป่วยเด็ก: ไม่มีกฎขนาดยาเด็กสำหรับยานี้ในฐาน');
     if((d.renal||d.variants)&&pt.schwartz!=null&&pt.schwartz<50) add('warn',`เด็กไตบกพร่อง (eGFR Schwartz ${r0(pt.schwartz)}) — ปรับขนาดตามแหล่งอ้างอิงเด็ก`);
@@ -1816,6 +1825,10 @@ function hadCalc(key,inp){
 }
 if(typeof module!=='undefined') module.exports={calcPatient,parseLine,evaluate,hadCalc,KB,freqLabel,rowDose};
 
+/* อายุ: กรอกเป็น ปี / เดือน / วัน → เก็บเป็นปีใน #age */
+function ageSync(){ const v=$('ageIn').value, u=$('ageU').value; $('age').value=v===''?'':+(u==='d'?v/365:u==='m'?v/12:+v).toFixed(5); $('age').dispatchEvent(new Event('input',{bubbles:true})); }
+function ageSyncIn(){ const a=$('age').value; if(a===''){ $('ageIn').value=''; return; } const y=+a; if(y<1/12){ $('ageU').value='d'; $('ageIn').value=Math.round(y*365); } else if(y<2&&Math.abs(y*12-Math.round(y*12))<0.01&&y<1){ $('ageU').value='m'; $('ageIn').value=Math.round(y*12); } else { $('ageU').value='y'; $('ageIn').value=+y.toFixed(2); } }
+function ageTxt(){ const v=$('ageIn')?$('ageIn').value:$('age').value; if(v==='') return ''; const u=$('ageU')?$('ageU').value:'y'; return `${v} ${u==='d'?'วัน':u==='m'?'เดือน':'ปี'}`; }
 /* ===== UI ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1891,7 +1904,7 @@ function renderRows(){
 
 function buildNote(evs,pt){
   if(!rows.length){$('note').value='';return}
-  const hdr=[`[Screen IPD] ${sex==='F'?'หญิง':'ชาย'} ${$('age').value||'–'} ปี BW ${$('bw').value||'–'} kg`];
+  const hdr=[`[Screen IPD] ${sex==='F'?'หญิง':'ชาย'} ${ageTxt()||'– ปี'} BW ${$('bw').value||'–'} kg`];
   if(pt.dial) hdr.push(pt.dial); else if(pt.isPed) hdr.push(`eGFR(Schwartz) ${pt.schwartz!=null?r0(pt.schwartz):'–'}`);
   else hdr.push(`${pt.crclSrc==='HIS'?'CrCl(HIS)':`SCr ${$('scr').value||'–'} → CrCl(CG)`} ${pt.crcl!=null?r1(pt.crcl):'–'} ml/min${pt.egfr!=null?`, eGFR ${r0(pt.egfr)}`:''}`);
   if(pt.inr!=null) hdr.push(`INR ${pt.inr}`); if(pt.k!=null) hdr.push(`K ${pt.k}`);
@@ -1925,11 +1938,11 @@ $('parseRep').onclick=()=>doParse(true); $('parseAdd').onclick=()=>doParse(false
 $('clearRows').onclick=()=>{rows=[];renderRows();};
 // เริ่มเคสใหม่: ล้างข้อมูลผู้ป่วย + ข้อความ + รายการยา เพื่อไม่ให้ค่าของผู้ป่วยคนก่อนค้าง
 $('clearAll').onclick=()=>{
-  ['age','bw','ht','scr','crclIn','egfrIn','inr','k','mgl','allergy','paste','hBw','lBw'].forEach(id=>{const el=$(id); if(el) el.value='';});
+  ['age','ageIn','bw','ht','scr','crclIn','egfrIn','inr','k','mgl','allergy','paste','hBw','lBw'].forEach(id=>{const el=$(id); if(el) el.value='';});
   $('mode').value=''; $('wbasis').value='auto'; $('preg').checked=false; $('tb').checked=false;
   sex='M'; $('sexM').setAttribute('aria-pressed',true); $('sexF').setAttribute('aria-pressed',false);
   rows=[]; const ex=document.getElementById('exNote'); if(ex) ex.remove();
-  renderRows(); renderHad(); renderLiq(); $('age').focus();
+  $('ageU').value='y'; renderRows(); renderHad(); renderLiq(); $('ageIn').focus();
 };
 $('dmList').innerHTML=DM.map(m=>`<option value="${esc(m[0]+' · '+m[1])}">`).join('')+SORTED.filter(d=>!DM.some(m=>m[8]===d.id)).map(d=>`<option value="${esc(d.name)}">`).join('');
 $('kUnit').innerHTML=unitOpts('mg'); $('kFreq').innerHTML=FREQ_OPTS.map(([v,l])=>`<option value="${v}"${v==='2'?' selected':''}>${l}</option>`).join('');
@@ -2093,8 +2106,8 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.6.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
-$('age').value=EX_PT.age;$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
+$('ver').textContent=`ต้นแบบ v0.6.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
 {const d3=LIQ.find(x=>/VIT D3/i.test(x.name)); if(d3){$('lDrug').value=d3.code+' · '+d3.name; pickLiq(); $('lDose').value=400; $('lDays').value=30; renderLiq();}}
@@ -2189,13 +2202,15 @@ function renderPk(){
   h+='<h2 style="margin-top:20px">Colistin (mg CBA)</h2>';
   const ht=+$('ht').value||null;
   if(!(bw>0)) h+='<div class="empty">กรอกน้ำหนัก</div>';
-  else { const ld=Math.min(5*bw,300), kv=[['Loading dose (2.5 × 2 × BW, max 300)',`${r0(ld)} mg CBA${5*bw>300?` (คำนวณได้ ${r0(5*bw)})`:''}`]], m=[];
-    if(pt.dial) m.push(li('info',`${pt.dial}: ใช้ขนาดตามกฎ ${pt.dial} ในแท็บตรวจใบสั่งยา`));
-    else if(crcl>0&&ht>0&&pt.bsa){ const crn=crcl*1.73/pt.bsa, md=2.5*(1.5*crn+30);
-      kv.push(['BSA',`${fmtN(pt.bsa)} m²`],['CrCl normalized (× 1.73/BSA)',`${fmtN(crn)} ml/min/1.73m²`],['Maintenance 2.5 × (1.5 × CrCln + 30)',`${r0(md)} mg CBA/วัน (≈ ${r0(md/2)} mg q12h)`]);
-      m.push(li('info','ชีตเดิมใช้ CrCl × BSA (ไม่ใช่ × 1.73/BSA) — ทำให้ maintenance สูงเกินจริงเมื่อ BSA >1'));}
-    else m.push(li('info','กรอกส่วนสูงและ SCr/CrCl เพื่อคำนวณ maintenance'));
-    const kd=KB.find(x=>x.id==='colistin'); if(kd&&crcl>0&&!pt.dial){const b=kd.renal.bands.find(b=>crcl>=b.lo&&crcl<b.hi); if(b) m.push(li('info',`ตามคู่มือปรับยาตามไต รพ. (CrCl ${fmtN(crcl)}): ${b.txt}`));}
+  else { const kd=KB.find(x=>x.id==='colistin'), m=[], kv=[];
+    let hosp=null; if(kd){ if(pt.dial&&kd.renal[pt.dial]) hosp=kd.renal[pt.dial].txt; else if(crcl>0){const b=kd.renal.bands.find(b=>crcl>=b.lo&&crcl<b.hi); if(b) hosp=b.txt;} }
+    kv.push(['Loading dose','300 mg CBA ครั้งเดียว (ไม่ปรับตามไต)']);
+    kv.push([`ขนาดตามคู่มือปรับยาตามไต รพ.${pt.dial?` (${pt.dial})`:crcl>0?` (CrCl ${fmtN(crcl)})`:''}`,hosp?esc(hosp):'กรอก CrCl / SCr หรือเลือกการบำบัดทดแทนไต']);
+    if(pt.dial==='HD') m.push(li('info','HD: ให้ตามรอบปกติ ถ้าเวลาปกติตรงก่อนฟอก วันฟอกให้เลื่อนมาหลังฟอก'));
+    if(!pt.dial&&crcl>0&&ht>0&&pt.bsa){ const crn=crcl*1.73/pt.bsa, md=2.5*(1.5*crn+30);
+      kv.push(['อ้างอิงเพิ่ม: Garonzik 2.5 × (1.5 × CrCln + 30)',`${r0(md)} mg CBA/วัน (CrCln ${fmtN(crn)} ml/min/1.73m²)`]);
+      m.push(li('info','สูตร Garonzik ใช้ประกอบเท่านั้น — ยึดขนาดตามคู่มือปรับยาตามไตของ รพ. เป็นหลัก'));}
+    m.push(li('info',`Loading 300 mg CBA ตามคู่มือ รพ. และ international consensus 2019 (ฉลาก FDA คิดตามน้ำหนัก 5 mg/kg = ${r0(5*bw)} mg)`));
     h+=`<dl class="kv" style="margin-bottom:12px">${kv.map(([a,x])=>`<dt>${a}</dt><dd>${x}</dd>`).join('')}</dl><ul class="msgs">${m.join('')}</ul>`; }
   $('pkOut').innerHTML=h;
 }
@@ -2344,6 +2359,8 @@ $('wOrder').addEventListener('input',()=>{const L=$('wOrder').value; if(!L.trim(
 ['old','new'].forEach(k=>{$(`w_${k}_s`).addEventListener('change',renderWf); WD.forEach(d=>$(`w_${k}_${d}`).addEventListener('input',renderWf));});
 $('t-wf').addEventListener('click',renderWf); $('inr').addEventListener('input',()=>{if(!$('p-wf').hidden)renderWf();});
 renderWf();
+
+$('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change',ageSync);
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';
@@ -2496,13 +2513,13 @@ function adrOut(){
   // timeline
   adrChart(on); if(typeof aldOut==='function'&&!$('asm-alden').hidden) aldOut();
   // output text
-  const age=$('age').value, bw=$('bw').value, rt=ADR_RT.find(r=>r[0]===ADR.rtype);
+  const age=ageTxt(), bw=$('bw').value, rt=ADR_RT.find(r=>r[0]===ADR.rtype);
   const role={S:'ยาที่สงสัย (S)',O:'ยาที่ใช้ร่วม (O)',I:'ยาที่เกิดปฏิกิริยาต่อกัน (I)'};
   const dline=d=>{const L=adrLat(d,on), s=narScore(d.id); return `- ${d.name}${d.dose?` · ${d.dose}`:''} · เริ่ม ${d.sd||'–'}${d.st?' '+d.st:''} · หยุด ${d.ed?d.ed+(d.et?' '+d.et:''):'ยังใช้อยู่'}${d.ind?` · ข้อบ่งใช้ ${d.ind}`:''} · แหล่ง ${d.src}${L&&L.v!=='after'?` · ก่อนเกิดอาการ ${fmtN(L.days)} วัน`:''}${s!=null?` · Naranjo ${s} (${narCat(s)[0]})`:''}`;};
   const evs=[...ADR.evs].sort((a,b)=>((tlDate(a.d,a.t)||0)-(tlDate(b.d,b.t)||0)));
   const evl=t=>evs.filter(e=>e.type===t);
   const labTxt=e=>`${e.lab} ${e.val}${e.unit?' '+e.unit:''}${e.lo!==''&&e.hi!==''?` [${e.lo}-${e.hi}]`:e.hi!==''?` [≤${e.hi}]`:e.lo!==''?` [≥${e.lo}]`:''}${labAbn(e)?' *':''} (${e.d}${e.t?' '+e.t:''})`;
-  const out=[`แบบรายงาน ADR (HPVC) — ข้อมูลสรุป`,`ผู้ป่วย: ${sex==='F'?'หญิง':'ชาย'} ${age||'–'} ปี น้ำหนัก ${bw||'–'} kg${ADR.f.hx?` · ประวัติ/โรคประจำตัว: ${ADR.f.hx}`:''}`,
+  const out=[`แบบรายงาน ADR (HPVC) — ข้อมูลสรุป`,`ผู้ป่วย: ${sex==='F'?'หญิง':'ชาย'} ${age||'–'} น้ำหนัก ${bw||'–'} kg${ADR.f.hx?` · ประวัติ/โรคประจำตัว: ${ADR.f.hx}`:''}`,
     `ชนิดอาการ: ${rt&&rt[0]?rt[1]:'–'}`,
     ...['S','I','O'].flatMap(r=>{const x=ds.filter(d=>d.role===r); return x.length?[`${role[r]}:`,...x.map(dline)]:[];}),
     `เหตุการณ์ไม่พึงประสงค์:`,...(evl('adr').length?evl('adr').map(e=>`- ${e.d}${e.t?' '+e.t:''} ${e.text}${e.sev?` (${e.sev})`:''}`):['- –']),
@@ -2519,7 +2536,7 @@ function adrOut(){
     `ระดับความน่าจะเป็น (WHO-UMC): ${ADR.who?ADR.who+' ('+(WHO_UMC.find(w=>w[0]===ADR.who)||['',''])[1]+')':'–'}${narTxt.length?` · Naranjo: ${narTxt.join('; ')}`:''}${rk.length?` · RegiSCAR ${rs} (${regiCat(rs)})`:''}${ADR.agep?` · EuroSCAR AGEP ${ADR.agep.s} (${ADR.agep.c})`:''}${ADR.aldenRes&&ADR.aldenRes.length?` · ALDEN: ${ADR.aldenRes.join('; ')}`:''}${ADR.penfast?` · PEN-FAST ${ADR.penfast.s} (${ADR.penfast.r})`:''}`];
   $('aOutTxt').value=out.join('\n');
   const sp=ds.filter(d=>d.role==='S');
-  const note=[`Pharmacist note (ADR)`,`S/O: ${sex==='F'?'หญิง':'ชาย'} ${age||'–'} ปี${ADR.f.hx?' · '+ADR.f.hx:''}`,
+  const note=[`Pharmacist note (ADR)`,`S/O: ${sex==='F'?'หญิง':'ชาย'} ${age||'–'}${ADR.f.hx?' · '+ADR.f.hx:''}`,
     ...evl('adr').map(e=>`  ${e.d}${e.t?' '+e.t:''}: ${e.text}`),...evl('lab').filter(labAbn).map(e=>'  '+labTxt(e)),
     `  Timeline: ${ds.map(d=>`${d.name} ${d.sd||'?'}→${d.ed||'ปัจจุบัน'}`).join(' · ')||'–'}`,
     `A: suspected ${rt&&rt[0]?rt[1]:'ADR'} due to ${sp.map(d=>d.name).join(', ')||'–'}${sp.map(d=>{const L=adrLat(d,on);return L&&L.v!=='after'?` (latency ${fmtN(L.days)} d)`:''}).join('')}`,
@@ -2797,7 +2814,7 @@ function lbOut(){ const sum=(S,f)=>LB_ALL.filter(r=>S[r[0]]&&(!f||r[0][0]===f)).
   $('lbRes').innerHTML=`<div class="adr2" style="gap:10px"><div class="big"><span class="n" style="color:var(--flag)">${fmtN(d)}%</span><span class="u">หนังกำพร้าหลุด / ตุ่มน้ำ (detachment)</span></div><div class="big"><span class="n" style="color:var(--warn)">${fmtN(r)}%</span><span class="u">พื้นที่ผื่น</span></div></div>
    <ul class="msgs" style="margin-top:8px">${d>0?li(d>30?'flag':d>=10?'flag':'warn',`Detachment ${fmtN(d)}% BSA → ${d<10?'SJS (<10%)':d<=30?'SJS-TEN overlap (10–30%)':'TEN (>30%)'}`):li('info','เลือกโหมด "หนังหลุด/ตุ่มน้ำ" แล้วคลิกบริเวณบนรูปเพื่อแยก SJS / overlap / TEN')}
    ${r>0?li(r>50?'warn':'info',`ผื่น ${fmtN(r)}% BSA ${r>50?'(>50% — RegiSCAR ข้อผื่น +1)':''}`):''}
-   ${li('info',`ค่าตามอายุ ${$('age').value||'ผู้ใหญ่'} ปี (Lund & Browder: ศีรษะ ต้นขา ขาล่าง ปรับตามอายุ) · คลิกซ้ำเพื่อยกเลิก · รูปด้านหน้ามองจากผู้ตรวจ (ซ้ายของภาพ = ข้างขวาผู้ป่วย)`)}</ul>`;
+   ${li('info',`ค่าตามอายุ ${ageTxt()||'ผู้ใหญ่'} (Lund & Browder: ศีรษะ ต้นขา ขาล่าง ปรับตามอายุ) · คลิกซ้ำเพื่อยกเลิก · รูปด้านหน้ามองจากผู้ตรวจ (ซ้ายของภาพ = ข้างขวาผู้ป่วย)`)}</ul>`;
   if(d>0){ $('rashBsa').value=+d.toFixed(2); rashOut(); const sc=document.querySelector('[data-sc="bsa"]'); if(sc){sc.checked=d>=10; scOut();} }
   const rb=document.querySelector('[data-regi="bsa"]'); if(rb&&r>0){ rb.value=r>50?'y':'n'; ADR.regi.bsa=rb.value; }
   ADR.bsa={d,r}; adrOut(); }
@@ -2809,7 +2826,7 @@ function adrPrint(){ adrOut(); let pa=document.getElementById('printArea'); if(!
   const svg=$('aChart').querySelector('svg'); const role={S:'S',O:'O',I:'I'};
   pa.innerHTML=`<div class="ph"><div><b style="font-size:15pt">ADR Timeline / แบบบันทึกติดตามอาการไม่พึงประสงค์จากการใช้ยา</b><br>กลุ่มงานเภสัชกรรม โรงพยาบาลมหาสารคาม</div><div style="text-align:right">พิมพ์ ${tlFmt(n)}</div></div>
    <table class="pt4"><tr><td>ชื่อ-สกุล ..........................................................</td><td>HN ........................</td><td>AN ........................</td><td>หอผู้ป่วย ........................</td></tr>
-   <tr><td>เพศ ${sex==='F'?'หญิง':'ชาย'} · อายุ ${$('age').value||'....'} ปี · น้ำหนัก ${$('bw').value||'....'} kg</td><td colspan="3">ประวัติแพ้ยา/โรคประจำตัว: ${esc([$('allergy').value,ADR.f.hx].filter(Boolean).join(' · ')||'..................................................................')}</td></tr></table>
+   <tr><td>เพศ ${sex==='F'?'หญิง':'ชาย'} · อายุ ${ageTxt()||'.... ปี'} · น้ำหนัก ${$('bw').value||'....'} kg</td><td colspan="3">ประวัติแพ้ยา/โรคประจำตัว: ${esc([$('allergy').value,ADR.f.hx].filter(Boolean).join(' · ')||'..................................................................')}</td></tr></table>
    ${svg?`<div class="psvg">${svg.outerHTML}</div>`:''}
    <table class="pt4 grid"><tr><th>บทบาท</th><th>ยา / ขนาด / วิธีใช้</th><th>เริ่ม</th><th>หยุด</th><th>ก่อนเกิดอาการ</th><th>Naranjo</th></tr>
    ${ds.map(d=>{const L=adrLat(d,on), s=narScore(d.id); return `<tr><td>${role[d.role]}</td><td>${esc(d.name)}${d.dose&&d.dose!==d.name?`<br><small>${esc(d.dose)}</small>`:''}</td><td>${esc(d.sd)} ${esc(d.st)}</td><td>${esc(d.ed||'ยังใช้อยู่')}</td><td>${L&&L.v!=='after'?fmtN(L.days)+' วัน':'–'}</td><td>${s!=null?`${s} (${narCat(s)[0]})`:'–'}</td></tr>`;}).join('')}</table>
@@ -2834,7 +2851,7 @@ function adrPrintMKH(){ adrOut(); let pa=document.getElementById('printArea'); i
   pa.innerHTML=`<div class="mk"><div style="text-align:right;font-size:9pt">MKH-FR-PHA-048 (แก้ไขครั้งที่ : 05) บังคับใช้วันที่ 1/ส.ค./60</div>
   <div class="mkt">แบบบันทึกกิจกรรมการติดตามอาการไม่พึงประสงค์จากการใช้ยา กลุ่มงานเภสัชกรรม โรงพยาบาลมหาสารคาม</div>
   <table class="pt4"><tr><td>ชื่อ-สกุล ................................................</td><td>HN ....................</td><td>AN ....................</td><td>หอผู้ป่วย ....................</td></tr>
-  <tr><td colspan="2">เพศ ${sex==='F'?'หญิง':'ชาย'} อายุ ${$('age').value||'....'} ปี น้ำหนัก ${$('bw').value||'....'} kg</td><td colspan="2">${bx(M.cls==='ADR')} ADR &nbsp; ${bx(M.cls==='non')} non-ADR &nbsp; ${bx(M.cls==='insuf')} ข้อมูลไม่เพียงพอต่อการประเมิน</td></tr></table>
+  <tr><td colspan="2">เพศ ${sex==='F'?'หญิง':'ชาย'} อายุ ${ageTxt()||'.... ปี'} น้ำหนัก ${$('bw').value||'....'} kg</td><td colspan="2">${bx(M.cls==='ADR')} ADR &nbsp; ${bx(M.cls==='non')} non-ADR &nbsp; ${bx(M.cls==='insuf')} ข้อมูลไม่เพียงพอต่อการประเมิน</td></tr></table>
   <table class="pt4 grid"><tr><th style="width:22%">ยาที่ได้รับ/อาการที่เกิด</th><td>${ds.map(d=>`${d.role} · ${esc(d.name)}${d.dose&&d.dose!==d.name?` (${esc(d.dose)})`:''} เริ่ม ${esc(d.sd||'-')} หยุด ${esc(d.ed||'ยังใช้อยู่')}`).join('<br>')||'–'}<br><b>อาการ:</b> ${evs.filter(e=>e.type==='adr').map(e=>`${esc(e.d)} ${esc(e.text)}`).join(' · ')||'–'}</td></tr>
   <tr><th>ลำดับเหตุการณ์</th><td>${svg?`<div class="psvg">${svg.outerHTML}</div>`:''}${evs.map(e=>`${esc(e.d)} ${esc(e.t)} — ${{adr:'อาการ',relief:'ยาบรรเทา',lab:'Lab',note:'หมายเหตุ'}[e.type]}: ${e.type==='lab'?esc(`${e.lab} ${e.val} ${e.unit}`)+(labAbn(e)?' *':''):esc(e.text)}`).join('<br>')}</td></tr>
   <tr><th>Pharmacist Note</th><td><pre>${esc($('aNoteTxt').value)}</pre></td></tr></table>

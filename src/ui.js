@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const LVL_TXT={flag:'ปรับ',warn:'ทบทวน',ok:'OK',info:'ข้อมูล'};
 const ST_TXT={flag:'ต้อง consult',warn:'ทบทวน',ok:'OK',none:'ไม่มีกฎ'};
-const UNITS=[['mg','mg'],['g','g'],['unit','เม็ด/หน่วย'],['ml','ml'],['mgkg','mg/kg']];
+const UNITS=[['mg','mg'],['mcg','mcg'],['mEq','mEq'],['g','g'],['unit','เม็ด/หน่วย'],['ml','ml'],['mgkg','mg/kg']];
 const FREQ_OPTS=[['6','q4h'],['4','q6h / QID'],['3','q8h / TID'],['2','q12h / BID'],['1.3333','q18h'],['1','q24h / OD'],['0.6667','q36h'],['0.5','q48h'],['0.3333','q72h'],['0.4286','3 ครั้ง/สัปดาห์'],['0.2857','2 ครั้ง/สัปดาห์'],['0.1429','สัปดาห์ละครั้ง'],['5','วันละ 5 ครั้ง']];
 const SORTED=[...KB].sort((a,b)=>a.name.localeCompare(b.name));
 let sex='M', rows=[], noteAll=false;
@@ -279,7 +279,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.6.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.6.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

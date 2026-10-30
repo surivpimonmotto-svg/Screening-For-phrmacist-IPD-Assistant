@@ -405,10 +405,22 @@ const HAD={
  dopa:{name:'Dopamine',amp:250,ampTxt:'250 mg/10 ml',u:'mg',dose:'mcgkgmin',range:[2,20],max:50,periph:2,maxConc:3.2,dil:''},
  dobu:{name:'Dobutamine',amp:250,ampTxt:'250 mg/amp',u:'mg',dose:'mcgkgmin',range:[2,15],max:40,periph:2,maxConc:5,dil:''},
  nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
- fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ'},
+ fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
  kcl:{name:'Potassium chloride',amp:20,ampTxt:'20 mEq/amp',u:'mEq',dose:'meqh',dil:'ห้าม IV push / IM'},
  mg:{name:'Magnesium sulfate',amp:1,ampTxt:'1 g/amp',u:'g',dose:'gh',max:4,maxDay:40,maxConc:200,dil:''},
  hep:{name:'Heparin',amp:25000,ampTxt:'25,000 unit/5 ml',u:'unit',dose:'uh',max:2000,maxDay:48000,dil:'ผสมให้ได้ 100 unit/ml'}
+};
+/* ค่ามาตรฐานที่แสดงในสรุป HAD — null = ยังไม่มีข้อมูล (เติมได้ทีละข้อ) · ⚑ = อ้างอิงทั่วไป ยังไม่ใช่คู่มือ รพ. */
+const HAD_STD={
+ ne:{usual:'0.04–0.6 mcg/kg/min',maxDose:'2 mcg/kg/min · ≤68 mg/วัน',maxConc:'peripheral ≤0.016 mg/ml · central ≤0.08 mg/ml',src:SRC_HAD},
+ adr:{usual:'0.05–1 mcg/kg/min',maxDose:'1 mcg/kg/min',maxConc:'≤0.1 mg/ml',src:SRC_HAD},
+ dopa:{usual:'2–20 mcg/kg/min',maxDose:'50 mcg/kg/min',maxConc:'peripheral ≤2 mg/ml · central ≤3.2 mg/ml',src:SRC_HAD},
+ dobu:{usual:'2–15 mcg/kg/min',maxDose:'40 mcg/kg/min',maxConc:'peripheral ≤2 mg/ml · central ≤5 mg/ml',src:SRC_HAD},
+ nica:{usual:'เริ่ม 3–5 mg/h เพิ่มครั้งละ 0.5–1 mg/h ทุก 15 นาที',maxDose:'15 mg/h',maxConc:null,src:SRC_HAD},
+ fenta:{usual:'0.7–10 mcg/kg/h (continuous infusion ICU analgesia/sedation) ⚑',maxDose:null,maxConc:'50 mcg/ml (ยาไม่เจือจาง) ⚑',src:'⚑ อ้างอิงทั่วไป (SCCM PADIS / Lexicomp) — รอคู่มือ HAD รพ.'},
+ kcl:{usual:'ตามระดับ K และข้อบ่งใช้',maxDose:'peripheral ≤10 mEq/h · central ≤40 mEq/h',maxConc:'peripheral ≤80 mEq/L · central ≤150 mEq/L · fluid restrict ≤200 mEq/L',src:'ป้าย KCl รพ.'},
+ mg:{usual:'ตามข้อบ่งใช้',maxDose:'4 g/h · 40 g/วัน',maxConc:'200 mg/ml',src:SRC_HAD},
+ hep:{usual:'ตามข้อบ่งใช้ (ตาราง bolus/infusion ในแท็บคำนวณ HAD)',maxDose:'2,000 unit/h · 48,000 unit/วัน',maxConc:'ผสม 100 unit/ml',src:SRC_HAD}
 };
 const HADKEY={ne:'ne',adr:'adr',dopa:'dopa',dobu:'dobu',heparin:'hep',kcl:'kcl',mgso4:'mg',nica:'nica',fenta:'fenta'};
 const HEP_IND=[['Acute MI with fibrinolytic',60,4000,12,1000],['ACS, mechanical valve',70,5000,15,1200],['PE & ventricular/atrial thrombus',80,10000,18,1800],['Peripheral arterial embolism / DVT',80,5000,18,1000]];

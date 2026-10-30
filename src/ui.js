@@ -24,7 +24,8 @@ LO-SAR-TAN 50 MG TAB. 1x1
 AMOXY+CLAVULANATE 1G TAB. 1x2 pc`;
 
 function getPt(){return calcPatient({sex,age:$('age').value,bw:$('bw').value,ht:$('ht').value,scr:$('scr').value,mode:$('mode').value,wbasis:$('wbasis').value==='abw'?'none':$('wbasis').value,
-  inr:$('inr').value,k:$('k').value,mgl:$('mgl').value,crclIn:$('crclIn').value,egfrIn:$('egfrIn').value,allergy:$('allergy').value,preg:$('preg').checked,tb:$('tb').checked});}
+  inr:$('inr').value,k:$('k').value,mgl:$('mgl').value,crclIn:$('crclIn').value,egfrIn:$('egfrIn').value,allergy:$('allergy').value,preg:$('preg').checked,tb:$('tb').checked,lab:labRead()});}
+function labRead(){const o={};LAB_EXTRA.forEach(([k])=>{const el=$('L_'+k);if(el&&el.value!=='')o[k]=+el.value;});return o;}
 
 function renderCalc(pt){
   const parts=[];
@@ -41,6 +42,9 @@ function renderCalc(pt){
   if(pt.obese&&!pt.isPed) parts.push(`<div class="band w">น้ำหนักเกิน 130% IBW — ใช้ ${esc(pt.wlab)} คำนวณ</div>`);
   if(+pt.age>=65) parts.push(`<div class="band">ผู้สูงอายุ ≥65 ปี — ตรวจยาเฝ้าระวังผู้สูงอายุ</div>`);
   if(+pt.age>=15&&+pt.age<18) parts.push(`<div class="band w">อายุ 15-17 ปี — Cockcroft-Gault ออกแบบสำหรับผู้ใหญ่ ใช้ด้วยดุลยพินิจ</div>`);
+  const la=labAlerts(pt.lab||{},pt);
+  if(la.length) parts.push(`<div class="labal">${la.map(([l,t])=>`<div class="band ${l==='flag'?'f':l==='warn'?'w':''}">${esc(t)}</div>`).join('')}</div>`);
+  const ls=$('labSum'); if(ls){ const L=pt.lab||{}; ls.textContent=[L.anc!=null?'ANC '+fmtN(Math.round(L.anc)):'',L.plt!=null?'Plt '+fmtN(L.plt):'',L.cacorr!=null?'cCa '+(Math.round(L.cacorr*10)/10):''].filter(Boolean).join(' · '); }
   $('calc').innerHTML=parts.join('');
 }
 
@@ -148,7 +152,7 @@ $('copyNote').onclick=()=>{const v=$('note').value; const done=()=>{$('toast').t
   try{navigator.clipboard.writeText(v).then(done,()=>{$('note').select();$('toast').textContent='เลือกข้อความแล้ว กด Ctrl+C';});}catch(e){$('note').select();}};
 
 /* tabs */
-const TABS=['screen','had','liq','dex','opi','pk','tl','wf','adr','kb'];
+const TABS=['screen','had','liq','dex','opi','pk','tl','wf','cmt','adr','kb'];
 function tab(n){TABS.forEach(t=>{$('t-'+t).setAttribute('aria-selected',t===n);$('p-'+t).hidden=t!==n;});}
 TABS.forEach(t=>$('t-'+t).onclick=()=>tab(t));
 
@@ -279,7 +283,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.6.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.7.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -534,3 +538,43 @@ $('t-wf').addEventListener('click',renderWf); $('inr').addEventListener('input',
 renderWf();
 
 $('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change',ageSync);
+
+/* ---------- กล่องผล Lab ---------- */
+(function(){ const g=$('labGrid'); if(!g) return;
+  g.innerHTML=LAB_EXTRA.map(([k,n,un])=>`<label class="f">${n}${un?` <small>(${un})</small>`:''}<input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`).join('');
+  LAB_EXTRA.forEach(([k])=>$('L_'+k).addEventListener('input',()=>{renderRows(); if(!$('p-cmt').hidden) renderCmt();}));
+  $('labParse').onclick=()=>{ const v=labParse($('labPaste').value); let n=0;
+    LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; n++; } });
+    $('labMsg').textContent=n?`อ่านได้ ${n} ค่า — ตรวจตัวเลขก่อนใช้`:'อ่านค่าไม่ได้ — กรอกเองในช่อง';
+    if(v.egfrIn==null&&v.crclIn==null&&v.scr!=null) {} renderRows(); if(!$('p-cmt').hidden) renderCmt(); };
+  $('labClear').onclick=()=>{ LAB_EXTRA.forEach(([k])=>$('L_'+k).value=''); $('labPaste').value=''; $('labMsg').textContent=''; renderRows(); };
+})();
+
+/* ---------- แท็บเคมีบำบัด ---------- */
+function renderCmt(){ const pt=getPt(); const r=CHEMO_REG.find(x=>x.id===$('cReg').value)||CHEMO_REG[0];
+  const auc=+$('cAuc').value||5, g=carboGfr(pt), L=pt.lab||{};
+  const head=[];
+  head.push(`<div class="kv2">BSA (Mosteller) <b>${pt.bsa?pt.bsa.toFixed(2)+' m²':'– ใส่ส่วนสูง+น้ำหนัก'}</b> · BW <b>${pt.bw||'–'}</b> kg · CrCl <b>${pt.crcl!=null?r1(pt.crcl):'–'}</b> · ANC <b>${L.anc!=null?fmtN(Math.round(L.anc)):'–'}</b> · Plt <b>${L.plt!=null?fmtN(L.plt):'–'}</b></div>`);
+  const al=[]; if(L.anc!=null&&L.anc<1500) al.push(['f',`ANC ${fmtN(Math.round(L.anc))} <1,500 — ตรวจเกณฑ์ก่อนให้ยา ⚑`]); if(L.plt!=null&&L.plt<100000) al.push(['w',`Platelet ${fmtN(L.plt)} <100,000 ⚑`]); if(L.anc==null) al.push(['','ยังไม่มี ANC — ใส่ WBC และ Neutrophil (%) ในกล่องผล Lab (แผงซ้าย)']);
+  if(L.tbil!=null&&L.tbil>3) al.push(['w',`Total bilirubin ${L.tbil} — พิจารณาปรับขนาดยาที่ขับทางตับ`]);
+  const rows=r.d.map((x,i)=>{ const [n,v,t,day,note]=x; let calc=null,basis='';
+    if(t==='m2'||t==='m2day'){ basis=`${v} mg/m²${t==='m2day'?'/วัน':''}`; if(pt.bsa) calc=v*pt.bsa; }
+    else if(t==='kg'){ basis=`${v} mg/kg`; if(+pt.bw>0) calc=v*pt.bw; }
+    else if(t==='auc'){ basis=`AUC ${auc} × (GFR+25)`; if(g!=null) calc=auc*(g+25); }
+    let cap=''; if(/vincristine/i.test(n)&&calc>2){ cap=' → cap 2 mg'; calc=2; }
+    const ord=+($('cOrd'+i)?.value||'');
+    let st='';
+    if(calc&&ord>0){ const d=(ord-calc)/calc*100; const lv=Math.abs(d)<=CHEMO_TOL?'ok':Math.abs(d)<=10?'warn':'flag';
+      st=`<span class="tag ${lv}">${lv==='ok'?'OK':lv==='warn'?'ทบทวน':'ปรับ'}</span> ${d>0?'+':''}${fmtN(Math.round(d*10)/10)}%`; }
+    return `<tr><td><b>${esc(n)}</b>${note?`<div class="hint">${esc(note)}</div>`:''}</td><td>${basis}</td><td class="num"><b>${calc!=null?fmtN(Math.round(calc*10)/10)+' mg':'–'}</b>${cap}${t==='m2day'&&calc?`<div class="hint">ครั้งละ ${fmtN(Math.round(calc/2))} mg วันละ 2 ครั้ง</div>`:''}</td><td>${esc(day||'')}</td><td><input id="cOrd${i}" data-i="${i}" type="number" inputmode="decimal" step="any" style="width:100px" value="${ord>0?ord:''}"></td><td>${st}</td></tr>`; }).join('');
+  $('cOut').innerHTML=head.join('')+al.map(([c,t])=>`<div class="band ${c}">${esc(t)}</div>`).join('')+
+   `<div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาดตามสูตร</th><th>คำนวณได้</th><th>วัน</th><th>แพทย์สั่ง (mg)</th><th>ผล (±${CHEMO_TOL}%)</th></tr></thead><tbody>${rows}</tbody></table></div>`+
+   (r.note?`<p class="hint">${esc(r.note)}</p>`:'')+`<p class="hint">ที่มา: ${SRC_CMT} · BSA Mosteller = √(ส่วนสูง × น้ำหนัก / 3600) · Carboplatin: Calvert AUC × (GFR + 25) ใช้ CrCl cap 125 ⚑ · เกณฑ์ ANC ≥1,500 / Plt ≥100,000 และ ±${CHEMO_TOL}% เป็นเกณฑ์ทั่วไป ⚑</p>`;
+  $('cOut').querySelectorAll('input[id^="cOrd"]').forEach(el=>el.addEventListener('change',renderCmt));
+}
+(function(){ if(!$('cReg')) return;
+  $('cReg').innerHTML=[...new Set(CHEMO_REG.map(r=>r.ca))].map(ca=>`<optgroup label="${ca}">${CHEMO_REG.filter(r=>r.ca===ca).map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</optgroup>`).join('');
+  $('cReg').addEventListener('change',()=>{ $('cOut').innerHTML=''; renderCmt(); }); $('cAuc').addEventListener('input',renderCmt);
+  $('t-cmt').addEventListener('click',renderCmt);
+  ['bw','ht','scr','crclIn','age'].forEach(id=>$(id).addEventListener('input',()=>{ if(!$('p-cmt').hidden) renderCmt(); }));
+})();

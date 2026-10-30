@@ -219,6 +219,14 @@ textarea.paste{border-color:var(--accent)}
 
 /* ===== ADR tab ===== */
 #t-adr,#p-adr{--c1:#be185d;--c2:#4338ca}
+#t-cmt,#p-cmt{--c1:#0f766e;--c2:#9333ea}
+.labbox{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;background:color-mix(in srgb,#0ea5e9 5%,var(--surface))}
+.labbox summary{cursor:pointer;font-weight:600}
+.labbox textarea{width:100%;margin-top:8px;font:13px ui-monospace,monospace;box-sizing:border-box}
+.labal{display:grid;gap:4px;margin-top:8px}
+.band.f{background:color-mix(in srgb,#ef4444 14%,var(--surface));border-color:#ef4444}
+.ctbl{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}.ctbl th,.ctbl td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}.ctbl .num{white-space:nowrap}
+.kv2{margin:8px 0;font-size:14px}
 .adr2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
 @media (max-width:980px){.adr2{grid-template-columns:minmax(0,1fr)}}
 .arow{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;align-items:end;padding:10px;border:1px solid var(--line);border-left:6px solid var(--line);border-radius:10px;background:var(--surface);position:relative}
@@ -293,6 +301,12 @@ textarea.paste{border-color:var(--accent)}
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
         <label class="f">แพ้ยา<input id="allergy" type="text" placeholder="เช่น penicillin"></label>
       </div>
+      <details class="labbox"><summary>ผล Lab (ANC · Plt · LFT · Albumin/Ca) <span id="labSum" class="hint"></span></summary>
+        <textarea id="labPaste" rows="3" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="ghost">อ่านค่า Lab</button><button type="button" id="labClear" class="ghost">ล้าง</button><span id="labMsg" class="hint"></span></div>
+        <div class="grid2" id="labGrid"></div>
+        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่า Cr/K/Mg/INR/CrCl/eGFR จะเติมลงช่องด้านบนให้</p>
+      </details>
       <p class="hint" style="margin:0">กรอกเท่าที่มี — ถ้าใส่ CrCl/eGFR จาก HIS โปรแกรมใช้ค่านั้นทันที ไม่ต้องมีส่วนสูง/SCr</p>
       <div class="checks"><label><input type="checkbox" id="preg"> ตั้งครรภ์/ให้นมบุตร</label><label><input type="checkbox" id="tb"> case TB</label></div>
     </div>
@@ -309,6 +323,7 @@ textarea.paste{border-color:var(--accent)}
       <button role="tab" id="t-pk" aria-selected="false">Vanco / Colistin</button>
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
+      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-kb" aria-selected="false">ฐานกฎยา</button>
     </div>
@@ -474,6 +489,15 @@ textarea.paste{border-color:var(--accent)}
         <div id="tlChart"></div>
         <p class="hint" style="margin:12px 0 4px">ข้อความ note (คัดลอกได้)</p>
         <textarea class="note" id="tlNote" readonly style="width:100%;min-height:90px"></textarea>
+      </div>
+    </section>
+
+    <section id="p-cmt" hidden>
+      <div class="panel sec" style="margin:0">
+        <h2>เคมีบำบัด — คำนวณขนาดตาม BSA / AUC / mg/kg</h2>
+        <div class="grid2"><label class="f">สูตรยา<select id="cReg"></select></label><label class="f">Carboplatin AUC<input id="cAuc" type="number" step="0.5" value="5"></label></div>
+        <p class="hint">ใช้ส่วนสูง น้ำหนัก CrCl และผล Lab จากแผงข้อมูลผู้ป่วย · กรอกขนาดที่แพทย์สั่งเพื่อเทียบ</p>
+        <div id="cOut"></div>
       </div>
     </section>
 

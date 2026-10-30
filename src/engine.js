@@ -26,6 +26,7 @@ function calcPatient(p){
   if(+p.egfrIn>0){o.egfr=+p.egfrIn;o.egfrSrc='HIS'; if(o.isPed) o.schwartz=+p.egfrIn;}
   o.inr=p.inr===''||p.inr==null?null:+p.inr; o.k=p.k===''||p.k==null?null:+p.k; o.mg=p.mgl===''||p.mgl==null?null:+p.mgl;
   o.dial = ['HD','CAPD','CRRT'].includes(p.mode)?p.mode:null;
+  o.lab=typeof labCalc==='function'?labCalc(p.lab||{}):{};
   return o;
 }
 
@@ -295,7 +296,7 @@ function evaluate(row,pt,rows){
   const res={items,drug:d,status:'none',sugg:null};
   const mm=masterOf(row); res.master=mm;
   const mflags=()=>{ if(!mm) return; const f=mm[5]||'';
-    if(f.includes('C')) add('warn','ยาเคมีบำบัด (บัญชียา รพ.) — คำนวณตาม BSA/AUC ตรวจ lab และ max dose ตามแนวทาง CMT');
+    if(f.includes('C')&&!res.chemo) add('warn','ยาเคมีบำบัด (บัญชียา รพ.) — คำนวณตาม BSA/AUC ตรวจ lab และ max dose ตามแนวทาง CMT');
     if(f.includes('H')&&!(d&&d.special)) add('info','HAD ตามบัญชียา รพ. — ตรวจข้อบ่งใช้ ขนาด และวิธีบริหาร');
     if(f.includes('N')) add('info','ยาเสพติด — ตรวจ dose/rate และความครบถ้วนใบ ยส.5 / บจ.8'); };
   const dueChk=()=>{ const t=row.raw+' '+(mm?mm[1]+' '+mm[2]:''); const u=DUE.find(x=>x.re.test(t)); if(!u||/\block\b/i.test(row.raw)) return;
@@ -315,8 +316,9 @@ function evaluate(row,pt,rows){
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
     xs.forEach(x=>add(x.lvl==='ok'?'info':x.lvl,`ประวัติแพ้ ${x.a} → ${x.d}: ${x.txt}`));
     if(!xs.length&&d&&d.fam==='quinolone'&&/quinolone|floxacin/.test(al)&&!al.includes(gen)) add('flag','ประวัติแพ้ยากลุ่ม quinolone'); };
-  if(!d){ mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&mm[5].includes('C')?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
-    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C'))||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE)/.test(i.txt))))?'warn':'none'; return res;}
+  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); };
+  if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
+    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด)/.test(i.txt))?'ok':'none'; return res;}
   mflags(); dueChk();
   if(d.id==='metformin'&&!pt.isPed&&+pt.age>50&&pt.egfr!=null&&pt.egfr<60) add('info','แนวทาง รพ.มค: ผู้ป่วยอายุ >50 ปีที่ eGFR <60 แนะนำติดตาม eGFR อย่างน้อยทุก 6 เดือน');
   if(/\block\b/i.test(row.raw)) return evalLock(row,d,pt,add,res);
@@ -436,7 +438,7 @@ function evaluate(row,pt,rows){
   // ---- patient-level
   if(+pt.age>=65&&d.elderly){add(/ห้ามใช้/.test(d.elderly)?'flag':'warn','ผู้สูงอายุ: '+d.elderly);hit=true;}
   if(pt.preg&&d.preg){add('flag','ตั้งครรภ์: '+d.preg);hit=true;}
-  alChk(d.name);
+  alChk(d.name); extChk();
   // ---- duplication
   const others=rows.filter(r=>r!==row&&r.drugId).map(r=>KB.find(x=>x.id===r.drugId)).filter(Boolean);
   if(others.some(o=>o.id===d.id)) add('warn','สั่งยาตัวเดียวกันซ้ำ');

@@ -9,6 +9,14 @@
 
 ---
 
+## v0.7.0 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
+- **ผล Lab** (กล่องใหม่ในแผงผู้ป่วย): วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS แล้วกด "อ่านค่า Lab" — เติม Cr/K/Mg/INR/CrCl/eGFR และ WBC, Neutrophil, Plt, Hb, Albumin, AST/ALT, Bilirubin, Ca, Phos, Na ฯลฯ
+  - คำนวณ ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · เตือน ANC <1,500, Plt <100,000, AST/ALT >3×ULN, T.bil >3 ⚑
+- **ตรวจสูตร ARV** (lab.js → arvChk): ยาเม็ดรวมซ้ำกับยาเดี่ยว, 3TC+FTC, TDF+TAF, จำนวน NRTI/ยาหลัก, PI ไม่ boost (RTV/COBI), DTG + Rifampicin/Phenytoin/EFV ต้อง q12h (ARV Screening IPD 2568), RPV/PI + Rifampicin, RPV/ATV + PPI ⚑, ATV ใน HD
+- **เคมีบำบัด**: แท็บใหม่ "เคมีบำบัด" คำนวณขนาดตามสูตรในชีท CMT รพ. (24.3.2023) — BSA Mosteller, Carboplatin Calvert, Trastuzumab mg/kg, Vincristine max 2 mg, เทียบขนาดที่แพทย์สั่ง ±5% ⚑
+  - หน้าตรวจใบสั่งยา: ยาเคมีบำบัดแสดง mg/m² และสูตรที่ใกล้ที่สุด + เตือน ANC/Plt
+- ⚑ = เกณฑ์ทั่วไป ยังไม่ใช่เอกสาร รพ.
+
 ## v0.6.7 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
 - HAD: ผลตรวจจัดเป็นโครงสร้างเดียวกันทุกยา — คำนวณได้ (Conc/Rate/dose) → มาตรฐาน (Usual dose · Max dose/rate · Max conc · ที่มา) → เหมาะสมเพราะ / ไม่เหมาะสมเพราะ → ยังไม่มีข้อมูลข้อใด → จำนวนจ่าย
 - เพิ่มตาราง HAD_STD ใน kb.js (ค่า null = ยังไม่มีข้อมูล เติมทีละข้อได้)

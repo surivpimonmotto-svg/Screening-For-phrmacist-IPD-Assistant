@@ -9,6 +9,14 @@
 
 ---
 
+## v0.7.1 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
+- ยาพ่น Asthma/COPD (policy.js) ตามมาตรการควบคุมค่าใช้จ่ายด้านยา ปีงบ 2570 (มติประชุม 29/09/2569):
+  - ทุกยาพ่น (MDI/Accuhaler/Ellipta/Respimat/Turbuhaler): เตือนตรวจยาพ่นเดิม (MR) ใน 48 ชม. · มียาเดิม → สติ๊กเกอร์จำนวน 0 + "ใช้ยาเดิมของผู้ป่วย" · ไม่มี → consult แพทย์
+  - Anoro, Spiolto, Symbicort: start เฉพาะ Staff MED/Chest MED · Trelegy: เฉพาะ Chest MED
+  - Symbicort + Reliever MDI (Salbutamol/Berodual): ไม่แนะนำ
+  - Reliever MDI: 1 หลอด/4 เดือน ครั้งละ 1 หลอด (เตือนเมื่อระบุ #2 ขึ้นไป)
+  - Pre-OP: ใช้ Nebulizer แทน MDI หรือใช้ยาเดิม
+
 ## v0.7.0 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
 - **ผล Lab** (กล่องใหม่ในแผงผู้ป่วย): วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS แล้วกด "อ่านค่า Lab" — เติม Cr/K/Mg/INR/CrCl/eGFR และ WBC, Neutrophil, Plt, Hb, Albumin, AST/ALT, Bilirubin, Ca, Phos, Na ฯลฯ
   - คำนวณ ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · เตือน ANC <1,500, Plt <100,000, AST/ALT >3×ULN, T.bil >3 ⚑

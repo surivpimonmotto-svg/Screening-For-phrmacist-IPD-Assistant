@@ -376,7 +376,7 @@ const KB=[
 {id:'dopa',name:'Dopamine',match:/dopamine/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'dobu',name:'Dobutamine',match:/dobutamine|dobutex/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'nica',name:'Nicardipine inj',match:/nicardipine|cardepine/i,unit:'mg',special:'had',src:SRC_HAD},
-{id:'fenta',name:'Fentanyl inj',match:/fentanyl/i,unit:'mcg',special:'had',src:SRC_HAD},
+{id:'fenta',name:'Fentanyl inj',match:/fentanyl(?!.*(tts|patch|แผ่น|transdermal|durogesic))/i,unit:'mcg',special:'had',src:SRC_HAD},
 {id:'heparin',name:'Heparin',match:/heparin/i,unit:'unit',special:'had',src:SRC_HAD},
 {id:'naloxone',name:'Naloxone',match:/naloxone/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ non-dependence 0.4-2 mg IV ซ้ำทุก 2-3 นาที / dependence 0.1-0.2 mg; เด็ก 0.01 mg/kg (max 2 mg/dose)',src:'ยาต้านพิษ DIS 2564'},
 {id:'benztropine',name:'Benztropine',match:/benztropine|bentropine|cogentin/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ 1-2 mg IV; เด็ก >3 ปี 0.02 mg/kg IV (max 1 mg)',src:'ยาต้านพิษ DIS 2564'},

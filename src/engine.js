@@ -316,9 +316,9 @@ function evaluate(row,pt,rows){
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
     xs.forEach(x=>add(x.lvl==='ok'?'info':x.lvl,`ประวัติแพ้ ${x.a} → ${x.d}: ${x.txt}`));
     if(!xs.length&&d&&d.fam==='quinolone'&&/quinolone|floxacin/.test(al)&&!al.includes(gen)) add('flag','ประวัติแพ้ยากลุ่ม quinolone'); };
-  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); };
-  if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
-    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด)/.test(i.txt))?'ok':'none'; return res;}
+  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); };
+  if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo||res.fpatch)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
+    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น|Fentanyl patch)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด|Fentanyl patch)/.test(i.txt))?'ok':'none'; return res;}
   mflags(); dueChk();
   if(d.id==='metformin'&&!pt.isPed&&+pt.age>50&&pt.egfr!=null&&pt.egfr<60) add('info','แนวทาง รพ.มค: ผู้ป่วยอายุ >50 ปีที่ eGFR <60 แนะนำติดตาม eGFR อย่างน้อยทุก 6 เดือน');
   if(/\block\b/i.test(row.raw)) return evalLock(row,d,pt,add,res);

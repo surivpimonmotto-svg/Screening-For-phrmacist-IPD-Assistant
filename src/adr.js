@@ -509,3 +509,16 @@ function adrPrintMKH(){ adrOut(); let pa=document.getElementById('printArea'); i
   <div class="psign">ผู้ประเมิน/เภสัชกร ...................................................... วันที่ ............................ <small>(พิมพ์ ${tlFmt(new Date())})</small></div></div>`;
   window.print(); }
 if($('aPrintMK')) $('aPrintMK').onclick=adrPrintMKH;
+
+/* ---------- Phlebitis scale ---------- */
+const PHLEB=[
+ [0,'ไม่มีอาการ (No symptoms)','สังเกตตำแหน่งแทงเข็ม (IV site) · Monitor และบันทึกตามนโยบาย'],
+ [1,'แดงรอบรอยเข็ม มีอาการปวดหรือไม่มีก็ได้ (Erythema at access site ± pain)','เปลี่ยน IV site · รายงานอุบัติการณ์ · Monitor และบันทึกรอยแทงเข็มเก่าทุกเวร'],
+ [2,'ปวดและแดงรอบรอยเข็ม บวมหรือไม่บวมก็ได้ (Pain with erythema and/or edema)','เปลี่ยน IV site และรายงานแพทย์ · ประคบเย็นลดปวด / ประคบร้อนลดบวม · รายงานอุบัติการณ์ · Monitor และบันทึกรอยแทงเข็มเก่าทุกเวร'],
+ [3,'ปวดและแดง + มีรอยแดงเป็นทาง (streak) + คลำได้หลอดเลือดแข็ง (palpable venous cord)','เปลี่ยน IV site และรายงานแพทย์ · ประคบเย็นลดปวด / ประคบร้อนลดบวม · รายงานอุบัติการณ์ · Monitor และบันทึกรอยแทงเข็มเก่าทุกเวร'],
+ [4,'ปวดและแดง + streak + หลอดเลือดแข็งยาว >1 นิ้ว + มีหนอง (purulent drainage)','เปลี่ยน IV site และรายงานแพทย์ (แพทย์อาจส่งปลายเข็มเพาะเชื้อ C/S) · ประคบเย็นลดปวด / ประคบร้อนลดบวม · รายงานอุบัติการณ์ · Monitor และบันทึกรอยแทงเข็มเก่าทุกเวร']];
+(function(){ const box=$('phBox'); if(!box) return;
+  box.innerHTML=PHLEB.map(([g,c])=>`<label class="chk" style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;border:1px solid var(--line);border-radius:8px"><input type="radio" name="phG" value="${g}"><span><b>Grade ${g}</b> — ${c}</span></label>`).join('');
+  box.querySelectorAll('input').forEach(i=>i.onchange=()=>{ const p=PHLEB[+i.value];
+    $('phRes').innerHTML=`<div class="band ${p[0]>=3?'f':p[0]>=1?'w':''}"><b>Phlebitis grade ${p[0]}</b> — ${esc(p[2])}</div><p class="hint">ยาที่ทำให้หลอดเลือดอักเสบบ่อย: KCl, Vancomycin, Erythromycin, Amiodarone, Dextrose >10%, Calcium, ยาเคมีบำบัด, สารละลาย pH/osmolarity สูง — พิจารณาเจือจาง/ลดอัตรา/central line · อ้างอิง: Phlebitis scale (INS) จาก Nurse Soulciety</p>`; });
+})();

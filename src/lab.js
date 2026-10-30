@@ -155,11 +155,17 @@ const CHEMO_TOL=5; // % ต่างจากสูตรที่ยอมร�
 const chemoBase=n=>n.replace(/\s*\(.*$|\s+(iv|in)\b.*$/i,'').trim();
 function chemoStd(drug){ const out=[]; for(const r of CHEMO_REG) for(const x of r.d) if(chemoBase(x[0])===drug) out.push({reg:r.name,v:x[1],t:x[2],day:x[3]||'',note:x[4]||''}); return out; }
 function carboGfr(pt){ return pt.crcl!=null?Math.min(pt.crcl,125):null; }
+function chemoDose(row){ // ขนาด mg ที่สั่ง (และ mg/m² ถ้าแพทย์เขียนมา)
+  const raw=row.raw; const pm=raw.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*m\s*(?:2|²)/i);
+  let mg=row.doseUnit==='mg'&&+row.doseVal>0?+row.doseVal:null;
+  if(mg==null||(pm&&mg===+pm[1])){ const t=[...raw.replace(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*(m\s*(?:2|²)|ml|kg)/gi,' ').matchAll(/(\d+(?:\.\d+)?)\s*mg\b(?!\s*\/)/gi)]; if(t.length) mg=+t[t.length-1][1]; else if(pm) mg=null; }
+  return {mg,perM2:pm?+pm[1]:null}; }
 function chemoChk(row,pt,add){
   const mm=masterOf(row); const s=row.raw+' '+(mm?mm[1]+' '+mm[2]:'');
   const hit=CHEMO_MATCH.find(([,re])=>re.test(s)); if(!hit) return false;
   const drug=hit[0], std=chemoStd(drug);
-  const D=row.doseUnit==='mg'&&+row.doseVal>0?+row.doseVal:null;
+  const cd=chemoDose(row), D=cd.mg;
+  if(cd.perM2&&pt.bsa){ const near=std.filter(x=>x.t==='m2').map(x=>({...x,diff:(cd.perM2-x.v)/x.v*100})).sort((a,b)=>Math.abs(a.diff)-Math.abs(b.diff))[0]; add('info',`เคมีบำบัด: คำสั่งระบุ ${cd.perM2} mg/m² × BSA ${pt.bsa.toFixed(2)} = ${fmtN(Math.round(cd.perM2*pt.bsa*10)/10)} mg${D?` (สั่ง ${fmtN(D)} mg)`:''}${near?` · สูตร ${near.reg} ${near.v} mg/m²`:''}`); }
   const L=pt.lab||{};
   if(L.anc!=null&&L.anc<1500) add('flag',`เคมีบำบัด: ANC ${fmtN(Math.round(L.anc))} <1,500 — ตรวจเกณฑ์ก่อนให้ยา/ปรึกษาแพทย์ ⚑`);
   if(L.plt!=null&&L.plt<100000) add('warn',`เคมีบำบัด: Platelet ${fmtN(L.plt)} <100,000 ⚑`);

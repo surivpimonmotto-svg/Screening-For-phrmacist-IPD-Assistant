@@ -496,7 +496,9 @@ textarea.paste{border-color:var(--accent)}
       <div class="panel sec" style="margin:0">
         <h2>เคมีบำบัด — คำนวณขนาดตาม BSA / AUC / mg/kg</h2>
         <div class="grid2"><label class="f">สูตรยา<select id="cReg"></select></label><label class="f">Carboplatin AUC<input id="cAuc" type="number" step="0.5" value="5"></label></div>
-        <p class="hint">ใช้ส่วนสูง น้ำหนัก CrCl และผล Lab จากแผงข้อมูลผู้ป่วย · กรอกขนาดที่แพทย์สั่งเพื่อเทียบ</p>
+        <label class="f">วางคำสั่งยาเคมีบำบัด (คัดลอกจาก paperless ได้เหมือนหน้าตรวจใบสั่งยา)<textarea id="cPaste" rows="4" placeholder="เช่น PACLITAXEL 300 MG INJ 250 mg + NSS 500 ml IV drip in 3 hr&#10;CARBOPLATIN (450MG/45ML) INJ 400 mg IV drip in 1 hr"></textarea></label>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="cParse">คำนวณย้อนกลับ</button><button type="button" id="cClr">ล้าง</button><span id="cMsg" class="hint"></span></div>
+        <p class="hint">ใช้ส่วนสูง น้ำหนัก CrCl และผล Lab จากแผงข้อมูลผู้ป่วย · โปรแกรมเลือกสูตรที่ตรงกับยาในคำสั่งให้ แล้วเทียบขนาดที่สั่งกับสูตร (กรอก/แก้เองในช่อง "แพทย์สั่ง" ได้)</p>
         <div id="cOut"></div>
       </div>
     </section>
@@ -572,13 +574,14 @@ textarea.paste{border-color:var(--accent)}
       </div>
       <div class="panel sec" style="margin:0 0 14px">
         <h2>6. แบบประเมินเฉพาะ</h2>
-        <div class="seg" style="margin-bottom:12px;max-width:820px;flex-wrap:wrap"><button type="button" data-asm="regi" aria-pressed="true">RegiSCAR (DRESS)</button><button type="button" data-asm="alden" aria-pressed="false">ALDEN (SJS/TEN)</button><button type="button" data-asm="scorten" aria-pressed="false">SCORTEN (SJS/TEN)</button><button type="button" data-asm="agep" aria-pressed="false">EuroSCAR (AGEP)</button><button type="button" data-asm="penfast" aria-pressed="false">PEN-FAST</button><button type="button" data-asm="mala" aria-pressed="false">MALA (metformin)</button><button type="button" data-asm="wc" aria-pressed="false">Chest wall rigidity</button></div>
+        <div class="seg" style="margin-bottom:12px;max-width:820px;flex-wrap:wrap"><button type="button" data-asm="regi" aria-pressed="true">RegiSCAR (DRESS)</button><button type="button" data-asm="alden" aria-pressed="false">ALDEN (SJS/TEN)</button><button type="button" data-asm="scorten" aria-pressed="false">SCORTEN (SJS/TEN)</button><button type="button" data-asm="agep" aria-pressed="false">EuroSCAR (AGEP)</button><button type="button" data-asm="penfast" aria-pressed="false">PEN-FAST</button><button type="button" data-asm="mala" aria-pressed="false">MALA (metformin)</button><button type="button" data-asm="wc" aria-pressed="false">Chest wall rigidity</button><button type="button" data-asm="phleb" aria-pressed="false">Phlebitis</button></div>
         <div class="asm" id="asm-regi"><div id="aRegiBox"><div class="tlg" id="aRegi"></div><div id="aRegiRes" style="margin-top:10px"></div></div></div>
         <div class="asm" id="asm-alden" hidden><div id="alBox" style="display:grid;gap:8px"></div><div id="alRes"></div></div>
         <div class="asm" id="asm-scorten" hidden><div class="inrow" style="margin-bottom:8px"><button class="btn sm" id="scAuto" type="button">ดึงจากข้อมูลที่กรอก</button></div><div class="tlg" id="scBox"></div><div id="scRes" style="margin-top:10px"></div></div>
         <div class="asm" id="asm-agep" hidden><div class="tlg" id="agBox"></div><div id="agRes" style="margin-top:10px"></div></div>
         <div class="asm" id="asm-penfast" hidden><div style="display:grid;gap:4px;max-width:760px" id="pfBox"></div><div id="pfRes" style="margin-top:10px"></div></div>
         <div class="asm" id="asm-mala" hidden><div class="tlg"><label class="f">pH (arterial)<input id="mlPh" inputmode="decimal"></label><label class="f">Lactate (mmol/L)<input id="mlLac" inputmode="decimal"></label><label class="f">HCO3 (mmol/L)<input id="mlHco3" inputmode="decimal"></label><label class="f">Na<input id="mlNa" inputmode="decimal"></label><label class="f">Cl<input id="mlCl" inputmode="decimal"></label></div><div id="mlRes" style="margin-top:10px"></div></div>
+        <div class="asm" id="asm-phleb" hidden><div id="phBox" style="display:grid;gap:6px;max-width:900px"></div><div id="phRes" style="margin-top:10px"></div></div>
         <div class="asm" id="asm-wc" hidden><div class="tlg" id="wcBox"></div><div id="wcRes" style="margin-top:10px"></div></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">

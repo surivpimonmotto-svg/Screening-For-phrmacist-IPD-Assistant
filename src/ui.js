@@ -283,7 +283,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.7.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.7.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -551,6 +551,7 @@ $('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change
 })();
 
 /* ---------- แท็บเคมีบำบัด ---------- */
+let cmtOrd={}, cmtF={}, cmtExtra=[], cmtRaw={};
 function renderCmt(){ const pt=getPt(); const r=CHEMO_REG.find(x=>x.id===$('cReg').value)||CHEMO_REG[0];
   const auc=+$('cAuc').value||5, g=carboGfr(pt), L=pt.lab||{};
   const head=[];
@@ -562,19 +563,46 @@ function renderCmt(){ const pt=getPt(); const r=CHEMO_REG.find(x=>x.id===$('cReg
     else if(t==='kg'){ basis=`${v} mg/kg`; if(+pt.bw>0) calc=v*pt.bw; }
     else if(t==='auc'){ basis=`AUC ${auc} × (GFR+25)`; if(g!=null) calc=auc*(g+25); }
     let cap=''; if(/vincristine/i.test(n)&&calc>2){ cap=' → cap 2 mg'; calc=2; }
-    const ord=+($('cOrd'+i)?.value||'');
-    let st='';
-    if(calc&&ord>0){ const d=(ord-calc)/calc*100; const lv=Math.abs(d)<=CHEMO_TOL?'ok':Math.abs(d)<=10?'warn':'flag';
-      st=`<span class="tag ${lv}">${lv==='ok'?'OK':lv==='warn'?'ทบทวน':'ปรับ'}</span> ${d>0?'+':''}${fmtN(Math.round(d*10)/10)}%`; }
-    return `<tr><td><b>${esc(n)}</b>${note?`<div class="hint">${esc(note)}</div>`:''}</td><td>${basis}</td><td class="num"><b>${calc!=null?fmtN(Math.round(calc*10)/10)+' mg':'–'}</b>${cap}${t==='m2day'&&calc?`<div class="hint">ครั้งละ ${fmtN(Math.round(calc/2))} mg วันละ 2 ครั้ง</div>`:''}</td><td>${esc(day||'')}</td><td><input id="cOrd${i}" data-i="${i}" type="number" inputmode="decimal" step="any" style="width:100px" value="${ord>0?ord:''}"></td><td>${st}</td></tr>`; }).join('');
-  $('cOut').innerHTML=head.join('')+al.map(([c,t])=>`<div class="band ${c}">${esc(t)}</div>`).join('')+
-   `<div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาดตามสูตร</th><th>คำนวณได้</th><th>วัน</th><th>แพทย์สั่ง (mg)</th><th>ผล (±${CHEMO_TOL}%)</th></tr></thead><tbody>${rows}</tbody></table></div>`+
+    const ord=+(cmtOrd[i]||0), F=t==='m2day'?(+cmtF[i]||2):1, ordCmp=ord*F;
+    let st='', back='';
+    if(ord>0){ // คำนวณย้อนกลับ
+      if(t==='m2'||t==='m2day'){ if(pt.bsa) back=`${fmtN(Math.round(ordCmp/pt.bsa*10)/10)} mg/m²${t==='m2day'?'/วัน':''}`; }
+      else if(t==='kg'){ if(+pt.bw>0) back=`${fmtN(Math.round(ord/pt.bw*100)/100)} mg/kg`; }
+      else if(t==='auc'){ if(g!=null) back=`AUC ${fmtN(Math.round(ord/(g+25)*10)/10)}`; }
+      if(t==='m2day') back+=` (${fmtN(ord)} mg × ${F}/วัน)`; }
+    if(calc&&ord>0){ const d=(ordCmp-calc)/calc*100; let lv=Math.abs(d)<=CHEMO_TOL?'ok':Math.abs(d)<=10?'warn':'flag';
+      if(/vincristine/i.test(n)&&ord>2) lv='flag';
+      st=`<span class="tag ${lv}">${lv==='ok'?'OK':lv==='warn'?'ทบทวน':'ปรับ'}</span> ${d>0?'+':''}${fmtN(Math.round(d*10)/10)}%${/vincristine/i.test(n)&&ord>2?' · เกิน max 2 mg':''}`; }
+    return `<tr><td><b>${esc(n)}</b>${note?`<div class="hint">${esc(note)}</div>`:''}${cmtRaw[i]?`<div class="hint mono">${esc(cmtRaw[i])}</div>`:''}</td><td>${basis}</td><td class="num"><b>${calc!=null?fmtN(Math.round(calc*10)/10)+' mg':'–'}</b>${cap}${t==='m2day'&&calc?`<div class="hint">ครั้งละ ${fmtN(Math.round(calc/2))} mg วันละ 2 ครั้ง</div>`:''}</td><td>${esc(day||'')}</td><td><input id="cOrd${i}" data-i="${i}" type="number" inputmode="decimal" step="any" style="width:100px" value="${ord>0?ord:''}">${t==='m2day'?`<div class="hint">ต่อครั้ง</div>`:''}</td><td class="num">${back||'–'}</td><td>${st}</td></tr>`; }).join('');
+  const ex=cmtExtra.length?`<div class="band w">ยาเคมีบำบัดในคำสั่งที่ไม่อยู่ในสูตร ${esc(r.name)}: ${cmtExtra.map(x=>esc(x.drug+' '+(x.dose!=null?fmtN(x.dose)+' mg':''))+(pt.bsa&&x.dose?` (= ${fmtN(Math.round(x.dose/pt.bsa*10)/10)} mg/m²)`:'')).join(' · ')} — ตรวจว่าเลือกสูตรถูกหรือไม่</div>`:'';
+  $('cOut').innerHTML=head.join('')+al.map(([c,t])=>`<div class="band ${c}">${esc(t)}</div>`).join('')+ex+
+   `<div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาดตามสูตร</th><th>คำนวณได้</th><th>วัน</th><th>แพทย์สั่ง (mg)</th><th>คำนวณย้อนกลับ</th><th>ผล (±${CHEMO_TOL}%)</th></tr></thead><tbody>${rows}</tbody></table></div>`+
    (r.note?`<p class="hint">${esc(r.note)}</p>`:'')+`<p class="hint">ที่มา: ${SRC_CMT} · BSA Mosteller = √(ส่วนสูง × น้ำหนัก / 3600) · Carboplatin: Calvert AUC × (GFR + 25) ใช้ CrCl cap 125 ⚑ · เกณฑ์ ANC ≥1,500 / Plt ≥100,000 และ ±${CHEMO_TOL}% เป็นเกณฑ์ทั่วไป ⚑</p>`;
-  $('cOut').querySelectorAll('input[id^="cOrd"]').forEach(el=>el.addEventListener('change',renderCmt));
+  $('cOut').querySelectorAll('input[id^="cOrd"]').forEach(el=>el.addEventListener('change',()=>{cmtOrd[el.dataset.i]=el.value;renderCmt();}));
+}
+function cmtParse(){
+  const rows=joinLines($('cPaste').value.split(/\n/)).map(parseLine).filter(Boolean);
+  const items=[]; rows.forEach(row=>{ const mm=masterOf(row); const s=row.raw+' '+(mm?mm[1]+' '+mm[2]:'');
+    const h=CHEMO_MATCH.find(([,re])=>re.test(s)); if(!h) return;
+    const cd=chemoDose(row); items.push({drug:h[0],dose:cd.mg??(cd.perM2&&getPt().bsa?Math.round(cd.perM2*getPt().bsa*10)/10:null),F:row.F,raw:row.raw}); });
+  if(!items.length){ $('cMsg').textContent='ไม่พบยาเคมีบำบัดในคำสั่ง'; return; }
+  const names=[...new Set(items.map(x=>x.drug))];
+  const score=r=>{const rs=new Set(r.d.map(x=>chemoBase(x[0]))); const hit=names.filter(n=>rs.has(n)).length; return [hit, -(rs.size-hit)];};
+  const best=[...CHEMO_REG].sort((a,b)=>{const A=score(a),B=score(b);return B[0]-A[0]||B[1]-A[1];})[0];
+  $('cReg').value=best.id; cmtOrd={}; cmtF={}; cmtRaw={};
+  const used=new Set();
+  best.d.forEach((x,i)=>{ const base=chemoBase(x[0]); const cand=items.filter((it,k)=>it.drug===base&&!used.has(k));
+    let pick=cand[0];
+    if(cand.length>1){ const bol=/push|bolus/i.test(x[0]), inf=/hr|infus/i.test(x[0]);
+      pick=cand.find(it=>bol?/push|bolus/i.test(it.raw):inf?/\d+\s*(hr|h|ชม)|infus|drip/i.test(it.raw)&&!/push|bolus/i.test(it.raw):true)||cand[0]; }
+    if(pick){ const k=items.indexOf(pick); used.add(k); if(pick.dose!=null) cmtOrd[i]=pick.dose; if(pick.F) cmtF[i]=pick.F; cmtRaw[i]=pick.raw; } });
+  cmtExtra=items.filter((_,k)=>!used.has(k));
+  $('cMsg').textContent=`พบยาเคมีบำบัด ${items.length} รายการ → เลือกสูตร ${best.name} ให้อัตโนมัติ (เปลี่ยนสูตรได้)`;
+  renderCmt();
 }
 (function(){ if(!$('cReg')) return;
   $('cReg').innerHTML=[...new Set(CHEMO_REG.map(r=>r.ca))].map(ca=>`<optgroup label="${ca}">${CHEMO_REG.filter(r=>r.ca===ca).map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</optgroup>`).join('');
-  $('cReg').addEventListener('change',()=>{ $('cOut').innerHTML=''; renderCmt(); }); $('cAuc').addEventListener('input',renderCmt);
+  $('cReg').addEventListener('change',()=>{ cmtOrd={}; cmtF={}; cmtRaw={}; cmtExtra=[]; renderCmt(); }); $('cParse').onclick=cmtParse; $('cClr').onclick=()=>{$('cPaste').value='';$('cMsg').textContent='';cmtOrd={};cmtF={};cmtRaw={};cmtExtra=[];renderCmt();}; $('cAuc').addEventListener('input',renderCmt);
   $('t-cmt').addEventListener('click',renderCmt);
   ['bw','ht','scr','crclIn','age'].forEach(id=>$(id).addEventListener('input',()=>{ if(!$('p-cmt').hidden) renderCmt(); }));
 })();

@@ -581,7 +581,7 @@ textarea.paste{border-color:var(--accent)}
     <section id="p-adr" hidden>
       <div class="panel sec" style="margin:0 0 14px">
         <div class="inrow" style="justify-content:space-between"><h2 style="margin:0">ADR / แพ้ยา — timeline · ประเมิน · แบบรายงาน HPVC</h2>
-          <div class="inrow"><button class="btn sm pri" id="aPrintMK" type="button">พิมพ์แบบ MKH-FR-PHA-048</button><button class="btn sm pri" id="aPrint" type="button">พิมพ์ timeline A4</button><button class="btn sm" id="aSave" type="button">บันทึกเป็นไฟล์</button><label class="btn sm" style="cursor:pointer">เปิดไฟล์<input id="aLoad" type="file" accept=".json,application/json" hidden></label><button class="btn sm" id="aClear" type="button">ล้างเคส ADR</button></div></div>
+          <div class="inrow"><button class="btn sm pri" id="aPrintHP" type="button">พิมพ์แบบรายงาน HPVC + 048 (ฉบับ รพ. 2561)</button><button class="btn sm pri" id="aPrintMK" type="button">พิมพ์แบบ MKH-FR-PHA-048</button><button class="btn sm pri" id="aPrint" type="button">พิมพ์ timeline A4</button><button class="btn sm" id="aSave" type="button">บันทึกเป็นไฟล์</button><label class="btn sm" style="cursor:pointer">เปิดไฟล์<input id="aLoad" type="file" accept=".json,application/json" hidden></label><button class="btn sm" id="aClear" type="button">ล้างเคส ADR</button></div></div>
         <p class="hint" style="margin:6px 0 0">ไม่มีช่องชื่อ/HN — อย่าพิมพ์ข้อมูลระบุตัวผู้ป่วย · อายุ เพศ น้ำหนัก ใช้จากแผงด้านซ้าย · ข้อมูลอยู่ในเบราว์เซอร์นี้ · เก็บเป็นหลักฐาน: กด "พิมพ์แบบ MKH-FR-PHA-048" แล้วเลือกเครื่องพิมพ์ หรือ "Save as PDF" · ถ้าจะแก้ต่อภายหลังให้กด "บันทึกเป็นไฟล์" · ปุ่มพิมพ์/บันทึกใช้ได้บนเว็บ GitHub หรือไฟล์ในเครื่อง (ไม่ทำงานในหน้าตัวอย่าง claude.ai) <span id="aLoadMsg" style="color:var(--flag)"></span></p>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
@@ -651,6 +651,12 @@ textarea.paste{border-color:var(--accent)}
           <label class="f">ผลลัพธ์<select id="aOut"></select></label>
           <label class="f">ข้อมูลในฉลากยา<select id="aLabel"><option value="">—</option><option value="lab">Labeled (มีในฉลาก)</option><option value="non">Non-labeled</option></select></label>
           <label class="f" style="grid-column:1/-1">การรักษาอาการไม่พึงประสงค์<input id="aTreat" placeholder="เช่น หยุดยา, CPM, topical steroid"></label>
+          <label class="f">ชนิดรายงาน<select id="aRpt"><option value="sp">Spontaneous Reporting</option><option value="im">Intensive Monitoring</option><option value="ct">Clinical Trial</option></select></label>
+          <label class="f">ประเภทผลิตภัณฑ์<select id="aPtype"><option value="drug">ยา / วัตถุเสพติด</option><option value="smp">ยาใหม่ (SMP)</option><option value="vac">วัคซีน</option><option value="food">อาหาร</option><option value="cos">เครื่องสำอาง</option><option value="dev">เครื่องมือแพทย์</option><option value="haz">วัตถุอันตรายด้านสาธารณสุข</option></select></label>
+          <label class="f">สาเหตุการเกิด<select id="aCause"><option value="adr">Product reaction (ADR/vaccine reaction)</option><option value="me">ความคลาดเคลื่อนทางยา</option><option value="adm">ความคลาดเคลื่อนด้านบริหารจัดการ</option><option value="coin">เหตุการณ์อื่นที่เกิดร่วมกัน (coincident)</option><option value="def">ความบกพร่องของผลิตภัณฑ์</option><option value="acc">อุบัติเหตุ</option><option value="sui">ฆ่าตัวตาย</option><option value="mis">ใช้ในทางที่ผิด</option><option value="oth">อื่นๆ</option></select></label>
+          <label class="f">ผู้แจ้ง/ผู้คัดกรอง<select id="aRepBy"><option value="ph">เภสัชกร</option><option value="md">แพทย์</option><option value="rn">พยาบาล</option><option value="pt">ผู้ป่วย</option><option value="oth">อื่นๆ</option></select></label>
+          <label class="f">ผู้วินิจฉัยอาการเป็น<select id="aDxBy"><option value="md">แพทย์</option><option value="ph">เภสัชกร</option><option value="rn">พยาบาล</option><option value="oth">อื่นๆ</option></select></label>
+          <label class="f">Initial / Follow up<input id="aFu" placeholder="ว่าง = Initial หรือใส่ครั้งที่"></label>
         </div>
       </div>
       <div class="panel sec" style="margin:0">

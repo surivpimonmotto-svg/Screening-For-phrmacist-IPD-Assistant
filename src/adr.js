@@ -50,7 +50,7 @@ const SER=[['non','ไม่ร้ายแรง'],['death','ร้ายแร
 const ACT=[['',''],['stop_imp','หยุดยา → อาการดีขึ้นชัดเจน'],['stop_not','หยุดยา → อาการไม่ดีขึ้น'],['stop_unk','หยุดยา → ไม่ทราบ'],['cont_same','ใช้ต่อขนาดเดิม'],['cont_red','ใช้ต่อแต่ลดขนาด'],['cont_route','เปลี่ยนวิธีบริหารยา']];
 const RECH=[['',''],['recur','ให้ยาซ้ำ → เกิดอาการซ้ำ'],['norecur','ให้ยาซ้ำ → ไม่เกิดอาการ'],['unk','ให้ยาซ้ำ → ไม่ทราบ'],['none','ไม่มีการให้ยาซ้ำ']];
 const OUTC=[['',''],['rec','หายเป็นปกติไม่มีร่องรอย'],['seq','หายโดยมีร่องรอย'],['imp','อาการดีขึ้นแต่ยังไม่หาย'],['not','ยังมีอาการอยู่'],['death','เสียชีวิต'],['lost','ไม่สามารถติดตามผลได้']];
-const ADR0=()=>({drugs:[],evs:[],rtype:'',nar:{},narSel:null,who:'',regi:{},f:{ser:'non',act:'',rech:'',out:'',lab:'',treat:'',hx:''}});
+const ADR0=()=>({drugs:[],evs:[],rtype:'',nar:{},narSel:null,who:'',regi:{},f:{ser:'non',act:'',rech:'',out:'',lab:'',treat:'',hx:'',rpt:'sp',ptype:'drug',cause:'adr',repBy:'ph',dxBy:'md',fu:''}});
 let ADR=ADR0(), adrSeq=0;
 const ADR_NAMES=[...new Set([...KB.map(k=>k.name),...(typeof DM!=='undefined'?DM.map(m=>m[1]):[])])];
 
@@ -478,7 +478,7 @@ function narQuickInit(){ if(!$('aNarAdd')) return; $('aNarAdd').onclick=()=>{ co
 narQuickInit();
 
 /* ---------- พิมพ์แบบบันทึก MKH-FR-PHA-048 (หลักฐาน HA) ---------- */
-function adrPrintMKH(){ adrOut(); let pa=document.getElementById('printArea'); if(!pa){pa=document.createElement('div');pa.id='printArea';document.body.appendChild(pa);}
+function adrPrintMKH(noPrint){ adrOut(); let pa=document.getElementById('printArea'); if(!pa){pa=document.createElement('div');pa.id='printArea';document.body.appendChild(pa);}
   const M=ADR.m48||{cls:'',ta:['','',''],prev:Array(7).fill(''),me:'',meDet:'',meType:'',ncc:'',rep:'',cross:'',crossOld:'',crossNew:'',sjs:'',di:''};
   const bx=c=>c?'☑':'☐', ds=ADR.drugs.filter(d=>d.name), nd=[...ds.filter(d=>d.role==='S'),...ds.filter(d=>d.role!=='S')].slice(0,3), on=adrOnset();
   const svg=$('aChart').querySelector('svg'); const evs=[...ADR.evs].sort((a,b)=>((tlDate(a.d,a.t)||0)-(tlDate(b.d,b.t)||0)));
@@ -507,7 +507,7 @@ function adrPrintMKH(){ adrOut(); let pa=document.getElementById('printArea'); i
    <td>ยาเดิมที่แพ้ ${esc(M.crossOld||'.........')} ยาที่แพ้ครั้งนี้ ${esc(M.crossNew||'.........')}<br>${bx(M.cross==='sys')} 1. เนื่องจากระบบโรงพยาบาล<br>${bx(M.cross==='nonsys')} 2. ที่ไม่ใช่จากระบบโรงพยาบาล<br>${bx(M.cross==='int')} 3. เพื่อประโยชน์ในการรักษา</td>
    <td>${bx(M.sjs==='got')} 1. ผู้ป่วยได้รับสติ๊กเกอร์เฝ้าระวัง/ข้อมูลการเฝ้าระวัง<br>${bx(M.sjs==='not')} 2. ผู้ป่วยไม่ได้รับสติ๊กเกอร์เฝ้าระวัง/ข้อมูลการเฝ้าระวัง<br>ADR จาก DI: ${esc(M.di||'........')}</td></tr></table>
   <div class="psign">ผู้ประเมิน/เภสัชกร ...................................................... วันที่ ............................ <small>(พิมพ์ ${tlFmt(new Date())})</small></div></div>`;
-  window.print(); }
+  if(noPrint) return pa; window.print(); }
 if($('aPrintMK')) $('aPrintMK').onclick=adrPrintMKH;
 
 /* ---------- Phlebitis scale ---------- */
@@ -522,3 +522,33 @@ const PHLEB=[
   box.querySelectorAll('input').forEach(i=>i.onchange=()=>{ const p=PHLEB[+i.value];
     $('phRes').innerHTML=`<div class="band ${p[0]>=3?'f':p[0]>=1?'w':''}"><b>Phlebitis grade ${p[0]}</b> — ${esc(p[2])}</div><p class="hint">ยาที่ทำให้หลอดเลือดอักเสบบ่อย: KCl, Vancomycin, Erythromycin, Amiodarone, Dextrose >10%, Calcium, ยาเคมีบำบัด, สารละลาย pH/osmolarity สูง — พิจารณาเจือจาง/ลดอัตรา/central line · อ้างอิง: Phlebitis scale (INS) จาก Nurse Soulciety</p>`; });
 })();
+
+/* ---------- พิมพ์แบบรายงาน HPVC (หน้า 1) + MKH-FR-PHA-048 (หน้า 2) ตามฉบับ รพ.มค. 2561 ---------- */
+(function(){ const F=ADR.f; [['aRpt','rpt'],['aPtype','ptype'],['aCause','cause'],['aRepBy','repBy'],['aDxBy','dxBy'],['aFu','fu']].forEach(([id,k])=>{ const el=$(id); if(!el) return; el.value=ADR.f[k]??el.value; el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ADR.f[k]=el.value; adrOut();}); }); })();
+function adrPrintHPVC(){ const pa=adrPrintMKH(true); const back=pa.innerHTML; const f=ADR.f, bx=c=>c?'☑':'☐', on=adrOnset();
+  const ds=ADR.drugs.filter(d=>d.name), evs=ADR.evs.filter(e=>e.type==='adr').map(e=>`${e.d} ${e.t||''} ${e.text}`).join(' · ');
+  const labs=ADR.evs.filter(e=>e.type==='lab').map(e=>`${e.d} ${e.lab||''} ${e.val||''}`).join(' · ');
+  const who=ADR.who, W=x=>bx(who===x);
+  const front=`<div class="mk">
+  <table class="pt4"><tr><td>${bx(!f.fu)} Initial &nbsp; ${bx(!!f.fu)} Follow up ครั้งที่ ${esc(f.fu||'......')}</td><td>HPVC No. ............</td><td>ผู้กรอกข้อมูล ....................</td><td>วันที่กรอกข้อมูล AE-online ..........</td></tr>
+  <tr><td colspan="2">ระดับความสมบูรณ์ ☐0 ☐1 ☐2 ☐3</td><td colspan="2">เลขที่อ้างอิงของแหล่งรายงาน ..........................</td></tr></table>
+  <div class="mkt">แบบรายงานเหตุการณ์ไม่พึงประสงค์จากการใช้ผลิตภัณฑ์สุขภาพ<br><small>(ข้อมูลทั้งหมดจะเก็บเป็นความลับของทางราชการโดยเฉพาะ)</small></div>
+  <div>ชนิดรายงาน ${bx(f.rpt==='sp')} Spontaneous Reporting &nbsp; ${bx(f.rpt==='im')} Intensive Monitoring &nbsp; ${bx(f.rpt==='ct')} Clinical Trial</div>
+  <table class="pt4 grid sm"><tr><td colspan="2">โรงพยาบาลมหาสารคาม &nbsp; แผนก/หอผู้ป่วย ..................... เตียง ...... &nbsp; วันที่รายงาน ................</td></tr>
+  <tr><td style="width:50%">HN ....................... AN ....................... เลขประจำตัวประชาชน .......................................<br>คำนำหน้า/ชื่อ/นามสกุล ..........................................................<br>ที่อยู่/เบอร์โทรศัพท์ ..........................................................</td>
+  <td>ประเภท ☑ ผู้ป่วยใน (Admit วันที่ ..........) ☐ ผู้ป่วยนอก · เชื้อชาติ ☐ ไทย ☐ อื่นๆ<br>เพศ ${bx(sex!=='F')} ชาย ${bx(sex==='F')} หญิง · อายุ ${ageTxt()||'....'} · น้ำหนัก ${$('bw').value||'....'} kg<br>เคยมีประวัติการแพ้ผลิตภัณฑ์ ${bx(!($('allergy').value||f.hx))} ไม่มี ${bx(!!($('allergy').value||f.hx))} มี ${esc([$('allergy').value,f.hx].filter(Boolean).join(' · '))}<br>โรคประจำตัว/ภาวะที่เกี่ยวข้อง ..........................................</td></tr></table>
+  <div class="mkh">ข้อมูลผลิตภัณฑ์</div>
+  <div>ประเภท ${[['drug','ยา/วัตถุเสพติด'],['smp','ยาใหม่ (SMP)'],['food','อาหาร'],['cos','เครื่องสำอาง'],['dev','เครื่องมือแพทย์'],['haz','วัตถุอันตรายด้านสาธารณสุข'],['vac','วัคซีน']].map(([k,l])=>`${bx(f.ptype===k)} ${l}`).join(' &nbsp; ')}</div>
+  <table class="pt4 grid sm"><tr><th>ผลิตภัณฑ์สุขภาพ (ชื่อสามัญ/ความแรง)</th><th>S,O,I</th><th>ขนาด/วิธีใช้/ความถี่</th><th>เริ่มใช้</th><th>เกิดอาการ</th><th>หยุดใช้</th><th>โรค/สาเหตุที่ใช้</th><th>แหล่ง</th></tr>
+  ${ds.map(d=>`<tr><td>${esc(d.name)}</td><td>${d.role}</td><td>${esc(d.dose&&d.dose!==d.name?d.dose:'')}</td><td>${esc(d.sd)} ${esc(d.st)}</td><td>${on&&d.role==='S'?tlFmt(on):''}</td><td>${esc(d.ed)} ${esc(d.et)}</td><td>${esc(d.ind||'')}</td><td>${esc(d.src||'')}</td></tr>`).join('')}
+  ${Array(Math.max(0,5-ds.length)).fill('<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>').join('')}</table>
+  <div style="font-size:8pt">S = Suspected product, O = Other product, I = Product interaction · แหล่ง: 1 = ในโรงพยาบาล, 2 = แหล่งอื่น (2.1 รพ.อื่น 2.2 คลินิก 2.3 ร้านยา 2.4 สถานีอนามัย 2.5 ร้านขายของชำ 2.6 อื่นๆ)</div>
+  <table class="pt4 grid sm"><tr><td style="width:60%"><b>เหตุการณ์ไม่พึงประสงค์ที่พบ</b><br>${esc(evs||'')}<br><b>การรักษาอาการไม่พึงประสงค์</b> ${esc(f.treat||'')}</td><td><b>เฉพาะกรณี ADR</b><br>${bx(f.lab==='lab')} Labeled (มีข้อมูลในฉลากยา)<br>${bx(f.lab==='non')} Non-labeled</td></tr>
+  <tr><td><b>ค่าความผิดปกติทางห้องปฏิบัติการ/ผลตรวจร่างกาย</b><br>${esc(labs)}</td><td><b>ความร้ายแรง</b><br>${bx(f.ser==='non')} ไม่ร้ายแรง<br>${bx(f.ser!=='non')} ร้ายแรง: ${bx(f.ser==='death')} เสียชีวิต ${bx(f.ser==='life')} อันตรายถึงชีวิต ${bx(f.ser==='hosp')} เข้ารักษาใน รพ./นอนนานขึ้น ${bx(f.ser==='disab')} พิการถาวร ${bx(f.ser==='cong')} ความผิดปกติแต่กำเนิด ${bx(f.ser==='med')} Medically significant ${bx(f.ser==='oth')} อื่นๆ</td></tr>
+  <tr><td>${bx(/^stop/.test(f.act))} หยุดใช้ผลิตภัณฑ์ที่สงสัย: ${bx(f.act==='stop_imp')} ดีขึ้นชัดเจน ${bx(f.act==='stop_not')} ไม่ดีขึ้น ${bx(f.act==='stop_unk')} ไม่ทราบ<br>${bx(/^cont/.test(f.act))} ใช้ต่อ: ${bx(f.act==='cont_same')} ขนาดเดิม ${bx(f.act==='cont_red')} ลดขนาด ${bx(f.act==='cont_route')} เปลี่ยนวิธีบริหาร<br>${bx(['recur','norecur','unk'].includes(f.rech))} ใช้ซ้ำ: ${bx(f.rech==='recur')} เกิดอาการซ้ำ ${bx(f.rech==='norecur')} ไม่เกิด ${bx(f.rech==='unk')} ไม่ทราบ · ${bx(f.rech==='none')} ไม่มีการใช้ซ้ำ</td>
+  <td><b>ผลลัพธ์</b><br>${[['rec','หายเป็นปกติไม่มีร่องรอย'],['seq','หายโดยมีร่องรอย'],['imp','ดีขึ้นแต่ยังไม่หาย'],['not','ยังมีอาการอยู่'],['death','เสียชีวิต'],['lost','ติดตามผลไม่ได้']].map(([k,l])=>`${bx(f.out===k)} ${l}`).join('<br>')}</td></tr>
+  <tr><td><b>สาเหตุการเกิด</b><br>${bx(f.cause==='adr')} Product reaction (ADR/vaccine reaction) — ระดับความน่าจะเป็น: ${W('Certain')} ใช่แน่นอน ${W('Probable')} น่าจะใช่ ${W('Possible')} อาจจะใช่ ${W('Unlikely')} ไม่น่าใช่ ${W('Unclassified')||W('Unassessable')} ไม่สามารถระบุ<br>
+  ${[['me','ความคลาดเคลื่อนทางยา'],['adm','ความคลาดเคลื่อนด้านบริหารจัดการ'],['coin','เหตุการณ์อื่นที่เกิดร่วมกัน'],['def','ความบกพร่องของผลิตภัณฑ์'],['acc','อุบัติเหตุ'],['sui','ฆ่าตัวตาย'],['mis','ใช้ในทางที่ผิด'],['oth','อื่นๆ']].map(([k,l])=>`${bx(f.cause===k)} ${l}`).join(' ')}</td>
+  <td><b>ข้อมูลผู้รายงาน</b><br>ผู้แจ้ง/ผู้คัดกรอง ${[['md','แพทย์'],['ph','เภสัชกร'],['rn','พยาบาล'],['pt','ผู้ป่วย'],['oth','อื่นๆ']].map(([k,l])=>`${bx(f.repBy===k)} ${l}`).join(' ')}<br>ผู้วินิจฉัยอาการ ................ เป็น ${[['md','แพทย์'],['ph','เภสัชกร'],['rn','พยาบาล'],['oth','อื่นๆ']].map(([k,l])=>`${bx(f.dxBy===k)} ${l}`).join(' ')}<br>ผู้ประเมิน/บันทึกรายงาน ................ เป็น ☑ เภสัชกร<br>วันที่รายงาน ................ · โรงพยาบาลมหาสารคาม จ.มหาสารคาม โทร. 043 740993</td></tr></table></div>`;
+  pa.innerHTML=front+`<div style="break-before:page">${back}</div>`; window.print(); }
+if($('aPrintHP')) $('aPrintHP').onclick=adrPrintHPVC;

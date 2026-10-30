@@ -220,6 +220,8 @@ textarea.paste{border-color:var(--accent)}
 /* ===== ADR tab ===== */
 #t-adr,#p-adr{--c1:#be185d;--c2:#4338ca}
 #t-cmt,#p-cmt{--c1:#0f766e;--c2:#9333ea}
+#t-dtl,#p-dtl{--c1:#0891b2;--c2:#2563eb}
+.dtleg{font-size:13px;margin:6px 0;line-height:1.7}.dtsvg{border:1px solid var(--line);border-radius:8px;margin-top:6px}
 .labbox{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;background:color-mix(in srgb,#0ea5e9 5%,var(--surface))}
 .labbox summary{cursor:pointer;font-weight:600}
 .labbox textarea{width:100%;margin-top:8px;font:13px ui-monospace,monospace;box-sizing:border-box}
@@ -322,6 +324,7 @@ textarea.paste{border-color:var(--accent)}
       <button role="tab" id="t-opi" aria-selected="false">Opioid (OME)</button>
       <button role="tab" id="t-pk" aria-selected="false">Vanco / Colistin</button>
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
+      <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
@@ -489,6 +492,42 @@ textarea.paste{border-color:var(--accent)}
         <div id="tlChart"></div>
         <p class="hint" style="margin:12px 0 4px">ข้อความ note (คัดลอกได้)</p>
         <textarea class="note" id="tlNote" readonly style="width:100%;min-height:90px"></textarea>
+      </div>
+    </section>
+
+    <section id="p-dtl" hidden>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>แผนภาพลำดับเวลาการใช้ยา (Drug Timeline)</h2>
+        <p class="hint" style="margin-top:0">สำหรับจัดทำเอกสารประกอบการประเมิน — ไม่บันทึกชื่อ/HN (ตอนพิมพ์มีช่องให้เขียนด้วยมือ) · ข้อมูลเก็บในเครื่องนี้เท่านั้น บันทึกเป็นไฟล์เพื่อเปิดภายหลังได้</p>
+        <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+          <label class="f">หอผู้ป่วย<input id="dtWard"></label><label class="f">วันที่จัดทำ<input id="dtDate" placeholder="dd/mm/2569"></label><label class="f">จัดทำโดย<input id="dtBy"></label>
+          <label class="f">วันต่อหน้า<span style="display:flex;gap:4px"><button type="button" class="btn sm" id="dtDppM">−</button><input id="dtDpp" type="number" min="3" max="31" style="width:70px"><button type="button" class="btn sm" id="dtDppP">+</button></span></label>
+          <label class="f">เริ่มแผนภาพวันที่ (ว่าง = อัตโนมัติ)<input id="dtStart" placeholder="dd/mm/2569"></label>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><button type="button" class="btn sm pri" id="dtPrint">พิมพ์ / ส่งออก PDF</button><button type="button" class="btn sm" id="dtSaveF">บันทึกเป็นไฟล์</button><button type="button" class="btn sm" id="dtOpen">เปิดไฟล์</button><input type="file" id="dtFile" accept=".json,application/json" hidden><button type="button" class="btn sm" id="dtClr">ล้างข้อมูล</button></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>1. เพิ่มรายการยา</h2>
+        <label class="f">วางคำสั่งยาจาก paperless (หลายบรรทัดได้)<textarea id="dtPaste" rows="3" placeholder="เช่น CEF-3 (CEFTRIAXONE) 1G. 2 g iv q24hr&#10;ME-RO-PENEM (1G/VIAL) IV INFUSION 500 mg ทุก 24 ชั่วโมง DUE start .24-30/10/69"></textarea></label>
+        <div style="display:flex;gap:6px;align-items:end;flex-wrap:wrap;margin:6px 0 12px"><label class="f">วันเริ่ม (ถ้าคำสั่งไม่ระบุ)<input id="dtImpD" style="width:130px"></label><button type="button" class="btn sm pri" id="dtImp">เพิ่มจากคำสั่ง</button><span id="dtImpMsg" class="hint"></span></div>
+        <div class="grid2" style="grid-template-columns:2fr 2fr 1fr 1fr auto auto;align-items:end">
+          <label class="f">ชื่อยา<input id="dtNm"></label><label class="f">ขนาด/วิธีใช้<input id="dtDose"></label><label class="f">เริ่ม<input id="dtSd"></label><label class="f">หยุด<input id="dtEd" placeholder="ว่าง = ใช้อยู่"></label>
+          <label style="display:flex;gap:4px;align-items:center;font-size:13px"><input type="checkbox" id="dtPrior">ได้รับมาก่อน</label><button type="button" class="btn sm pri" id="dtAddD">เพิ่มยา</button>
+        </div>
+        <div id="dtDrugs" style="margin-top:10px;overflow-x:auto"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>2. เพิ่มอาการไม่พึงประสงค์ · ผล Lab · ความเห็นเภสัชกร</h2>
+        <div class="grid2" style="grid-template-columns:1.3fr 1fr 2.5fr 1fr auto;align-items:end">
+          <label class="f">ชนิด<select id="dtEvT"><option value="adr">อาการไม่พึงประสงค์</option><option value="lab">ผล Lab</option><option value="note">ความเห็นเภสัชกร</option></select></label>
+          <label class="f">วันที่<input id="dtEvD"></label><label class="f">รายละเอียด<input id="dtEvTx" placeholder="รายละเอียด"></label><label class="f">ค่า<input id="dtEvVal" hidden placeholder="เช่น 2.3"></label>
+          <button type="button" class="btn sm pri" id="dtAddE">เพิ่ม</button>
+        </div>
+        <div id="dtEvs" style="margin-top:10px;overflow-x:auto"></div>
+      </div>
+      <div class="panel sec" style="margin:0">
+        <h2>3. แผนภาพ</h2>
+        <div id="dtChart" style="overflow-x:auto"></div>
       </div>
     </section>
 

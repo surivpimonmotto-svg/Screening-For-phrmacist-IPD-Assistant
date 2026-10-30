@@ -221,6 +221,8 @@ textarea.paste{border-color:var(--accent)}
 #t-adr,#p-adr{--c1:#be185d;--c2:#4338ca}
 #t-cmt,#p-cmt{--c1:#0f766e;--c2:#9333ea}
 #t-dtl,#p-dtl{--c1:#0891b2;--c2:#2563eb}
+#t-ref,#p-ref{--c1:#a16207;--c2:#db2777}
+.refbox{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--surface)}.refbox summary{cursor:pointer;font-weight:700;padding:10px 12px}.refbody{padding:0 14px 12px;font-size:14px;line-height:1.6}.refbody h3{font-size:14.5px;margin:12px 0 4px;color:var(--c1)}.refbody ul{margin:4px 0;padding-left:20px}
 .dtleg{font-size:13px;margin:6px 0;line-height:1.7}.dtsvg{border:1px solid var(--line);border-radius:8px;margin-top:6px}
 .labbox{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;background:color-mix(in srgb,#0ea5e9 5%,var(--surface))}
 .labbox summary{cursor:pointer;font-weight:600}
@@ -328,6 +330,7 @@ textarea.paste{border-color:var(--accent)}
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
+      <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
       <button role="tab" id="t-kb" aria-selected="false">ฐานกฎยา</button>
     </div>
 
@@ -493,6 +496,13 @@ textarea.paste{border-color:var(--accent)}
         <p class="hint" style="margin:12px 0 4px">ข้อความ note (คัดลอกได้)</p>
         <textarea class="note" id="tlNote" readonly style="width:100%;min-height:90px"></textarea>
       </div>
+      <div class="panel sec" style="margin:14px 0 0">
+        <h2>นับเม็ดยาถึงวันนัด (ARV / ยาต่อเนื่อง)</h2>
+        <p class="hint" style="margin-top:0">ยาเหลือ + สั่งเพิ่ม เทียบกับจำนวนที่ต้องใช้ถึงวันนัด (เม็ด/วัน × จำนวนวัน) → ขาด/เกิน และจำนวนที่ควรจ่าย</p>
+        <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end"><label class="f">จำนวนวันถึงนัด<input id="aCntDays" type="number" inputmode="numeric" placeholder="เช่น 133"></label><label class="f">หรือ วันนัด<input id="aCntUntil" placeholder="dd/mm/2569"></label><span id="aCntInfo" class="hint"></span></div>
+        <div id="aCntTbl" style="overflow-x:auto;margin-top:8px"></div>
+        <button type="button" class="btn sm" id="aCntAdd" style="margin-top:6px">+ เพิ่มยา</button>
+      </div>
     </section>
 
     <section id="p-dtl" hidden>
@@ -528,6 +538,14 @@ textarea.paste{border-color:var(--accent)}
       <div class="panel sec" style="margin:0">
         <h2>3. แผนภาพ</h2>
         <div id="dtChart" style="overflow-x:auto"></div>
+      </div>
+    </section>
+
+    <section id="p-ref" hidden>
+      <div class="panel sec" style="margin:0">
+        <h2>คู่มือย่อ — แนวทางจากเอกสารของ รพ. / academic</h2>
+        <label class="f" style="max-width:420px">ค้นหา<input id="refQ" placeholder="เช่น dabigatran, rechallenge, naloxone, clozapine"></label>
+        <div id="refOut" style="margin-top:10px"></div>
       </div>
     </section>
 

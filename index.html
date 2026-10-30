@@ -221,6 +221,8 @@ textarea.paste{border-color:var(--accent)}
 #t-adr,#p-adr{--c1:#be185d;--c2:#4338ca}
 #t-cmt,#p-cmt{--c1:#0f766e;--c2:#9333ea}
 #t-dtl,#p-dtl{--c1:#0891b2;--c2:#2563eb}
+#t-ref,#p-ref{--c1:#a16207;--c2:#db2777}
+.refbox{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--surface)}.refbox summary{cursor:pointer;font-weight:700;padding:10px 12px}.refbody{padding:0 14px 12px;font-size:14px;line-height:1.6}.refbody h3{font-size:14.5px;margin:12px 0 4px;color:var(--c1)}.refbody ul{margin:4px 0;padding-left:20px}
 .dtleg{font-size:13px;margin:6px 0;line-height:1.7}.dtsvg{border:1px solid var(--line);border-radius:8px;margin-top:6px}
 .labbox{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;background:color-mix(in srgb,#0ea5e9 5%,var(--surface))}
 .labbox summary{cursor:pointer;font-weight:600}
@@ -328,6 +330,7 @@ textarea.paste{border-color:var(--accent)}
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
+      <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
       <button role="tab" id="t-kb" aria-selected="false">ฐานกฎยา</button>
     </div>
 
@@ -493,6 +496,13 @@ textarea.paste{border-color:var(--accent)}
         <p class="hint" style="margin:12px 0 4px">ข้อความ note (คัดลอกได้)</p>
         <textarea class="note" id="tlNote" readonly style="width:100%;min-height:90px"></textarea>
       </div>
+      <div class="panel sec" style="margin:14px 0 0">
+        <h2>นับเม็ดยาถึงวันนัด (ARV / ยาต่อเนื่อง)</h2>
+        <p class="hint" style="margin-top:0">ยาเหลือ + สั่งเพิ่ม เทียบกับจำนวนที่ต้องใช้ถึงวันนัด (เม็ด/วัน × จำนวนวัน) → ขาด/เกิน และจำนวนที่ควรจ่าย</p>
+        <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end"><label class="f">จำนวนวันถึงนัด<input id="aCntDays" type="number" inputmode="numeric" placeholder="เช่น 133"></label><label class="f">หรือ วันนัด<input id="aCntUntil" placeholder="dd/mm/2569"></label><span id="aCntInfo" class="hint"></span></div>
+        <div id="aCntTbl" style="overflow-x:auto;margin-top:8px"></div>
+        <button type="button" class="btn sm" id="aCntAdd" style="margin-top:6px">+ เพิ่มยา</button>
+      </div>
     </section>
 
     <section id="p-dtl" hidden>
@@ -528,6 +538,14 @@ textarea.paste{border-color:var(--accent)}
       <div class="panel sec" style="margin:0">
         <h2>3. แผนภาพ</h2>
         <div id="dtChart" style="overflow-x:auto"></div>
+      </div>
+    </section>
+
+    <section id="p-ref" hidden>
+      <div class="panel sec" style="margin:0">
+        <h2>คู่มือย่อ — แนวทางจากเอกสารของ รพ. / academic</h2>
+        <label class="f" style="max-width:420px">ค้นหา<input id="refQ" placeholder="เช่น dabigatran, rechallenge, naloxone, clozapine"></label>
+        <div id="refOut" style="margin-top:10px"></div>
       </div>
     </section>
 
@@ -933,6 +951,11 @@ const KB=[
 /* ---------------- Anticoagulant ---------------- */
 {id:'warfarin',name:'Warfarin',match:/warfarin|orfarin|^\s*w\s*\(?\s*\d/i,unit:'mg',forms:[[/5/,'5 mg',5],[/3/,'3 mg',3],[/2/,'2 mg',2]],special:'warfarin',
  elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin ห้ามใช้ในหญิงตั้งครรภ์',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
+{id:'dabigatran',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
+ renal:{bands:[B(50,999,'150 mg bid (เสี่ยงเลือดออก 110 mg bid)',150,300),B(30,50,'150/110 mg bid — ใช้ร่วม dronedarone/ketoconazole: 75 mg (US: 75 mg bid)',150,300),B(15,30,'VTE: ไม่แนะนำ (CrCl ≤30) · AF: ตรวจข้อบ่งใช้ ระวังสูง',110,220),B(0,15,'ไม่แนะนำ',null,null,{avoid:true})],
+  HD:{txt:'ไม่แนะนำ',avoid:true},CAPD:{txt:'ไม่แนะนำ',avoid:true},CRRT:{txt:'ไม่แนะนำ',avoid:true}},
+ warn:[{crcl:30,lvl:'flag',msg:'Dabigatran: CrCl ≤30 — VTE treatment/prophylaxis ไม่แนะนำ · AF ไม่แนะนำเมื่อ CrCl <15'}],
+ note:'NOAC (direct thrombin inhibitor) · ลืมยา: bid ≤6 ชม. กินทันที >6 ชม. ข้าม · กลืนทั้งแคปซูล',src:'Academic in-service Gen-med2 รพ.มค. (EHRA 2018)'},
 {id:'enox',name:'Enoxaparin',match:/enoxaparin|clexane/i,unit:'mg',kgDose:true,forms:[[/60/,'60 mg/0.6 ml',60,'syringe'],[/40/,'40 mg/0.4 ml',40,'syringe']],
  renal:{bands:[B(30,999,'1 mg/kg SC q12h หรือ 1.5 mg/kg OD',1.5,2,{kg:true}),B(15,30,'1 mg/kg SC OD',1,1,{kg:true}),B(0,15,'1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true})],
   HD:M('หลีกเลี่ยง ถ้าจำเป็น 1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true,warnAlways:'HD: หลีกเลี่ยงการใช้'}),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('1 mg/kg SC OD',1,1,{kg:true})},
@@ -1133,7 +1156,8 @@ const DUE=[
  {re:/tazocin|piperacillin|pip.{0,3}tazo/i,name:'Piperacillin/tazobactam',t:'post'},
  {re:/vanco/i,name:'Vancomycin',t:'post'}];
 
-/* ---------- Cross-allergy: Beta-lactam (side chain), NSAIDs, ยากันชัก (aromatic), Sulfonamide ----------
+/* ---------- Cross-allergy: Beta-lactam (side chain), NSAIDs, ยากันชัก (aromatic), Sulfonamide, Macrolide, Quinolone, Azole, PPI, Antihistamine, Statin ----------
+   + สไลด์ Drug Allergy & Cross-Reactivity (update) — ตาราง quinolone generation, โครงสร้าง azole, PPI/sulfonamide approach (Thai HP), antihistamine/statin class
    อ้างอิง: Beta-lactam cross-allergy chart (Interior Health Authority) · EAACI/ENDA NSAID classification (Kowalski 2013, Doña 2020)
    · AED cross-reactivity (aromatic AEDs) · Sulfonamide antibiotic vs non-antibiotic (arylamine N4) */
 const XA=[ // [name, regex, group, attrs]
@@ -1191,8 +1215,29 @@ const XA=[ // [name, regex, group, attrs]
  // Sulfonamides: ab=antibiotic (arylamine), dap=dapsone
  ['Co-trimoxazole',/co-?trimox|bactrim|sulfameth|\bsmx\b|tmp\s*\/\s*smx/i,'sul',{ab:1}],['Sulfadiazine',/sulfadiazine|silver\s*sulf/i,'sul',{ab:1}],['Sulfasalazine',/sulfasalaz|salazopyrin/i,'sul',{ab:1}],['Dapsone',/dapsone/i,'sul',{ab:1,dap:1}],
  ['Furosemide',/furosemide|lasix/i,'sul',{ab:0}],['Hydrochlorothiazide',/hydrochlorothiaz|\bhctz\b/i,'sul',{ab:0}],['Indapamide',/indapamide/i,'sul',{ab:0}],['Acetazolamide',/acetazolamide|diamox/i,'sul',{ab:0}],
- ['Glipizide',/glipizide/i,'sul',{ab:0}],['Glibenclamide',/glibenclamide|glyburide/i,'sul',{ab:0}],['Gliclazide',/gliclazide/i,'sul',{ab:0}],['Celecoxib (sulfonamide)',/celecoxib/i,'sul',{ab:0}],['Topiramate (sulfamate)',/topiramate/i,'sul',{ab:0}],['Zonisamide',/zonisamide/i,'sul',{ab:0}],['Sumatriptan',/sumatriptan/i,'sul',{ab:0}]];
-const XA_GRP={bl:'Beta-lactam',ns:'NSAIDs',aed:'ยากันชัก (AEDs)',sul:'Sulfonamide'};
+ ['Glipizide',/glipizide/i,'sul',{ab:0}],['Glibenclamide',/glibenclamide|glyburide/i,'sul',{ab:0}],['Gliclazide',/gliclazide/i,'sul',{ab:0}],['Celecoxib (sulfonamide)',/celecoxib/i,'sul',{ab:0}],['Topiramate (sulfamate)',/topiramate/i,'sul',{ab:0}],['Zonisamide',/zonisamide/i,'sul',{ab:0}],['Sumatriptan',/sumatriptan/i,'sul',{ab:0}],
+ // ---- เพิ่มจากสไลด์ Drug Allergy & Cross-Reactivity (update) ----
+ // Macrolides
+ ['Erythromycin',/erythromycin/i,'mac',{}],['Clarithromycin',/clarithromycin|klacid/i,'mac',{}],['Azithromycin',/azithromycin|zithromax/i,'mac',{}],['Roxithromycin',/roxithromycin/i,'mac',{}],
+ // Quinolones: g=generation
+ ['Nalidixic acid',/nalidixic/i,'fq',{g:1}],['Norfloxacin',/norfloxacin/i,'fq',{g:2}],['Ciprofloxacin',/ciprofloxacin|cipro\b|ciproiv/i,'fq',{g:2}],['Ofloxacin',/\bofloxacin|\boflox\b/i,'fq',{g:2}],['Enoxacin',/enoxacin/i,'fq',{g:2}],
+ ['Levofloxacin',/levofloxacin|cravit/i,'fq',{g:3}],['Moxifloxacin',/moxifloxacin|avelox/i,'fq',{g:4}],['Gatifloxacin',/gatifloxacin/i,'fq',{g:4}],['Sitafloxacin',/sitafloxacin|gracevit/i,'fq',{g:4}],
+ // Azoles / nitroimidazoles: โครงสร้างที่มีรายงานแพ้ข้าม
+ ['Miconazole',/miconazole|daktarin/i,'az',{st:['imid']}],['Ketoconazole',/ketoconazole|nizoral/i,'az',{st:['imid','prop']}],['Clotrimazole',/clotrimazole|canesten/i,'az',{st:['imid','cl','arom']}],
+ ['Fluconazole',/fluconazole|diflucan/i,'az',{st:['tri','f','prop']}],['Itraconazole',/itraconazole|sporal/i,'az',{st:['tri','cl','arom']}],['Voriconazole',/voriconazole|vfend/i,'az',{st:['tri','f']}],['Posaconazole',/posaconazole/i,'az',{st:['tri']}],
+ ['Metronidazole',/metronidazole|flagyl/i,'az',{st:['prop']}],['Tinidazole',/tinidazole/i,'az',{st:['prop']}],['Ornidazole',/ornidazole/i,'az',{st:['prop']}],
+ // PPIs
+ ['Omeprazole',/\bomeprazole/i,'ppi',{}],['Esomeprazole',/esomeprazole|nexium/i,'ppi',{}],['Pantoprazole',/pantoprazole|controloc/i,'ppi',{}],['Lansoprazole',/lansoprazole|prevacid/i,'ppi',{}],['Rabeprazole',/rabeprazole|pariet/i,'ppi',{}],
+ // Antihistamines: k=chemical class, L=สายแม่-metabolite
+ ['Chlorpheniramine',/(?<!dex)chlorphen|\bcpm\b|piriton/i,'ah',{k:'Alkylamine'}],['Brompheniramine',/brompheniramine/i,'ah',{k:'Alkylamine'}],['Dexchlorpheniramine',/dexchlorphen/i,'ah',{k:'Alkylamine'}],['Triprolidine',/triprolidine|actifed/i,'ah',{k:'Alkylamine',L:'trip'}],['Acrivastine',/acrivastine/i,'ah',{k:'Alkylamine',L:'trip'}],
+ ['Hydroxyzine',/hydroxyzine|atarax/i,'ah',{k:'Piperazine',L:'hyd'}],['Cetirizine',/\bcetirizine|zyrtec/i,'ah',{k:'Piperazine',L:'hyd'}],['Levocetirizine',/levocetirizine|xyzal/i,'ah',{k:'Piperazine',L:'hyd'}],['Meclizine',/meclizine|meclozine/i,'ah',{k:'Piperazine'}],['Cyclizine',/cyclizine/i,'ah',{k:'Piperazine'}],
+ ['Loratadine',/\bloratadine|clarityne/i,'ah',{k:'Piperidine',L:'lor'}],['Desloratadine',/desloratadine|aerius/i,'ah',{k:'Piperidine',L:'lor'}],['Fexofenadine',/fexofenadine|telfast/i,'ah',{k:'Piperidine',L:'ter'}],['Cyproheptadine',/cyproheptadine|periactin/i,'ah',{k:'Piperidine'}],['Ketotifen',/ketotifen|zaditen/i,'ah',{k:'Piperidine'}],['Bilastine',/bilastine/i,'ah',{k:'Piperidine'}],['Ebastine',/ebastine/i,'ah',{k:'Piperidine'}],
+ ['Diphenhydramine',/diphenhydramine|benadryl/i,'ah',{k:'Ethanolamine'}],['Dimenhydrinate',/dimenhydrinate|dramamine/i,'ah',{k:'Ethanolamine'}],['Doxylamine',/doxylamine/i,'ah',{k:'Ethanolamine'}],['Promethazine',/promethazine|phenergan/i,'ah',{k:'Phenothiazine'}],
+ // Statins: t=1 (natural/semi-synthetic) 2 (synthetic)
+ ['Simvastatin',/simvastatin|zocor/i,'st',{t:1}],['Lovastatin',/lovastatin/i,'st',{t:1}],['Pravastatin',/pravastatin/i,'st',{t:1}],['Atorvastatin',/atorvastatin|lipitor/i,'st',{t:2}],['Rosuvastatin',/rosuvastatin|crestor/i,'st',{t:2}],['Fluvastatin',/fluvastatin/i,'st',{t:2}],['Pitavastatin',/pitavastatin|livalo/i,'st',{t:2}],
+];
+const XA_GRP={bl:'Beta-lactam',ns:'NSAIDs',aed:'ยากันชัก (AEDs)',sul:'Sulfonamide',mac:'Macrolide',fq:'Quinolone',az:'Azole / Nitroimidazole',ppi:'PPI',ah:'Antihistamine',st:'Statin'};
+const XA_FQALT={1:[3,4],2:[4],3:[1,2],4:[1,3]}; const XA_AZST={imid:'imidazole ring',tri:'triazole ring',cl:'Cl atoms',f:'F atoms',arom:'aromatic ring',prop:'propan-2-ol'};
 const XA_SIM=[['amp','amp2'],['mxi','mxi2'],['mxi','atz'],['benz','thie']];
 const XA_SEVERE=/sjs|\bten\b|stevens|toxic\s*epid|dress|dihs|agep|scar|exfoliat|nephritis|hepatitis|hemolytic|ไตอักเสบ|ตับอักเสบ/i;
 function xaFind(text){ const t=(text||'').trim(); if(!t) return []; return XA.filter(x=>x[1].test(t)); }
@@ -1235,6 +1280,30 @@ function xaPair(a,b,o={}){
     if(!A.ab&&B.ab) return {lvl:'ok',txt:'แพ้ non-antibiotic sulfonamide — ไม่แพ้ข้ามกับ sulfonamide antibiotic'};
     return {lvl:'ok',txt:'non-antibiotic sulfonamide ด้วยกัน — แพ้ข้ามต่ำ'};
   }
+  if(a[2]==='mac'){
+    if(o.severe) return {lvl:'flag',txt:'แพ้ macrolide แบบรุนแรง — หลีกเลี่ยง macrolide ทั้งกลุ่ม เปลี่ยนเป็นยากลุ่มอื่น'};
+    return {lvl:'warn',txt:'macrolide โครงสร้างคล้ายกัน มีรายงานแพ้ข้ามน้อย — ถ้ามียาทางเลือกกลุ่มอื่น เปลี่ยนกลุ่มจะปลอดภัยกว่า · ถ้าจำเป็นต้องใช้ ประเมิน benefit/risk ทดสอบ/desensitization ภายใต้การดูแล'}; }
+  if(a[2]==='fq'){
+    if(o.severe) return {lvl:'flag',txt:'แพ้ quinolone แบบรุนแรง (SJS/TEN/DRESS/AGEP หรือ anaphylaxis) — ห้ามใช้ quinolone ทั้งกลุ่ม'};
+    const ga=A.g, gb=B.g;
+    if(ga===gb||(ga<=2&&gb<=2)) return {lvl:'flag',txt:`quinolone generation ${ga} กับ ${gb} — แพ้ข้ามสูง (ถ้าเป็น Type I/IgE ให้หลีกเลี่ยงทั้งกลุ่ม)`};
+    if((XA_FQALT[ga]||[]).includes(gb)) return {lvl:'warn',txt:`ตารางแนะนำ: แพ้ gen ${ga} ใช้ gen ${(XA_FQALT[ga]||[]).join('/')} แทนได้ — แต่ถ้าแพ้แบบ Type I/IgE ให้หลีกเลี่ยงทั้งกลุ่ม · อาการไม่รุนแรง (urticaria, MPE, FDE) ใช้ภายใต้การดูแล`};
+    return {lvl:'warn',txt:`quinolone ต่าง generation (${ga} → ${gb}) ไม่อยู่ในตัวเลือกที่แนะนำ — ระวัง/เลือกกลุ่มอื่น`}; }
+  if(a[2]==='az'){
+    const sh=(A.st||[]).filter(x=>(B.st||[]).includes(x));
+    if(o.severe) return {lvl:'flag',txt:'แพ้ azole แบบรุนแรง — หลีกเลี่ยง azole ที่มีโครงสร้างร่วม พิจารณา amphotericin B / echinocandin'};
+    if(sh.length) return {lvl:'warn',txt:`มีรายงานแพ้ข้าม — โครงสร้างร่วม: ${sh.map(x=>XA_AZST[x]).join(', ')} · ถ้าจำเป็นให้ test dose / graded challenge`};
+    return {lvl:'ok',txt:'ไม่มีโครงสร้างร่วมที่มีรายงานแพ้ข้าม — ใช้ได้ด้วยความระวัง'}; }
+  if(a[2]==='ppi'){
+    if(o.severe) return {lvl:'flag',txt:'แพ้ PPI รุนแรง (anaphylaxis, SJS/TEN, DRESS, AGEP) — หลีกเลี่ยง PPI ทั้งกลุ่ม ใช้ยากลุ่มอื่น (เช่น H2-blocker) / ปรึกษาผู้เชี่ยวชาญ'};
+    return {lvl:'warn',txt:'แพ้ PPI ไม่รุนแรง — หลีกเลี่ยง PPI ทั้งกลุ่ม หรือถ้าจำเป็นเลือกตัวอื่นและเฝ้าระวังหลังให้ยา'}; }
+  if(a[2]==='ah'){
+    if(A.L&&A.L===B.L) return {lvl:'flag',txt:'ยาแม่-เมแทบอไลต์เดียวกัน (เช่น hydroxyzine → cetirizine → levocetirizine, loratadine → desloratadine) — แพ้ข้ามสูง ห้ามใช้'};
+    if(A.k===B.k) return {lvl:'warn',txt:`antihistamine กลุ่มโครงสร้างเดียวกัน (${A.k}) — มีโอกาสแพ้ข้าม เลือกกลุ่มโครงสร้างอื่น`};
+    return {lvl:'ok',txt:`ต่างกลุ่มโครงสร้าง (${A.k} vs ${B.k}) — ใช้แทนได้ (มีรายงานแพ้ข้ามบ้าง เฝ้าระวัง)`}; }
+  if(a[2]==='st'){
+    if(A.t===B.t) return {lvl:'warn',txt:`statin type ${A.t===1?'I (natural/semi-synthetic)':'II (synthetic)'} เดียวกัน — ข้อมูลแพ้ข้ามน้อย ถ้าเปลี่ยนเลือก type อื่น`};
+    return {lvl:'ok',txt:'ต่าง type (I vs II) — ข้อมูลการแพ้ข้ามมีน้อย ใช้แทนได้ เฝ้าระวัง'}; }
   return null; }
 /* ตรวจยาที่จะใช้ (ข้อความ) กับประวัติแพ้ยา (ข้อความ) → รายการผล */
 function xaCheck(allergyText,drugText,o={}){ const out=[]; const sev=o.severe??XA_SEVERE.test(allergyText||'');
@@ -1244,6 +1313,11 @@ function xaCheck(allergyText,drugText,o={}){ const out=[]; const sev=o.severe??X
       if(/penicillin|เพนนิ/i.test(part)) ds.filter(d=>d[2]==='bl').forEach(d=>out.push(d[3].c==='pen'?{a:part,d:d[0],lvl:'flag',txt:'แพ้ penicillin — penicillin ทุกตัวห้ามใช้'}:sev?{a:part,d:d[0],lvl:'flag',txt:'แพ้ penicillin แบบรุนแรงชนิดล่าช้า — หลีกเลี่ยง beta-lactam ทุกตัว'}:{a:part,d:d[0],lvl:'warn',txt:'แพ้ penicillin (ไม่ระบุตัว) — ตรวจ side chain: amoxicillin/ampicillin ≈ cephalexin/cefadroxil/cefaclor · ระบุชื่อยาที่แพ้เพื่อประเมินให้แม่นขึ้น'}));
       else if(/sulfa|ซัลฟา/i.test(part)) ds.filter(d=>d[2]==='sul').forEach(d=>out.push(d[3].ab?{a:part,d:d[0],lvl:'flag',txt:'แพ้ sulfa — sulfonamide antibiotic ห้ามใช้'}:{a:part,d:d[0],lvl:'ok',txt:'non-antibiotic sulfonamide แพ้ข้ามต่ำ — ใช้ได้ (ยืนยันว่าแพ้ sulfa antibiotic)'}));
       else if(/nsaid/i.test(part)) ds.filter(d=>d[2]==='ns').forEach(d=>out.push(d[3].x==='1'?{a:part,d:d[0],lvl:'flag',txt:'แพ้ NSAIDs — ยับยั้ง COX-1 แรง ห้ามใช้'}:{a:part,d:d[0],lvl:'warn',txt:'แพ้ NSAIDs — ระบุชนิด/ตัวยาเพื่อแยก true allergy หรือ cross-intolerance'}));
+      else if(/macrolide/i.test(part)) ds.filter(d=>d[2]==='mac').forEach(d=>out.push({a:part,d:d[0],lvl:sev?'flag':'warn',txt:'แพ้ macrolide — เปลี่ยนเป็นยากลุ่มอื่นปลอดภัยกว่า'}));
+      else if(/quinolone|floxacin/i.test(part)) ds.filter(d=>d[2]==='fq').forEach(d=>out.push({a:part,d:d[0],lvl:'flag',txt:'แพ้ quinolone (ไม่ระบุตัว) — ระบุชื่อยาเพื่อดู generation ที่ใช้แทนได้'}));
+      else if(/ppi|proton/i.test(part)) ds.filter(d=>d[2]==='ppi').forEach(d=>out.push({a:part,d:d[0],lvl:sev?'flag':'warn',txt:'แพ้ PPI — หลีกเลี่ยง PPI ทั้งกลุ่ม'}));
+      else if(/statin/i.test(part)) ds.filter(d=>d[2]==='st').forEach(d=>out.push({a:part,d:d[0],lvl:'warn',txt:'แพ้ statin (ไม่ระบุตัว) — ระบุชื่อยาเพื่อเทียบ type I/II'}));
+      else if(/azole|อะโซล/i.test(part)) ds.filter(d=>d[2]==='az').forEach(d=>out.push({a:part,d:d[0],lvl:'warn',txt:'แพ้ azole (ไม่ระบุตัว) — ระบุชื่อยาเพื่อเทียบโครงสร้าง'}));
       else if(/cephalo|เซฟา/i.test(part)) ds.filter(d=>d[2]==='bl'&&d[3].c==='ceph').forEach(d=>out.push({a:part,d:d[0],lvl:'warn',txt:'แพ้ cephalosporin (ไม่ระบุตัว) — ระบุชื่อยาที่แพ้เพื่อเทียบ side chain'}));
       continue; }
     for(const a of as) for(const d of ds){ const r=xaPair(a,d,{...o,severe:sev}); if(r) out.push({a:a[0],d:d[0],...r}); } }
@@ -1570,9 +1644,9 @@ function evaluate(row,pt,rows){
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
     xs.forEach(x=>add(x.lvl==='ok'?'info':x.lvl,`ประวัติแพ้ ${x.a} → ${x.d}: ${x.txt}`));
     if(!xs.length&&d&&d.fam==='quinolone'&&/quinolone|floxacin/.test(al)&&!al.includes(gen)) add('flag','ประวัติแพ้ยากลุ่ม quinolone'); };
-  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); };
-  if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo||res.fpatch)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
-    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น|Fentanyl patch)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด|Fentanyl patch)/.test(i.txt))?'ok':'none'; return res;}
+  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); ['acChk','tbAdrChk','opiChk','apChk'].forEach(f=>{ if(typeof window[f]==='function'&&window[f](row,rows||[],pt,add)) res.pol=true; }); };
+  if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo||res.fpatch||res.pol)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
+    const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น|Fentanyl patch|ยาต้านการแข็ง|DI |Dabigatran|Enoxaparin|Warfarin|ยาวัณโรค|Rifampicin|Opioid|Morphine|Pethidine|Oxycodone|Tramadol|ใช้ antipsychotic|Clozapine|[A-Z][a-z]+ \d)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด|Fentanyl patch)/.test(i.txt))?'ok':'none'; return res;}
   mflags(); dueChk();
   if(d.id==='metformin'&&!pt.isPed&&+pt.age>50&&pt.egfr!=null&&pt.egfr<60) add('info','แนวทาง รพ.มค: ผู้ป่วยอายุ >50 ปีที่ eGFR <60 แนะนำติดตาม eGFR อย่างน้อยทุก 6 เดือน');
   if(/\block\b/i.test(row.raw)) return evalLock(row,d,pt,add,res);
@@ -2162,6 +2236,90 @@ function fentPatchChk(row,rows,pt,add){
   return true;
 }
 
+/* ---------- ยาต้านการแข็งตัวของเลือด (Academic in-service Gen-med2 รพ.มค.) ---------- */
+const SRC_AC='Academic in-service Gen-med2 รพ.มค.: Heparin/Enoxaparin/Dabigatran + warfarin ในหญิงตั้งครรภ์ (UpToDate, EHRA 2018, ESC 2018)';
+const AC_RE={heparin:/heparin(?!.*(flush|lock|capd|1,?000\s*unit))/i,enox:/enoxaparin|clexane/i,warf:/warfarin|orfarin/i,dabi:/dabigatran|pradaxa/i,riva:/rivaroxaban|xarelto/i,apix:/apixaban|eliquis/i,fonda:/fondaparinux|arixtra/i};
+const AC_NM={heparin:'Heparin',enox:'Enoxaparin',warf:'Warfarin',dabi:'Dabigatran',riva:'Rivaroxaban',apix:'Apixaban',fonda:'Fondaparinux'};
+const AC_TR={'heparin>warf':'เริ่ม warfarin ต่อ heparin IV จน INR ถึงเป้า (4–5 วัน)','warf>heparin':'หยุด warfarin เมื่อ INR ลงถึงช่วงเป้า เริ่ม heparin IV (ไม่ bolus)',
+ 'heparin>enox':'หยุด heparin แล้วเริ่ม enoxaparin ภายใน 1 ชม.','enox>heparin':'เริ่ม heparin IV 1–2 ชม. ก่อนถึงเวลา enoxaparin dose ถัดไป',
+ 'enox>warf':'เริ่ม warfarin ต่อ enoxaparin จน INR ถึงเป้า (4–5 วัน)','enox>dabi':'เริ่ม dabigatran ภายใน 2 ชม. ก่อนเวลา enoxaparin dose ถัดไป','heparin>dabi':'เริ่ม dabigatran เมื่อหยุด heparin infusion',
+ 'dabi>heparin':'รอ 12–24 ชม. หลัง dabigatran dose สุดท้าย แล้วเริ่ม heparin','dabi>enox':'รอ 12–24 ชม. หลัง dabigatran dose สุดท้าย แล้วเริ่ม LMWH','warf>dabi':'หยุด warfarin เริ่ม dabigatran เมื่อ INR <2',
+ 'dabi>warf':'เริ่ม warfarin ก่อนหยุด dabigatran: CrCl >50 = 3 วัน · 30–50 = 2 วัน · 15–30 = 1 วัน'};
+const acOf=r=>{const s=r.raw+' '+((masterOf(r)||[])[1]||''); return Object.keys(AC_RE).find(k=>AC_RE[k].test(s));};
+const DABI_DI=[[/dronedarone/i,'flag','ห้ามใช้/ไม่แนะนำ (ระดับยาสูงขึ้นมาก)'],[/ketoconazole|itraconazole|voriconazole/i,'flag','เพิ่มระดับ dabigatran 140–150% — ไม่แนะนำ'],[/cyclosporin|tacrolimus/i,'flag','P-gp inhibitor แรง — ไม่แนะนำ'],
+ [/rifampi|carbamazepine|phenytoin|phenobarb|st\.?\s*john/i,'flag','P-gp inducer ลดระดับ dabigatran (rifampicin −66%) — หลีกเลี่ยง'],[/dexamethasone/i,'warn','P-gp/CYP3A4 inducer ลดระดับยา — หลีกเลี่ยง'],
+ [/amiodarone|verapamil|clarithromycin|erythromycin|ticagrelor|quinidine/i,'warn','เพิ่มระดับ dabigatran — ระวัง พิจารณาลดขนาด (โดยเฉพาะมีปัจจัยเลือดออก ≥2)'],
+ [/aspirin|clopidogrel|nsaid|ibuprofen|naproxen|diclofenac|celecoxib|etoricoxib|prednisolone|methylpred|hydrocortisone/i,'warn','เพิ่มความเสี่ยงเลือดออก (antiplatelet/NSAID/steroid) — ระวัง'],
+ [/omeprazole|esomeprazole|pantoprazole|lansoprazole|famotidine|ranitidine|antacid/i,'info','PPI/H2 blocker/antacid ลดระดับ dabigatran 12–30% — ไม่ต้องปรับขนาด']];
+function acChk(row,rows,pt,add){
+  const me=acOf(row); if(!me) return false;
+  const others=rows.filter(r=>r!==row), ot=others.map(r=>r.raw+' '+((masterOf(r)||[])[1]||'')).join(' | ');
+  const oac=[...new Set(others.map(acOf).filter(Boolean))].filter(k=>k!==me);
+  oac.forEach(o=>{ const t=AC_TR[o+'>'+me]||AC_TR[me+'>'+o]; add('warn',`ยาต้านการแข็งตัวของเลือด: ${AC_NM[me]} + ${AC_NM[o]} — ตรวจว่าเป็นช่วงเปลี่ยนยา (bridging)${t?' · '+t:''} (${SRC_AC})`); });
+  if(me==='dabi'){ DABI_DI.forEach(([re,l,m])=>{ const mm=ot.match(re); if(mm) add(l,`DI Dabigatran + ${mm[0]}: ${m}`); });
+    if(+pt.age>=75||(+pt.bw>0&&+pt.bw<=60)) add('warn',`Dabigatran: ${+pt.age>=75?'อายุ ≥75':''}${+pt.age>=75&&+pt.bw<=60?' · ':''}${+pt.bw>0&&+pt.bw<=60?'น้ำหนัก ≤60 kg':''} — ระดับยาสูงขึ้น ระวังเลือดออก`);
+    add('info','Dabigatran: เลือดออกรุนแรง → idarucizumab 5 g IV (2.5 g × 2 ห่างไม่เกิน 15 นาที) หรือ PCC 50 U/kg · ไม่แนะนำ FFP'); }
+  if(me==='enox'){ const D=+row.doseVal, F=row.F;
+    if(pt.crcl!=null&&pt.crcl<30&&!pt.dial&&row.doseUnit==='mg'&&D>=40&&D<=40.5&&F===1) add('warn','Enoxaparin prophylaxis CrCl <30: 30 mg SC OD (treatment 1 mg/kg SC OD)');
+    if(+pt.age>=75&&/\biv\b|bolus/i.test(row.raw)) add('warn','Enoxaparin STEMI อายุ ≥75: ไม่ให้ IV bolus · maintenance 0.75 mg/kg SC q12h (ตามแนวทาง) — ตรวจคำสั่ง'); }
+  if(me==='heparin') add('info','Heparin: ติดตาม CBC/platelet (HIT 1–2%), aPTT · เลือดออก → protamine 1–1.5 mg ต่อ heparin 100 unit');
+  if(me==='warf'&&pt.preg) add('flag','Warfarin ในหญิงตั้งครรภ์: ไตรมาส 1 (สัปดาห์ 6–12) เปลี่ยนเป็น LMWH/UFH (ลิ้นหัวใจเทียมโลหะ + warfarin ≤5 mg/วัน อาจใช้ต่อได้) · ไตรมาส 2–3 ใช้ warfarin ได้ · สัปดาห์ 36 เปลี่ยนเป็น LMWH/heparin · 36 ชม. ก่อนคลอดใช้ heparin (aPTT ≥2× control) หยุด 4–6 ชม. ก่อนคลอด — consult แพทย์ (ESC 2018 / แนวทางไทย)');
+  return true;
+}
+
+/* ---------- ยาวัณโรค: พิษต่อตับ / B6 (การจัดการ ADR จากยาต้านวัณโรค) ---------- */
+const SRC_TBADR='การจัดการอาการไม่พึงประสงค์จากยาต้านวัณโรค (สมาคมอุรเวชช์ฯ 2551, ATS/CDC/IDSA 2003, WHO TB/HIV)';
+function tbAdrChk(row,rows,pt,add){
+  const s=row.raw+' '+((masterOf(row)||[])[1]||''); const isH=/isoniazid|\binh\b|rifinah|rimactazid|rifafour|rimstar/i.test(s), isR=/rifamp|rifinah|rimactazid|rifafour|rimstar/i.test(s), isZ=/pyrazinamide|\bpza\b|rifafour|rimstar/i.test(s);
+  if(!(isH||isR||isZ)) return false;
+  const L=pt.lab||{}, uln=40, mx=Math.max(L.ast||0,L.alt||0);
+  if(mx>5*uln) add('flag',`ยาวัณโรค + AST/ALT ${L.ast??'–'}/${L.alt??'–'} (>5×ULN) — เข้าเกณฑ์ hepatotoxicity: หยุด H/R/Z (ส่วนใหญ่จาก PZA, INH) · ระหว่างหยุดถ้ารุนแรง/แพร่เชื้อ ใช้ SM + EMB (± quinolone) · rechallenge เมื่ออาการหายและ LFT <2×ULN, T.bil <1.5 — ${SRC_TBADR}`);
+  else if(mx>3*uln) add('warn',`ยาวัณโรค + AST/ALT >3×ULN — ถ้ามีอาการ (เบื่ออาหาร คลื่นไส้ อาเจียน อ่อนเพลีย ตัวเหลือง) เข้าเกณฑ์ hepatotoxicity ให้หยุดยา · ถ้าไม่มีอาการ ตรวจ LFT ซ้ำทุก 3–5 วัน`);
+  if(isR&&L.tbil!=null&&L.tbil>1.5&&mx<=3*uln) add('warn',`Rifampicin + bilirubin ${L.tbil} (ขึ้นเด่น, AST/ALT ไม่สูง) — cholestasis จาก rifampicin: ถ้า TB/DB ขึ้นอย่างเดียว หยุดเฉพาะ RFP`);
+  if(isH&&!rows.some(r=>/pyridoxine|vitamin\s*b\s*6|\bb6\b|vit\.?\s*b\s*1-?6-?12|neurobion/i.test(r.raw+' '+((masterOf(r)||[])[1]||'')))) add('info','INH: ไม่พบ pyridoxine — ป้องกัน peripheral neuropathy 10 mg/วัน (กลุ่มเสี่ยง: HIV, ไตวาย, สุรา, ขาดอาหาร, ตับเรื้อรัง, ตั้งครรภ์ 25–50 mg/วัน) · รักษา 100–200 mg/วัน');
+  return true;
+}
+
+/* ---------- Opioid (Pitfalls in symptom management, palliative care) ---------- */
+const SRC_PAL='Pitfalls in Symptoms Management for Palliative care Patient (ศูนย์การุณรักษ์ มข.)';
+const RE_OPI=/morphine|\bmst\b|kapanol|oxycodone|oxycontin|targin|tramadol|codeine|methadone|pethidine|meperidine|fentanyl/i, RE_LAX=/senna|senokot|bisacodyl|dulcolax|lactulose|milk\s*of\s*mag|\bmom\b|picosulfate|docusate|glycerin|enema|unison|forlax|macrogol|\bpeg\b|magnesium\s*hydrox/i;
+function opiChk(row,rows,pt,add){
+  const s=row.raw+' '+((masterOf(row)||[])[1]||''); if(!RE_OPI.test(s)||/codeine.*\+|\+.*gg|guaif/i.test(s)) return false;
+  const prn=/\bprn\b|เมื่อ(มี)?อาการ|เมื่อปวด|as\s*need/i.test(row.raw); const reg=!prn&&row.F!=null&&row.F>=1;
+  const all=rows.map(r=>r.raw+' '+((masterOf(r)||[])[1]||''));
+  if(reg&&!all.some(t=>RE_LAX.test(t))) add('warn','Opioid regular แต่ไม่มียาระบาย — ให้ stimulant ± softener laxative ป้องกันท้องผูก (ไม่ใช้ fiber laxative) — '+SRC_PAL);
+  if(reg&&/morphine|oxycodone/i.test(s)&&!rows.some(r=>r!==row&&RE_OPI.test(r.raw+' '+((masterOf(r)||[])[1]||''))&&/\bprn\b|เมื่อ/i.test(r.raw))) add('info','Opioid regular: ควรมี rescue dose สำหรับ breakthrough pain (morphine ~1/6 ของ dose ต่อวัน หรือ 10–20%) · ใช้ rescue ≥3 ครั้ง/วัน → เพิ่ม background dose');
+  if(/morphine/i.test(s)&&(pt.dial||(pt.crcl!=null&&pt.crcl<30))) add('warn',`Morphine + ${pt.dial||'CrCl <30'}: metabolite (M3G/M6G) สะสม — ลดขนาด 50% (ESRD ลด 75%) หรือเปลี่ยนเป็น fentanyl`);
+  if(/pethidine|meperidine/i.test(s)&&reg) add('warn','Pethidine: ไม่ควรใช้ต่อเนื่องระยะยาว (metabolite ทำให้ชัก) — ใช้ morphine/fentanyl แทน');
+  if(/oxycodone|oxycontin|targin/i.test(s)&&(pt.dial||(pt.crcl!=null&&pt.crcl<15))) add('warn','Oxycodone: ควรหลีกเลี่ยงใน ESRD');
+  if(/tramadol/i.test(s)&&row.doseUnit==='mg'&&row.F&&+row.doseVal*row.F>400) add('warn',`Tramadol ${fmtN(+row.doseVal*row.F)} mg/วัน — เกิน 400 mg/วัน`);
+  return true;
+}
+
+/* ---------- ยาจิตเวช: Antipsychotics (Pharmacotherapy in Psychiatry, มข.) ---------- */
+const SRC_PSY='Pharmacotherapy in Psychiatry Part II: Antipsychotics (ภาควิชาจิตเวชศาสตร์ มข.) · APA 2020';
+// [ชื่อ, regex, ขนาด mg/วัน ปกติ [lo,hi], CPZ eq (mg ≈ CPZ 100), CYP]
+const APS=[['Chlorpromazine',/chlorpromazine|largactil/i,[300,800],100,''],['Thioridazine',/thioridazine/i,[200,600],90,'2D6'],['Perphenazine',/perphenazine/i,[8,32],10,'2D6'],['Trifluoperazine',/trifluoperazine/i,[6,20],5,'1A2'],['Fluphenazine',/fluphenazine(?!.*decan)/i,[2,20],5,'2D6'],
+ ['Haloperidol',/haloperidol(?!.*decan)/i,[5,20],2,'3A4/2D6'],['Pimozide',/pimozide/i,[2,10],1,'3A4'],['Clozapine',/clozapine|clozaril/i,[300,900],50,'1A2/3A4'],['Risperidone',/risperidone|risperdal/i,[2,10],1,'2D6'],['Olanzapine',/olanzapine|zyprexa/i,[5,20],2,'1A2'],
+ ['Quetiapine',/quetiapine|seroquel/i,[100,750],50,'3A4'],['Ziprasidone',/ziprasidone/i,[60,160],10,'3A4'],['Aripiprazole',/aripiprazole|abilify/i,[15,30],2,'2D6/3A4'],['Paliperidone',/paliperidone|invega/i,[3,12],1,''],['Lurasidone',/lurasidone|latuda/i,[40,120],16,'3A4']];
+const AP_INT=[['1A2',/fluvoxamine|ciprofloxacin/i,'ยับยั้ง CYP1A2 → ระดับยาสูงขึ้น'],['1A2i',/cigarette|smok|บุหรี่/i,'บุหรี่เหนี่ยวนำ CYP1A2 → ระดับยาลดลง'],['2D6',/fluoxetine|paroxetine|sertraline/i,'SSRI ยับยั้ง CYP2D6 → ระดับยาสูงขึ้น'],
+ ['3A4',/erythromycin|clarithromycin|ketoconazole|itraconazole|voriconazole|ritonavir|lopinavir|darunavir|atazanavir|cobicistat/i,'ยับยั้ง CYP3A4 → ระดับยาสูงขึ้น'],['3A4i',/carbamazepine|phenytoin|phenobarb|rifamp/i,'เหนี่ยวนำ CYP3A4 → ระดับยาลดลง']];
+function apChk(row,rows,pt,add){
+  const s=row.raw+' '+((masterOf(row)||[])[1]||''); const ap=APS.find(a=>a[1].test(s)); if(!ap) return false;
+  const [nm,,rng,eq,cyp]=ap; const mm=masterOf(row); const per=mm&&mm[7]&&mm[7][0]==='u'?mm[7][1]:+((s.match(/(\d+(?:\.\d+)?)\s*mg/i)||[])[1]||0)||null;
+  const one=row.doseUnit==='mg'&&+row.doseVal>0?+row.doseVal:row.doseUnit==='unit'&&per?+row.doseVal*per:null; const D=one!=null?one*(row.F||1):null;
+  const prn=/\bprn\b|เมื่อ/i.test(row.raw);
+  if(D!=null&&!prn&&!/decanoate|\binj|\bim\b/i.test(s)){ if(D>rng[1]) add('warn',`${nm} ${fmtN(D)} mg/วัน — สูงกว่าขนาดทั่วไป ${rng[0]}–${rng[1]} mg/วัน (${SRC_PSY})`); else add('info',`${nm} ${fmtN(D)} mg/วัน (ขนาดทั่วไป ${rng[0]}–${rng[1]}) ≈ chlorpromazine ${fmtN(Math.round(D/eq*100))} mg/วัน`); }
+  const others=rows.filter(r=>r!==row).map(r=>r.raw+' '+((masterOf(r)||[])[1]||''));
+  const dup=others.filter(t=>APS.some(a=>a[0]!==nm&&a[1].test(t)));
+  if(dup.length&&!prn) add('warn',`ใช้ antipsychotic มากกว่า 1 ตัว — ตรวจข้อบ่งใช้ (augmentation/ช่วงเปลี่ยนยา) และ EPS/QT`);
+  AP_INT.forEach(([c,re,m])=>{ const base=c.replace('i',''); if(!cyp.includes(base)) return; const hit=others.join(' | ').match(re); if(hit) add('warn',`DI ${nm} (CYP${base}) + ${hit[0]}: ${m}`); });
+  if(nm==='Clozapine'){ const L=pt.lab||{}; if(L.anc!=null) add(L.anc<1500?'flag':'ok',`Clozapine: ANC ${fmtN(Math.round(L.anc))}${L.anc<1500?' <1,500 — neutropenia/agranulocytosis (0.8%) หยุดยา/ปรึกษาจิตแพทย์':' — ติดตาม ANC ตามรอบ'}`); else add('warn','Clozapine: ต้องติดตาม ANC (neutropenia 2.7%, agranulocytosis 0.8%) — ใส่ WBC + Neutrophil ในกล่องผล Lab');
+    add('info','Clozapine: เริ่ม 12.5 mg/วัน ค่อยๆ เพิ่ม max 900 mg/วัน · ชักเมื่อ >600 mg/วัน · เฝ้าระวัง myocarditis, ท้องผูกรุนแรง, น้ำลายมาก'); }
+  if(/haloperidol|fluphenazine|pimozide|trifluoperazine/i.test(nm)) add('info',`${nm}: high-potency FGA — EPS/NMS สูง · NMS: หยุด antipsychotic ให้สารน้ำ ลดไข้ bromocriptine/dantrolene เริ่มใหม่ ≥2 สัปดาห์หลังหาย`);
+  return true;
+}
+
 /* อายุ: กรอกเป็น ปี / เดือน / วัน → เก็บเป็นปีใน #age */
 function ageSync(){ const v=$('ageIn').value, u=$('ageU').value; $('age').value=v===''?'':+(u==='d'?v/365:u==='m'?v/12:+v).toFixed(5); $('age').dispatchEvent(new Event('input',{bubbles:true})); }
 function ageSyncIn(){ const a=$('age').value; if(a===''){ $('ageIn').value=''; return; } const y=+a; if(y<1/12){ $('ageU').value='d'; $('ageIn').value=Math.round(y*365); } else if(y<2&&Math.abs(y*12-Math.round(y*12))<0.01&&y<1){ $('ageU').value='m'; $('ageIn').value=Math.round(y*12); } else { $('ageU').value='y'; $('ageIn').value=+y.toFixed(2); } }
@@ -2316,7 +2474,7 @@ $('copyNote').onclick=()=>{const v=$('note').value; const done=()=>{$('toast').t
   try{navigator.clipboard.writeText(v).then(done,()=>{$('note').select();$('toast').textContent='เลือกข้อความแล้ว กด Ctrl+C';});}catch(e){$('note').select();}};
 
 /* tabs */
-const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','kb'];
+const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','ref','kb'];
 function tab(n){TABS.forEach(t=>{$('t-'+t).setAttribute('aria-selected',t===n);$('p-'+t).hidden=t!==n;});}
 TABS.forEach(t=>$('t-'+t).onclick=()=>tab(t));
 
@@ -2447,7 +2605,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.8.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -2905,6 +3063,72 @@ function dtHdrFill(){ $('dtWard').value=DT.hdr.ward||''; $('dtDate').value=DT.hd
   $('dtClr').onclick=()=>{ if(!confirm('ล้างข้อมูล timeline ทั้งหมด?')) return; DT=DT0(); DT.hdr.date=dtF(new Date()); dtHdrFill(); dtRender(); };
   dtRender();
 })();
+
+/* ===== tools.js — นับเม็ดยาถึงวันนัด (ARV/ยาต่อเนื่อง) · แท็บคู่มือย่อ ===== */
+
+/* ---------- 1) นับเม็ดยาถึงวันนัด (จากไฟล์คำนวณยา ARV) ---------- */
+let arvRows=[{nm:'',pd:'',left:'',add:''}];
+function arvDays(){ const d=$('aCntUntil').value.trim(); if(d){ const t=tlDate(d); if(t){ const n=new Date(); n.setHours(0,0,0,0); t.setHours(0,0,0,0); return Math.round((t-n)/864e5); } } return +$('aCntDays').value||0; }
+function arvCalc(){ const days=arvDays();
+  $('aCntInfo').textContent=days>0?`จำนวนวันถึงนัด: ${days} วัน`:'กรอกจำนวนวันนัด หรือวันนัด';
+  $('aCntTbl').querySelectorAll('tr[data-i]').forEach(tr=>{ const r=arvRows[+tr.dataset.i];
+    const pd=+r.pd||0, left=+r.left||0, ad=+r.add||0, tot=left+ad, need=Math.ceil(pd*days-1e-9), diff=tot-need, sh=Math.max(0,need-left);
+    const c=tr.querySelectorAll('td.o');
+    c[0].textContent=pd?fmtN(tot):''; c[1].textContent=pd&&days?fmtN(need):'';
+    c[2].innerHTML=!pd||!days?'':diff<0?`<span class="tag flag">ขาด ${fmtN(-diff)}</span>`:diff>pd*7?`<span class="tag warn">เกิน ${fmtN(diff)}</span>`:`<span class="tag ok">พอ${diff?` (+${fmtN(diff)})`:''}</span>`;
+    c[3].innerHTML=pd&&days?`<b>${fmtN(sh)} เม็ด</b>`:''; });
+}
+function arvRender(){
+  $('aCntTbl').innerHTML=`<table class="ctbl"><thead><tr><th>ยา</th><th>เม็ด/วัน</th><th>ยาเหลือ (เม็ด)</th><th>สั่งเพิ่ม (เม็ด)</th><th>รวมที่ได้</th><th>ต้องใช้ถึงนัด</th><th>ขาด/เกิน</th><th>ควรจ่าย (ยาเหลือแล้ว)</th><th></th></tr></thead><tbody>${arvRows.map((r,i)=>`<tr data-i="${i}"><td><input data-k="nm" value="${esc(r.nm)}" placeholder="เช่น TLD" style="min-width:130px"></td><td><input data-k="pd" type="number" step="0.5" value="${esc(r.pd)}" style="width:70px"></td><td><input data-k="left" type="number" value="${esc(r.left)}" style="width:80px"></td><td><input data-k="add" type="number" value="${esc(r.add)}" style="width:80px"></td>
+      <td class="num o"></td><td class="num o"></td><td class="o"></td><td class="num o"></td><td><button type="button" class="btn sm" data-del>ลบ</button></td></tr>`).join('')}</tbody></table>`;
+  $('aCntTbl').querySelectorAll('tr[data-i]').forEach(tr=>{ const r=arvRows[+tr.dataset.i];
+    tr.querySelectorAll('input[data-k]').forEach(inp=>inp.addEventListener('input',()=>{ r[inp.dataset.k]=inp.value; arvCalc(); }));
+    tr.querySelector('[data-del]').onclick=()=>{ arvRows.splice(+tr.dataset.i,1); if(!arvRows.length) arvRows.push({nm:'',pd:'',left:'',add:''}); arvRender(); }; });
+  arvCalc();
+}
+(function(){ if(!$('aCntTbl')) return; $('aCntAdd').onclick=()=>{ arvRows.push({nm:'',pd:'',left:'',add:''}); arvRender(); };
+  ['aCntDays','aCntUntil'].forEach(id=>$(id).addEventListener('input',arvCalc)); arvRender(); })();
+
+/* ---------- 2) คู่มือย่อ ---------- */
+const REF=[
+ {id:'ac',t:'ยาต้านการแข็งตัวของเลือด (Heparin · Enoxaparin · Dabigatran · Warfarin ตั้งครรภ์)',src:SRC_AC,h:`
+ <h3>Enoxaparin — ปรับตามไต</h3><ul><li>CrCl ≥30: ไม่ต้องปรับ</li><li>CrCl &lt;30: VTE prophylaxis 30 mg SC OD · VTE treatment 1 mg/kg SC OD · NSTEMI 1 mg/kg SC OD · STEMI &lt;75 ปี 30 mg IV แล้ว 1 mg/kg SC OD, ≥75 ปี ไม่ให้ IV bolus</li><li>Dialysis: ไม่ได้รับรองโดย FDA · Heparin ไม่ต้องปรับตามไต/ตับ</li></ul>
+ <h3>Dabigatran (110 mg cap)</h3><ul><li>AF: 150 mg bid หรือ 110 mg bid (เสี่ยงเลือดออก) · DVT/PE: 150 mg bid (provoked 3 เดือน) · THA/TKA: 110 mg 1–4 ชม. หลังผ่าตัด แล้ว 220 mg OD</li><li>ไต: VTE — CrCl ≤30/HD ไม่แนะนำ · AF — CrCl 30–50 ไม่ต้องปรับ (ยกเว้นใช้ร่วม dronedarone/ketoconazole: 75 mg) · &lt;15 ไม่แนะนำ</li>
+ <li>DI: ↑ระดับยา — amiodarone, verapamil, clarithro/erythromycin, ketoconazole/itraconazole/voriconazole (140–150%), cyclosporine, tacrolimus, ticagrelor · ↓ระดับยา — rifampicin (−66%), carbamazepine, phenytoin, phenobarbital, dexamethasone, St John's wort · PPI/H2/antacid ลด 12–30%</li>
+ <li>เพิ่มระดับยา: อายุ ≥75–80, น้ำหนัก ≤60 kg · เพิ่มเสี่ยงเลือดออก: antiplatelet/NSAID/steroid, เคยเลือดออก GI, ผ่าตัดอวัยวะสำคัญ, เปราะบาง/หกล้มง่าย, ซีด/เกล็ดเลือดต่ำ</li>
+ <li>ลืมยา: bid ไม่เกิน 6 ชม. กินทันที · เกิน 6 ชม. ข้ามมื้อ · OD ไม่เกิน 12 ชม. กินทันที · ห้ามเพิ่มขนาด</li></ul>
+ <h3>การเปลี่ยนยา</h3><table class="ctbl"><tr><th>จาก → ไป</th><th>วิธี</th></tr>${Object.entries(AC_TR).map(([k,v])=>`<tr><td>${k.split('>').map(x=>AC_NM[x]).join(' → ')}</td><td>${v}</td></tr>`).join('')}</table>
+ <h3>เลือดออก / ยาแก้ฤทธิ์</h3><table class="ctbl"><tr><th>ยา</th><th>การจัดการ</th></tr><tr><td>Warfarin</td><td>INR 5–8.9: vit K 1 mg PO · INR ≥9: 5–10 mg PO · major bleeding: vit K 10 mg + FFP 15–30 ml/kg · PCC: INR 4–6 = 35 U/kg (≤3,500 U), INR &gt;6 = 50 U/kg (≤5,000 U)</td></tr><tr><td>Heparin</td><td>Protamine 1–1.5 mg ต่อ heparin 100 unit</td></tr><tr><td>Dabigatran</td><td>Idarucizumab 5 g IV (2.5 g × 2 ห่างไม่เกิน 15 นาที) · PCC 50 U/kg (+25 U/kg) · aPCC 50 U/kg (max 200 U/kg/วัน) · ไม่แนะนำ FFP · tranexamic 1 g IV q6h เสริมได้</td></tr></table>
+ <h3>Warfarin ในหญิงตั้งครรภ์ (ลิ้นหัวใจเทียม · ESC 2018/แนวทางไทย)</h3><ul><li>ไตรมาส 1: warfarin ≤5 mg/วัน — ใช้ต่อได้ (INR ทุกสัปดาห์) หรือ admit เปลี่ยน enoxaparin bid / heparin (aPTT ≥2× control) · warfarin &gt;5 mg/วัน — เปลี่ยนเป็น heparin หรือ enoxaparin bid ช่วงสัปดาห์ 6–12</li><li>ไตรมาส 2–3: warfarin (INR ทุกสัปดาห์ อย่างน้อย 2 สัปดาห์)</li><li>สัปดาห์ 36: เปลี่ยนเป็น enoxaparin/heparin · 36 ชม. ก่อนคลอด: heparin (aPTT ≥2×) · หยุด 4–6 ชม. ก่อนคลอด เริ่มใหม่ 4–6 ชม. หลังคลอดถ้าไม่มีเลือดออก</li><li>VTE: ใช้ enoxaparin/heparin ตลอดการตั้งครรภ์</li></ul>`},
+ {id:'tb',t:'ADR จากยาต้านวัณโรค — การจัดการและ rechallenge',src:SRC_TBADR,h:`
+ <h3>คลื่นไส้ อาเจียน ปวดท้อง (มักสัปดาห์แรก, PZA บ่อยสุด)</h3><ul><li>กินพร้อม/หลังอาหารทันที · กินก่อนนอน · split dose (เช่น PZA 1500 mg OD → 500 mg tid) + domperidone ก่อนยา — ไม่ต้องหยุดยา</li></ul>
+ <h3>ผื่น</h3><ul><li>ไม่รุนแรง (คัน ผื่นเล็กน้อย ไม่มี mucosa): ให้ยาต่อ + antihistamine (CPM, hydroxyzine) · ไม่ดีขึ้นใน 3 วัน → prednisolone 5 mg bid 5 วัน</li><li>รุนแรง (ผื่นกว้าง mucosa ไข้): หยุดยาทั้งหมด รักษาจนหาย · SJS/TEN/exfoliative อาจต้อง systemic steroid · SJS/TEN ห้ามให้ยาซ้ำ</li><li>Rechallenge หลังผื่น: เริ่มทีละตัว ห่าง 2–3 วัน เริ่ม RFP → INH → EMB → PZA · ครบ 3 ตัวไม่มีผื่น ไม่ต้องให้ตัวที่ 4</li></ul>
+ <table class="ctbl"><tr><th>ยา (WHO)</th><th>วันที่ 1</th><th>วันที่ 2</th><th>วันที่ 3</th></tr><tr><td>INH</td><td>50</td><td>300</td><td>300</td></tr><tr><td>RMP</td><td>75</td><td>300</td><td>full</td></tr><tr><td>PZA</td><td>250</td><td>1 g</td><td>full</td></tr><tr><td>EMB</td><td>100</td><td>500</td><td>full</td></tr><tr><td>SM</td><td>125</td><td>500</td><td>full</td></tr></table>
+ <p>Desensitization: เริ่ม 1/10 ของขนาดปกติ เพิ่มวันละ 1/10 จนครบวันที่ 10 (INH → EMB → RMP) ระหว่างนั้นให้ยาที่ไม่เคยได้ 2 ตัว</p>
+ <h3>ตับอักเสบจากยา</h3><ul><li>เกณฑ์: AST/ALT &gt;5×ULN หรือ &gt;3×ULN ร่วมกับอาการ (เบื่ออาหาร คลื่นไส้ อาเจียน อ่อนเพลีย) และไม่พบสาเหตุอื่น</li><li>สงสัยแต่ไม่เข้าเกณฑ์: ให้ยาต่อ ตรวจ LFT ทุก 3–5 วัน แย่ลง → หยุดทุกตัว</li><li>เข้าเกณฑ์: หยุดทุกตัว (ส่วนใหญ่ PZA, INH) · TB/DB ขึ้นอย่างเดียว → หยุดเฉพาะ RFP · รุนแรง/แพร่เชื้อ ให้ SM + EMB (± quinolone) ระหว่างรอ</li><li>Rechallenge เมื่ออาการหายและ LFT &lt;2×ULN, T.bil &lt;1.5 mg/dL: INH 100 → 200 → 300 · RFP 150 เพิ่มเท่าตัวทุกวันจน 10 mg/kg · PZA 500 เพิ่มเท่าตัวจน 25 mg/kg (มักไม่แนะนำให้ซ้ำ) · หลังครบแต่ละตัวหยุด 3 วัน ตรวจ LFT ปกติจึงเริ่มตัวถัดไป · เริ่มนับยาใหม่ + EMB</li><li>สูตรทางเลือกเมื่อใช้ยาตัวใดไม่ได้: 2SHRE/6HR · 2HRE/7HR · 2HZE/10HE · 2SH(R)E/10H(R)E · 2SOE/16OE</li><li>เวลาเกิด: INH 8–12 สัปดาห์ · RFP 2 เดือนแรก (cholestasis) · PZA ~1 เดือน (dose-dependent)</li></ul>
+ <h3>ADR เฉพาะยา</h3><table class="ctbl"><tr><th>อาการ</th><th>ยา</th><th>หมายเหตุ</th></tr><tr><td>ปลายประสาทอักเสบ</td><td>INH</td><td>ป้องกัน B6 10 mg/วัน (กลุ่มเสี่ยง 25–50) · รักษา 100–200 mg/วัน</td></tr><tr><td>Optic neuritis</td><td>EMB</td><td>&gt;2 เดือน · 25 mg/kg พบ 5–6%, &gt;35 mg/kg 18% · ตาพร่า ตาบอดสีแดง-เขียว</td></tr><tr><td>ปวดข้อ/เก๊าต์</td><td>PZA</td><td></td></tr><tr><td>หูตึง เวียนศีรษะ ไตวาย</td><td>Streptomycin</td><td>หูเสียถาวร</td></tr></table>
+ <p><b>ห้ามให้ยาซ้ำ:</b> หูตึง/เสียการทรงตัว → SM · ไตวาย ช็อก เกล็ดเลือดต่ำ → RMP · ตามัว ตาบอดสี → EMB · ตับอักเสบ → PZA · SJS/TEN/exfoliative → ทุกตัว</p>`},
+ {id:'pal',t:'Palliative: opioid และการจัดการอาการ',src:SRC_PAL,h:`
+ <h3>เริ่มและปรับยา</h3><ul><li>Morphine oral เริ่ม 30 mg/วัน · ลด 50%: ปวดปานกลาง, หอบขณะพัก, สูงอายุ/เปราะบาง, ตับ/ไตบกพร่อง · ESRD ลด 75%</li><li>Fentanyl เริ่ม 0.5–1 mcg/kg/h (ผู้ใหญ่ 25–50, สูงอายุ 10–25 mcg/h)</li><li>ปรับ: เพิ่ม 30–50–100% ของ dose ต่อวัน หรือรวม rescue ที่ใช้ใน 24 ชม. · rescue ≥3 ครั้ง/วัน → เพิ่ม background</li><li>Breakthrough: morphine 1/6 ของ dose ต่อวัน (1/6–1/12 หรือ 10–20%)</li></ul>
+ <h3>แปลงขนาด</h3><table class="ctbl"><tr><th>จาก → ไป</th><th>อัตราส่วน</th></tr><tr><td>Codeine PO → Morphine PO</td><td>10:1</td></tr><tr><td>Tramadol PO → Morphine PO</td><td>5:1</td></tr><tr><td>Morphine PO → Morphine SC/IV</td><td>3:1</td></tr><tr><td>Morphine PO → Oxycodone PO</td><td>1.5–2:1</td></tr><tr><td>Morphine PO → Fentanyl</td><td>100:1 (morphine 60 mg/วัน ≈ patch 25 mcg/h ตามสไลด์ · ตาราง OME ห้องยาใช้ patch ×2)</td></tr></table>
+ <ul><li>Fentanyl patch: ใช้เมื่อคุมปวดได้แล้ว/กินไม่ได้ · เริ่ม 12.5–25 mcg/h ประเมิน 48–72 ชม. · ต้องให้ยาระงับปวดต่อ 12–24 ชม. หลังแปะ · เปลี่ยน patch → morphine ใน 24 ชม. แรกให้ครึ่งขนาด</li><li>Fentanyl SL 12.5 mcg ก่อนหัตถการ 5–10 นาที ซ้ำได้ 2 ครั้ง</li><li>Pethidine ไม่ควรใช้ต่อเนื่อง · Oxycodone หลีกเลี่ยงใน ESRD</li></ul>
+ <h3>ผลข้างเคียง</h3><ul><li>ท้องผูก: stimulant + softener laxative, rectal ถ้าจำเป็น · ไม่ใช้ fiber laxative</li><li>คลื่นไส้: metoclopramide, haloperidol (ondansetron ทำให้ท้องผูก)</li><li>ง่วง: ลดขนาด 30–50% / methylphenidate 2.5 mg เช้า · Myoclonus: ลดขนาด 30–50%, clonazepam 0.5 tab hs, baclofen</li><li>กดการหายใจ: RR &lt;8, hypoxemia → naloxone · naïve 0.4 mg IV ซ้ำ q2 นาที · ใช้ opioid ประจำ: เจือจาง 0.4 mg + NSS 9 ml (0.04 mg/ml) ให้ 1 ml q2 นาทีจน RR &gt;10 · max 15 mg</li></ul>
+ <h3>หอบเหนื่อย</h3><ul><li>Opioid-naïve: morphine 2.5–5 mg PO q4–6h prn · ใช้ &gt;2 ครั้ง/วัน → regular · ใช้ morphine อยู่แล้ว: เพิ่ม 30%</li><li>วิตกกังวล: diazepam 2–5 mg tid · lorazepam 0.5–1 mg SL/PO q8h prn · midazolam 2.5–5 mg SC q4h</li><li>ไม่แนะนำ nebulized opioid</li></ul>`},
+ {id:'psy',t:'จิตเวช: Antipsychotics',src:SRC_PSY,h:`
+ <table class="ctbl"><tr><th>ยา</th><th>≈ CPZ 100 mg</th><th>ขนาดปกติ (mg/วัน)</th><th>CYP</th></tr>${APS.map(a=>`<tr><td>${a[0]}</td><td>${a[3]}</td><td>${a[2][0]}–${a[2][1]}</td><td>${a[4]||'–'}</td></tr>`).join('')}</table>
+ <ul><li>Acute phase 4–8 สัปดาห์ · ไม่ตอบสนอง 4 สัปดาห์ / ตอบสนองบางส่วน 8 สัปดาห์ จึงเปลี่ยน · ตรวจ: วินิจฉัย ขนาด ระยะเวลา การกินยา DI</li><li>Maintenance: ≈ CPZ 300–400 / risperidone 4–6 mg/วัน · first episode ≥18 เดือน · relapse ≥5 ปี/ตลอดชีวิต</li><li>Treatment-resistant (ไม่ตอบสนอง ≥2 ตัว ≥6 สัปดาห์) → clozapine: เริ่ม 12.5 mg/วัน max 900 · ANC (neutropenia 2.7%, agranulocytosis 0.8%) · ชักเมื่อ &gt;600 mg · myocarditis</li><li>High-potency FGA: EPS/NMS สูง · NMS: หยุดยา สารน้ำ ลดไข้ bromocriptine/dantrolene เริ่มใหม่ ≥2 สัปดาห์</li><li>SGA: น้ำหนักขึ้น · risperidone prolactin สูง · clozapine/olanzapine ลด insulin sensitivity · aripiprazole akathisia</li><li>DI: 1A2 (clozapine, olanzapine) ← fluvoxamine ↑ · บุหรี่ ↓ · 2D6 (risperidone, aripiprazole) ← fluoxetine/paroxetine ↑ · 3A4 (clozapine, quetiapine, aripiprazole) ← macrolide, azole, PI ↑ / carbamazepine, phenytoin, rifampicin, barbiturate ↓</li></ul>`},
+ {id:'xa',t:'แพ้ยาข้ามกลุ่ม (Drug Allergy & Cross-Reactivity update)',src:'สไลด์ Drug Allergy & Cross-Reactivity (update) · Thai HP',h:`
+ <p>ใช้ร่วมกับช่อง "แพ้ยา" ในแผงผู้ป่วย — โปรแกรมตรวจแพ้ข้ามให้อัตโนมัติ (beta-lactam, NSAIDs, ยากันชัก, sulfonamide, macrolide, quinolone, azole, PPI, antihistamine, statin) · ระบุชนิดอาการ เช่น "ciprofloxacin anaphylaxis", "omeprazole SJS"</p>
+ <h3>Quinolone</h3><table class="ctbl"><tr><th>แพ้</th><th>ใช้แทนได้</th></tr><tr><td>Gen 1 (nalidixic)</td><td>Gen 3–4: levofloxacin, moxifloxacin, gatifloxacin</td></tr><tr><td>Gen 2 (norflox, cipro, oflox)</td><td>Gen 4: moxifloxacin, gatifloxacin</td></tr><tr><td>Gen 3 (levofloxacin)</td><td>Gen 1–2</td></tr><tr><td>Gen 4 (moxifloxacin)</td><td>Gen 1, 3</td></tr></table><p>Type I/IgE หรือ SJS/TEN/DRESS/AGEP → หลีกเลี่ยงทั้งกลุ่ม · อาการไม่รุนแรง (urticaria, MPE, FDE) → desensitization ภายใต้การดูแล</p>
+ <h3>Macrolide</h3><p>แพ้ข้ามมีรายงานน้อย แต่ถ้าแพ้รุนแรง เปลี่ยนกลุ่มยาปลอดภัยกว่า · ถ้าจำเป็นทดสอบ/desensitization</p>
+ <h3>Azole</h3><p>โครงสร้างร่วมที่มีรายงาน: imidazole (miconazole/ketoconazole) · triazole (fluconazole/itraconazole) · Cl (clotrimazole/itraconazole) · F (fluconazole/voriconazole) · propan-2-ol (fluconazole/ketoconazole กับ metronidazole/tinidazole/ornidazole)</p>
+ <h3>Sulfonamide / PPI (Thai HP)</h3><ul><li>แพ้ sulfa รุนแรง (anaphylaxis, SJS/TEN, DRESS, AGEP) → ไม่ใช้ non-antimicrobial sulfonamide เว้นแต่จำเป็นและไม่มียาอื่น (test dose) · ไม่รุนแรง → ใช้ non-antimicrobial ได้ แต่ counseling + test dose</li><li>แพ้ PPI รุนแรง → หลีกเลี่ยงทั้งกลุ่ม · ไม่รุนแรง → หลีกเลี่ยงทั้งกลุ่ม หรือถ้าจำเป็นเลือกตัวอื่นและเฝ้าระวัง</li></ul>
+ <h3>ยากันชัก · Antihistamine · Statin</h3><ul><li>แพ้ aromatic (phenytoin, phenobarbital, lamotrigine, carbamazepine) → ใช้ non-aromatic (valproate, levetiracetam, topiramate, gabapentin, pregabalin)</li><li>Antihistamine: แพ้ข้ามสูงในสายแม่-เมแทบอไลต์ hydroxyzine → cetirizine → levocetirizine · loratadine → desloratadine · terfenadine → fexofenadine · triprolidine → acrivastine</li><li>Statin: type I (lova, simva, prava) vs type II (atorva, rosuva, fluva, pitava) — ข้อมูลแพ้ข้ามน้อย</li></ul>`}
+];
+function renderRef(){ const q=($('refQ').value||'').toLowerCase();
+  $('refOut').innerHTML=REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
+    return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }
+(function(){ if(!$('refOut')) return; $('refQ').addEventListener('input',renderRef); renderRef(); })();
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';

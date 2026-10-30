@@ -152,7 +152,7 @@ $('copyNote').onclick=()=>{const v=$('note').value; const done=()=>{$('toast').t
   try{navigator.clipboard.writeText(v).then(done,()=>{$('note').select();$('toast').textContent='เลือกข้อความแล้ว กด Ctrl+C';});}catch(e){$('note').select();}};
 
 /* tabs */
-const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','kb'];
+const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','ref','kb'];
 function tab(n){TABS.forEach(t=>{$('t-'+t).setAttribute('aria-selected',t===n);$('p-'+t).hidden=t!==n;});}
 TABS.forEach(t=>$('t-'+t).onclick=()=>tab(t));
 
@@ -283,7 +283,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.8.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

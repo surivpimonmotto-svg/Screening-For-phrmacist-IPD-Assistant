@@ -275,6 +275,11 @@ const KB=[
 /* ---------------- Anticoagulant ---------------- */
 {id:'warfarin',name:'Warfarin',match:/warfarin|orfarin|^\s*w\s*\(?\s*\d/i,unit:'mg',forms:[[/5/,'5 mg',5],[/3/,'3 mg',3],[/2/,'2 mg',2]],special:'warfarin',
  elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin ห้ามใช้ในหญิงตั้งครรภ์',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
+{id:'dabigatran',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
+ renal:{bands:[B(50,999,'150 mg bid (เสี่ยงเลือดออก 110 mg bid)',150,300),B(30,50,'150/110 mg bid — ใช้ร่วม dronedarone/ketoconazole: 75 mg (US: 75 mg bid)',150,300),B(15,30,'VTE: ไม่แนะนำ (CrCl ≤30) · AF: ตรวจข้อบ่งใช้ ระวังสูง',110,220),B(0,15,'ไม่แนะนำ',null,null,{avoid:true})],
+  HD:{txt:'ไม่แนะนำ',avoid:true},CAPD:{txt:'ไม่แนะนำ',avoid:true},CRRT:{txt:'ไม่แนะนำ',avoid:true}},
+ warn:[{crcl:30,lvl:'flag',msg:'Dabigatran: CrCl ≤30 — VTE treatment/prophylaxis ไม่แนะนำ · AF ไม่แนะนำเมื่อ CrCl <15'}],
+ note:'NOAC (direct thrombin inhibitor) · ลืมยา: bid ≤6 ชม. กินทันที >6 ชม. ข้าม · กลืนทั้งแคปซูล',src:'Academic in-service Gen-med2 รพ.มค. (EHRA 2018)'},
 {id:'enox',name:'Enoxaparin',match:/enoxaparin|clexane/i,unit:'mg',kgDose:true,forms:[[/60/,'60 mg/0.6 ml',60,'syringe'],[/40/,'40 mg/0.4 ml',40,'syringe']],
  renal:{bands:[B(30,999,'1 mg/kg SC q12h หรือ 1.5 mg/kg OD',1.5,2,{kg:true}),B(15,30,'1 mg/kg SC OD',1,1,{kg:true}),B(0,15,'1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true})],
   HD:M('หลีกเลี่ยง ถ้าจำเป็น 1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true,warnAlways:'HD: หลีกเลี่ยงการใช้'}),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('1 mg/kg SC OD',1,1,{kg:true})},

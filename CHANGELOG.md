@@ -9,6 +9,15 @@
 
 ---
 
+## v0.9.0 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
+- **แพ้ยาข้ามกลุ่ม** (cross.js) เพิ่มจากสไลด์ Drug Allergy & Cross-Reactivity (update): Macrolide · Quinolone (ตารางแนะนำตาม generation) · Azole/nitroimidazole (โครงสร้างร่วม) · PPI · Antihistamine (สายยาแม่-เมแทบอไลต์ + กลุ่มโครงสร้าง) · Statin (type I/II) · คำค้นกลุ่ม เช่น "แพ้ quinolone", "แพ้ PPI"
+- **ยาต้านการแข็งตัวของเลือด** (Academic in-service Gen-med2): เพิ่ม Dabigatran (ปรับตามไต + DI P-gp/CYP3A4 + อายุ ≥75/น้ำหนัก ≤60) · Enoxaparin prophylaxis CrCl <30 = 30 mg OD · เตือนใช้ anticoagulant ≥2 ตัว พร้อมวิธีเปลี่ยนยา · Warfarin ในหญิงตั้งครรภ์ตามไตรมาส
+- **ADR ยาวัณโรค**: AST/ALT >5×ULN (หรือ >3× + อาการ) → หยุด HRZ + แนวทาง rechallenge · bilirubin ขึ้นเด่นกับ rifampicin · INH ไม่มี pyridoxine
+- **Opioid (palliative)**: regular opioid ไม่มียาระบาย/ไม่มี rescue dose · morphine ใน CrCl <30/HD · pethidine ต่อเนื่อง · tramadol >400 mg/วัน
+- **ยาจิตเวช (antipsychotics)**: ขนาดเกินช่วงปกติ + เทียบ chlorpromazine · ใช้ >1 ตัว · DI ผ่าน CYP1A2/2D6/3A4 · Clozapine + ANC
+- แท็บใหม่ **คู่มือย่อ**: anticoagulant (ไต, DI, เปลี่ยนยา, ยาแก้ฤทธิ์, ตั้งครรภ์) · ADR ยาวัณโรค (ตาราง rechallenge) · palliative (แปลงขนาด opioid, naloxone, หอบ) · antipsychotics · cross-allergy สรุป
+- Timeline/จ่ายต่อ: เพิ่ม **นับเม็ดยาถึงวันนัด (ARV/ยาต่อเนื่อง)** จากไฟล์คำนวณยา ARV — ยาเหลือ + สั่งเพิ่ม เทียบจำนวนถึงนัด → ขาด/เกิน/ควรจ่าย
+
 ## v0.8.0 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
 - แท็บใหม่ **"แผนภาพ Timeline ยา"** (dtl.js) — แผนภาพลำดับเวลาการใช้ยาทั่วไป (ไม่จำกัดเฉพาะ ADR)
   - วางคำสั่งยาจาก paperless → เพิ่มเป็นรายการยา (อ่าน "start 24-30/10/69" เป็นวันเริ่ม-หยุดให้) หรือเพิ่มเอง · แก้/ลบในตาราง

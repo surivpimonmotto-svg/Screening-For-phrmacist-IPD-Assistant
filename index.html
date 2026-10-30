@@ -2041,7 +2041,7 @@ const LAB_EXTRA=LAB_DEF.filter(x=>!x[4]); // ช่องใหม่ในก�
 function labParse(txt){
   const out={}; const t=(txt||'').replace(/ /g,' ');
   for(const [key,,,re] of LAB_DEF){
-    const src=new RegExp('(?:'+re.source+')[^\\d\\n-]{0,25}?(-?[\\d,]*\\.?\\d+)',re.flags.includes('i')?'i':'');
+    const src=new RegExp('(?:'+re.source+')[^\\d\\n-]{0,25}?(?:\\n[ \\t:=]*)?(-?[\\d,]*\\.?\\d+)',re.flags.includes('i')?'i':'');
     const m=t.match(src); if(m){ const v=+m[1].replace(/,/g,''); if(!isNaN(v)) out[key]=v; } }
   return out;
 }
@@ -2605,7 +2605,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

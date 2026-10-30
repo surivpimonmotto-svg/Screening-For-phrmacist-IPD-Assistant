@@ -36,7 +36,7 @@ const LAB_EXTRA=LAB_DEF.filter(x=>!x[4]); // ช่องใหม่ในก�
 function labParse(txt){
   const out={}; const t=(txt||'').replace(/ /g,' ');
   for(const [key,,,re] of LAB_DEF){
-    const src=new RegExp('(?:'+re.source+')[^\\d\\n-]{0,25}?(-?[\\d,]*\\.?\\d+)',re.flags.includes('i')?'i':'');
+    const src=new RegExp('(?:'+re.source+')[^\\d\\n-]{0,25}?(?:\\n[ \\t:=]*)?(-?[\\d,]*\\.?\\d+)',re.flags.includes('i')?'i':'');
     const m=t.match(src); if(m){ const v=+m[1].replace(/,/g,''); if(!isNaN(v)) out[key]=v; } }
   return out;
 }

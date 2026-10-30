@@ -9,6 +9,9 @@
 
 ---
 
+## v0.9.1 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
+- ผล Lab: อ่านรูปแบบที่คัดลอกจาก HIS แบบชื่อ Lab อยู่บรรทัดหนึ่ง ค่าอยู่บรรทัดถัดไปได้ (เดิมอ่านไม่ได้)
+
 ## v0.9.0 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
 - **แพ้ยาข้ามกลุ่ม** (cross.js) เพิ่มจากสไลด์ Drug Allergy & Cross-Reactivity (update): Macrolide · Quinolone (ตารางแนะนำตาม generation) · Azole/nitroimidazole (โครงสร้างร่วม) · PPI · Antihistamine (สายยาแม่-เมแทบอไลต์ + กลุ่มโครงสร้าง) · Statin (type I/II) · คำค้นกลุ่ม เช่น "แพ้ quinolone", "แพ้ PPI"
 - **ยาต้านการแข็งตัวของเลือด** (Academic in-service Gen-med2): เพิ่ม Dabigatran (ปรับตามไต + DI P-gp/CYP3A4 + อายุ ≥75/น้ำหนัก ≤60) · Enoxaparin prophylaxis CrCl <30 = 30 mg OD · เตือนใช้ anticoagulant ≥2 ตัว พร้อมวิธีเปลี่ยนยา · Warfarin ในหญิงตั้งครรภ์ตามไตรมาส

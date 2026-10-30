@@ -1303,7 +1303,9 @@ const masterOf=row=>row.master&&typeof DM!=='undefined'?DM_IDX.byCode[row.master
 const SIG_START=/^(?:รับประทาน|กิน|ครั้งละ|ฉีด|ทา|หยด|พ่น|สูด|อม|เหน็บ|ใช้|ให้|ผสม|เวลา|ก่อน|หลัง|วันละ|ทุก|หยุด|day\s*\d|sig\b|rate\b|q\s*\d|(?:iv|im|sc|po|prn)\b|\d+(?:\.\d+)?\s*(?:x|×|\*|ml|cc|ซีซี|tab|cap|เม็ด|ช้อน)|[½¼¾])/i;
 function joinLines(lines){ const out=[];
   for(const raw of lines){ const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;
-    const isSig=SIG_START.test(l)&&!findMaster(l)&&!findDrug(l);
+    // บรรทัดวิธีใช้ของ paperless: ย่อหน้า หรือขึ้นต้นด้วยตัวเลข (เช่น "  2 g + NSS 100 ml IV q24hr", "7.6 (24-10-69)")
+    const cont=/^[ \t\u00a0]{2,}\S/.test(raw)||(/^\d/.test(l)&&!findMaster(l)&&!findDrug(l));
+    const isSig=cont||(SIG_START.test(l)&&!findMaster(l)&&!findDrug(l));
     if(isSig&&out.length) out[out.length-1]+=' '+l; else out.push(l); }
   return out;}
 function parseLine(raw){
@@ -1373,7 +1375,7 @@ function parseLine(raw){
     const ratio=L.match(/(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)/);
     const rate=L.match(/(\d+(?:\.\d+)?)\s*(?:cc|ml|mcd|µd|ud)\s*\/\s*(?:hr|h|ชม|min)|rate\s*(\d+(?:\.\d+)?)/i);
     const dil=(L.match(/\b(nss|0\.9\s*%?\s*nss|ns|d5w|d5s|d5|d10w|swfi|sterile water|nss\/2)\b/i)||[])[1]||'';
-    const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*)?(?:nss|ns|d5w|d5s|d5|swfi)?\s*(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i);
+    const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*)?(?:nss|ns|d5w|d5s|d5|swfi)?\s*(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i)||L.match(/\b(?:nss|d5w|d5s|swfi)\s*\(\s*(\d+)\s*(?:ml)?\s*\)/i);
     let amt=null,vol=null,how='';
     if(ratio){ amt=+ratio[1]; vol=+ratio[2]; how='ratio'; }
     else { const t=[...L.matchAll(DOSE_RE)].filter(x=>!/^\s*$/.test(x[0])); const tk=t.length>=2?t[t.length-1]:t[0]; if(tk) amt=toUnit(+tk[1],tk[2],drug); if(dvol) vol=+dvol[1]; }
@@ -2106,7 +2108,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.6.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.6.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

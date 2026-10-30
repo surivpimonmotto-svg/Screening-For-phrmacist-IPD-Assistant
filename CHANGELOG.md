@@ -9,6 +9,11 @@
 
 ---
 
+## v0.6.6 — 30 ต.ค. 69 — Motto (ผ่าน Claude)
+- อ่านคำสั่งรูปแบบ paperless ที่วิธีใช้อยู่บรรทัดถัดไปแบบย่อหน้า/ขึ้นต้นด้วยตัวเลข (เช่น "CEF-3 (CEFTRIAXONE) 1G." แล้วบรรทัดใหม่ "2 g + NSS(100) 100 ml IV drip in 1 hr q24hr") — เดิมแยกเป็น 2 รายการ อ่านความถี่ไม่ได้
+- HAD: อ่านสารน้ำแบบ "+ NSS(100) 1000 ml" ได้ (KCl 40 mEq ใน 1000 ml rate 80 → 40 mEq/L, 3.2 mEq/h)
+- ที่มา: เคสทดลองใช้ 30 ต.ค. 69 (Ceftriaxone, KCl, Calcium gluconate, Morphine, Metoclopramide)
+
 ## v0.6.5 — 29 ต.ค. 69 — Motto
 - แท็บ Vanco/Colistin: Colistin ใช้ขนาดตามคู่มือ/DUE รพ. เป็นหลัก — LD 300 mg CBA, ปรับตาม CrCl (≥80 150 q8-12h · 40–80 150 q12h · 20–40 100 q12h · <20 150 q24h · HD วันไม่ฟอก 150 q24h / วันฟอก 200 mg หลังฟอก); Garonzik เป็น "อ้างอิงเพิ่ม" (ที่มา: ใบ DUE Colistin, คู่มือ รพ.)
 - ข้อความ Colistin: ระบุ indication + ระยะเวลา + loading ใน note (ที่มา: ป้ายห้องยา รพ.)

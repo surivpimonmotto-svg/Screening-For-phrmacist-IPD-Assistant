@@ -31,6 +31,6 @@ function cpSections(host){ if(!host) return; host.querySelectorAll('h2').forEach
   document.body.appendChild(fb); document.body.appendChild(pb); document.body.appendChild(tm);
   // เมื่อพิมพ์ ซ่อนปุ่มลอย
   const st=document.createElement('style'); st.textContent='@media print{#cpAll,#prAll,.cpbtn{display:none!important}}'; document.head.appendChild(st); })();
-// ใส่ปุ่ม 📋 ให้หัวข้อในแผงผล (.hres) ทุกแท็บอัตโนมัติ เมื่อเนื้อหาเปลี่ยน
-(function(){ let t=0; const run=()=>{ document.querySelectorAll('.hres').forEach(cpSections); };
-  const mo=new MutationObserver(()=>{ clearTimeout(t); t=setTimeout(run,80); }); document.querySelectorAll('.hres').forEach(h=>mo.observe(h,{childList:true,subtree:true})); run(); })();
+// ใส่ปุ่ม 📋 🖨 ให้ทุกหัวข้อ (h2) ทุกแท็บอัตโนมัติ เมื่อเนื้อหาเปลี่ยน
+(function(){ let t=0; const secs=()=>[...document.querySelectorAll('section[id^="p-"]')].filter(x=>x.id!=='p-kb'); const run=()=>{ secs().forEach(cpSections); };
+  const mo=new MutationObserver(()=>{ clearTimeout(t); t=setTimeout(run,80); }); secs().forEach(h=>mo.observe(h,{childList:true,subtree:true})); run(); })();

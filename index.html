@@ -274,6 +274,16 @@ fieldset.grp legend .gi{margin-right:4px} fieldset.grp legend .gs{font-weight:60
 fieldset.grp legend .gs:empty{display:none} fieldset.grp legend .gs.w{background:#f59e0b;color:#2a1600} fieldset.grp legend .gs.f{background:#ef4444;color:#fff}
 fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} fieldset.grp label.f small{display:inline;font-size:.72rem;opacity:.7;white-space:nowrap} fieldset.grp input,fieldset.grp select{height:36px;padding:4px 8px;font-size:.95rem}
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
+
+/* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste{border-color:#a78bfa;background:#f5f3ff}
+#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
+#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste::placeholder{color:#64748b;font-family:inherit}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste)::placeholder{color:#8ea0c4}}
+:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
+#ptBox{border:1.5px solid #8b5cf6;background:linear-gradient(180deg,color-mix(in srgb,#8b5cf6 12%,var(--surface)),var(--surface))}
+#ptBox summary{color:#7c3aed} @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #ptBox summary{color:#c4b5fd}}
 /* v0.10 — สีสถานะสดใส */
 .tag.ok,.pill.ok{background:#22c55e!important;color:#052e16!important;border-color:#16a34a!important}
 .tag.warn,.pill.warn{background:#f59e0b!important;color:#2a1600!important;border-color:#d97706!important}
@@ -317,7 +327,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
     <h2>ข้อมูลผู้ป่วย</h2>
     <div style="display:grid;gap:10px">
       <details class="labbox" id="ptBox" open><summary>วางข้อมูลจากหน้าจอ HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
-        <textarea id="ptPaste" rows="3" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
+        <textarea id="ptPaste" rows="5" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
       </details>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
@@ -344,8 +354,8 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       </div></fieldset>
       <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
       <details class="labbox"><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
-        <textarea id="labPaste" rows="3" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
-        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="ghost">อ่านค่า Lab</button><button type="button" id="labClear" class="ghost">ล้าง</button><span id="labMsg" class="hint"></span></div>
+        <textarea id="labPaste" rows="5" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
         <div id="labGrid" hidden></div>
         <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
       </details>
@@ -2735,7 +2745,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.10.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.10.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

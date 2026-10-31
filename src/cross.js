@@ -164,3 +164,19 @@ function xaCheck(allergyText,drugText,o={}){ const out=[]; const sev=o.severe??X
       continue; }
     for(const a of as) for(const d of ds){ const r=xaPair(a,d,{...o,severe:sev}); if(r) out.push({a:a[0],d:d[0],...r}); } }
   return out; }
+/* ทางเลือกยาในกลุ่มเดียวกันที่ประเมินแล้วแพ้ข้ามต่ำ (สำหรับใบ consult) */
+const XA_PREF={bl:['Cefazolin','Cefuroxime','Ceftriaxone','Cefotaxime','Ceftazidime','Cefepime','Cefixime','Cefdinir','Ertapenem','Meropenem','Imipenem/cilastatin','Aztreonam']};
+function xaAlt(allergyText,drugText,o={}){
+  const sev=o.severe??XA_SEVERE.test(allergyText||''); const ds=xaFind(drugText); if(!ds.length) return null;
+  const d=ds[0], g=d[2]; let as=[];
+  for(const part of xaSplit(allergyText)){ const f=xaFind(part).filter(x=>x[2]===g); if(f.length) as.push(...f);
+    else if(g==='bl'&&/penicillin|เพนนิ/i.test(part)) as.push(...XA.filter(x=>['Amoxicillin','Penicillin G/V'].includes(x[0]))); }
+  if(!as.length) return null;
+  if(sev) return {sev:true,txt:`แพ้รุนแรงชนิดล่าช้า — หลีกเลี่ยงยากลุ่ม ${XA_GRP[g]} ทั้งกลุ่ม พิจารณายากลุ่มอื่นตามข้อบ่งใช้`};
+  const pool=(XA_PREF[g]?XA_PREF[g].map(n=>XA.find(x=>x[0]===n)).filter(Boolean):XA.filter(x=>x[2]===g)).filter(x=>x[0]!==d[0]&&!/\(/.test(x[0].replace('Imipenem/cilastatin','')));
+  const ok=pool.filter(b=>as.every(a=>{ const r=xaPair(a,b,{severe:false}); return r&&(r.lvl==='ok'||(g==='fq'&&/^ตารางแนะนำ/.test(r.txt))); })).map(b=>b[0]);
+  if(!ok.length) return null;
+  if(g==='bl'){ const ce=ok.filter(n=>/^Cef/.test(n)), cb=ok.filter(n=>/penem/.test(n)), mo=ok.filter(n=>/Aztreonam/.test(n));
+    return {sev:false,txt:[ce.length&&`Cephalosporin ที่ R1 ต่าง: ${ce.join(', ')}`,cb.length&&`Carbapenem (แพ้ข้าม <1%): ${cb.join(', ')}`,mo.length&&`Monobactam: ${mo.join(', ')}`].filter(Boolean).join(' · ')}; }
+  return {sev:false,txt:`${XA_GRP[g]} ที่${g==='fq'?'ตารางแนะนำให้ใช้แทน (ถ้าไม่ใช่ Type I/IgE)':'แพ้ข้ามต่ำ'}: ${ok.slice(0,8).join(', ')}`};
+}

@@ -678,6 +678,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">เริ่มกินยาสูตรใหม่ วันที่<input id="wStart" placeholder="dd/mm/2569"></label>
             <label class="f">จ่ายกี่สัปดาห์<input id="wWeeks" type="number" step="any" inputmode="decimal" placeholder="หรือกรอกวันนัด"></label>
             <label class="f">หรือ ถึงวันนัด (ไม่รวมวันนัด)<input id="wUntil" placeholder="dd/mm/2569"></label>
+            <label class="f">วิธีรับประทาน (แสดงบนปฏิทิน)<input id="wTime" value="วันละ 1 ครั้ง ก่อนนอน" placeholder="วันละ 1 ครั้ง ก่อนนอน"></label>
             <label class="f">INR ล่าสุด / เป้าหมาย<select id="wTgt"><option value="2">เป้าหมาย 2.0-3.0</option><option value="2.5">เป้าหมาย 2.5-3.5</option></select></label>
           </div>
           <p class="hint" style="margin:8px 0 0">กรอกจำนวนเม็ดต่อวัน (0.5 = ครึ่งเม็ด) · INR ใช้ค่าจากแผงข้อมูลผู้ป่วย</p>
@@ -2808,7 +2809,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.13.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.13.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3037,6 +3038,14 @@ function wfAdjRender(){ const box=$('wAdj'); if(!box) return;
    <table class="ctbl" style="width:100%;text-align:center"><thead><tr><th style="text-align:left">ทางเลือก</th>${WD.map(d=>`<th>${DAY_TH[d]}</th>`).join('')}<th>mg/สัปดาห์</th><th>เปลี่ยน</th><th></th></tr></thead><tbody>${opts.map((x,i)=>`<tr${Math.abs(x.w-T)===Math.min(...opts.map(y=>Math.abs(y.w-T)))?' style="font-weight:700"':''}><td style="text-align:left;font-weight:400">${esc(wfPatTxt(x.u))}</td>${x.u.map(v=>`<td>${wfDayTxt(v)}</td>`).join('')}<td>${fmtN(x.w)}</td><td style="color:${Math.abs(x.ch)>20?'var(--flag)':'inherit'}">${x.ch>=0?'+':''}${fmtN(Math.round(x.ch*10)/10)}%</td><td><button type="button" class="btn sm" data-wopt="${i}">ใช้เป็นสูตรใหม่</button></td></tr>`).join('')}</tbody></table>
    <p class="hint" style="margin:6px 0 0">กระจายขนาดให้ใกล้เคียงกันทุกวัน (ต่างกันไม่เกินครึ่งเม็ด) · ตัวหนา = ใกล้เป้าหมายที่สุด · ตรวจสอบกับแพทย์ก่อนใช้</p>`;
   box.querySelectorAll('[data-wopt]').forEach(b=>b.onclick=()=>{ const x=opts[+b.dataset.wopt]; if(!o.any&&n.any){ WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s; } WD.forEach((d,i)=>$('w_new_'+d).value=x.u[i]); renderWf(); }); }
+const TH_DAYF={Mo:'จันทร์',Tu:'อังคาร',We:'พุธ',Th:'พฤหัสบดี',Fr:'ศุกร์',Sa:'เสาร์',Su:'อาทิตย์'};
+const wfTabTh=x=>{ if(!x) return 'งดยา'; const f=Math.floor(x+1e-9), r=x-f; const h=Math.abs(r-0.5)<1e-9, q=Math.abs(r-0.25)<1e-9, q3=Math.abs(r-0.75)<1e-9;
+  if(!f) return h?'ครึ่งเม็ด':q?'1/4 เม็ด':q3?'3/4 เม็ด':`${fmtN(x)} เม็ด`; return `${f} เม็ด${h?'ครึ่ง':q?' 1/4':q3?' 3/4':''}`; };
+// ข้อความภาษาไทยสำหรับผู้ป่วย: กลุ่มวันที่ขนาดเท่ากัน (ช่วงวันติดกันใช้ "–")
+function wfPatThai(u,s){ const g=new Map(); u.forEach((x,i)=>{ const k=String(x||0); if(!g.has(k)) g.set(k,[]); g.get(k).push(i); });
+  const runs=ix=>{ const o=[]; let a=ix[0],b=ix[0]; for(let j=1;j<=ix.length;j++){ if(ix[j]===b+1){ b=ix[j]; continue; } o.push(a===b?`วัน${TH_DAYF[WD[a]]}`:`วัน${TH_DAYF[WD[a]]}–วัน${TH_DAYF[WD[b]]}`); a=b=ix[j]; } return o.join(', '); };
+  if(g.size===1){ const x=+[...g.keys()][0]; return [x?`ทุกวัน ครั้งละ ${wfTabTh(x)} (${fmtN(x*s)} มิลลิกรัม)`:'งดยาทุกวัน']; }
+  return [...g.entries()].sort((a,b)=>a[1][0]-b[1][0]).map(([k,ix])=>{ const x=+k; return `${runs(ix)} ${x?`ครั้งละ ${wfTabTh(x)} (${fmtN(x*s)} มิลลิกรัม)`:'งดยา'}`; }); }
 const TH_MON=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 function wfPillSvg(cx,cy,x){ let g=''; const f=Math.floor(x+1e-9), r=x-f, n=f+(r>1e-9?1:0), gap=22; let px=cx-(n-1)*gap/2;
   for(let i=0;i<f;i++,px+=gap) g+=`<circle cx="${px}" cy="${cy}" r="9" fill="#f59e0b" stroke="#b45309" stroke-width="1.5"/>`;
@@ -3048,8 +3057,12 @@ function wfCal(cur,st,days,appt){ const s0=st||(()=>{const d=new Date(); d.setHo
   const last=new Date(s0.getFullYear(),s0.getMonth(),s0.getDate()+N-1), ap=appt||new Date(last.getFullYear(),last.getMonth(),last.getDate()+1);
   const svgs=[]; let y0=s0.getFullYear(), m0=s0.getMonth(); const endM=(ap>last?ap:last);
   while(y0*12+m0<=endM.getFullYear()*12+endM.getMonth()){
-    const first=new Date(y0,m0,1), dim=new Date(y0,m0+1,0).getDate(), lead=(first.getDay()+6)%7, rows=Math.ceil((lead+dim)/7), W=700, CW=100, CH=70, top=70, H=top+rows*CH+8;
+    const first=new Date(y0,m0,1), dim=new Date(y0,m0+1,0).getDate(), lead=(first.getDay()+6)%7, rows=Math.ceil((lead+dim)/7), W=700, CW=100, CH=70;
+    const pl=wfPatThai(cur.u.map(x=>x||0),cur.s), oneLine=pl.join(' · '), lines=oneLine.length<=78?[oneLine]:pl.slice(0,4), tm=(($('wTime')||{}).value||'').trim();
+    const head=[`วาร์ฟาริน (Warfarin) เม็ดละ ${fmtN(cur.s)} มิลลิกรัม${tm?` · รับประทาน${tm.replace(/^รับประทาน/,'')}`:''}`,...lines];
+    const top=44+head.length*20+30, H=top+rows*CH+8;
     let g=`<rect width="${W}" height="${H}" fill="#fff"/><text x="${W/2}" y="28" font-size="20" font-weight="700" text-anchor="middle" fill="#0f172a">${TH_MON[m0]} ${y0+543}</text>`;
+    head.forEach((t,i)=>g+=`<text x="${W/2}" y="${52+i*20}" font-size="${i?14:14.5}" font-weight="${i?600:700}" text-anchor="middle" fill="${i?'#1e293b':'#b45309'}">${esc(t)}</text>`);
     WD.forEach((d,i)=>g+=`<rect x="${i*CW}" y="${top-28}" width="${CW}" height="26" fill="${i>4?'#fef3c7':'#e0e7ff'}"/><text x="${i*CW+CW/2}" y="${top-10}" font-size="14" font-weight="700" text-anchor="middle" fill="#1e293b">${DAY_TH[d]}</text>`);
     for(let k=0;k<rows*7;k++){ const day=k-lead+1, x=(k%7)*CW, y=top+Math.floor(k/7)*CH; if(day<1||day>dim){ g+=`<rect x="${x}" y="${y}" width="${CW}" height="${CH}" fill="#f8fafc" stroke="#cbd5e1"/>`; continue; }
       const dt=new Date(y0,m0,day), c=info.get(key(dt)), isAp=key(dt)===key(ap);
@@ -3116,7 +3129,7 @@ function renderWf(){
    <dl class="kv" style="margin-bottom:12px">${kv.map(([a,x])=>`<dt>${a}</dt><dd>${x}</dd>`).join('')}</dl><ul class="msgs">${msgs.join('')}</ul>${conv}${wfCalBox}`;
   if(cal&&$('wCalCp')){ const pat=wfPatTxt(cur.u.map(x=>x||0)), txt=`Warfarin ${cur.s} mg — ${pat} (${fmtN(mgw(cur))} mg/สัปดาห์)\nเริ่มวันที่ 1 = ${tlFmt(cal.s0,false)}\n`+cal.list.join('\n');
     $('wCalCp').onclick=()=>copyRich(txtHtml(txt),txt,$('wCalMsg'));
-    const hd=`<div class="mkt" style="margin-bottom:2mm">ปฏิทินการกินยา Warfarin (วาร์ฟาริน) เม็ดละ ${cur.s} mg</div><p style="margin:0 0 1mm">${esc(pat)} · ${fmtN(mgw(cur))} mg/สัปดาห์ · เริ่มกินวันที่ 1 = ${tlFmt(cal.s0,false)} ถึง ${tlFmt(cal.last,false)} (${cal.N} วัน) · นัดครั้งต่อไป ${tlFmt(cal.ap,false)}</p><p style="margin:0 0 2mm;font-size:12px">🟠 = 1 เม็ด · ◐ = ครึ่งเม็ด · ช่องเทา = หยุดยา · กินเวลาเดิมทุกวัน · ลืมกิน: กินทันทีที่นึกได้ภายในวันเดียวกัน ถ้าข้ามวันแล้วให้ข้ามไป ห้ามกินเพิ่มเป็น 2 เท่า · เลือดออกผิดปกติ/อุจจาระดำ ให้รีบมาโรงพยาบาล</p>`;
+    const hd=`<div class="mkt" style="margin-bottom:2mm">ปฏิทินการกินยา Warfarin (วาร์ฟาริน) เม็ดละ ${cur.s} mg</div><p style="margin:0 0 1mm">${fmtN(mgw(cur))} mg/สัปดาห์ · เริ่มกินวันที่ 1 = ${tlFmt(cal.s0,false)} ถึง ${tlFmt(cal.last,false)} (${cal.N} วัน) · นัดครั้งต่อไป ${tlFmt(cal.ap,false)}</p><p style="margin:0 0 2mm;font-size:12px">🟠 = 1 เม็ด · ◐ = ครึ่งเม็ด · ช่องเทา = หยุดยา · กินเวลาเดิมทุกวัน · ลืมกิน: กินทันทีที่นึกได้ภายในวันเดียวกัน ถ้าข้ามวันแล้วให้ข้ามไป ห้ามกินเพิ่มเป็น 2 เท่า · เลือดออกผิดปกติ/อุจจาระดำ ให้รีบมาโรงพยาบาล</p>`;
     const pages=[]; for(let i=0;i<cal.svgs.length;i+=2) pages.push(cal.svgs.slice(i,i+2).map(x=>x.replace('style="width:100%;','style="width:100%;max-height:118mm;')).join(''));
     $('wCalPr').onclick=()=>printHtml(pages.map((pg,i)=>`<div class="mk" style="${i?'page-break-before:always;':''}">${hd}${pg}${i===pages.length-1?'<p style="margin-top:2mm">ผู้จ่ายยา ............................ โทร ............................</p>':''}</div>`).join(''));
     const svgEls=()=>[...$('wCal').querySelectorAll('svg')];
@@ -3139,12 +3152,13 @@ function wfParse(){ const raw=$('wOrder').value; if(!raw.trim()) return;
   else if(hits.length===1){ const k=hits[0].tag||'new'; wfSet(k,hits[0]); done.push(k==='old'?'เดิม':'ใหม่'); }
   else { const o=hits.find(h=>h.tag==='old')||hits[0], n=hits.find(h=>h.tag==='new')||hits[hits.length-1]; wfSet('old',o); wfSet('new',n); done.push('เดิม','ใหม่'); }
   const dp=hits[hits.length-1].disp; if(dp) $('wWeeks').value=+(dp.days/7).toFixed(2);
+  { const L=hits[hits.length-1].L, t=/ก่อนนอน|\bhs\b/i.test(L)?'ก่อนนอน':/หลังอาหารเย็น|\bpc\s*(?:เย็น|dinner)/i.test(L)?'หลังอาหารเย็น':/หลังอาหารเช้า/.test(L)?'หลังอาหารเช้า':/เย็น/.test(L)?'ตอนเย็น':null; if(t) $('wTime').value=`วันละ 1 ครั้ง ${t}`; }
   const miss=hits.some(h=>h.u.some(v=>v==null));
   $('wMsg').textContent=`อ่านได้ ${hits.length} รายการ → แถว${done.join(' + ')}${hits.length>2?' (มีมากกว่า 2 รายการ ใช้รายการแรก/สุดท้าย)':''}${miss?' · บางวันไม่ได้ระบุ (ช่องว่าง)':''} — ตรวจตัวเลขในตารางก่อนใช้`;
   $('wOrder').value=''; renderWf(); }
 $('wParse').onclick=wfParse; $('wOrder').addEventListener('paste',()=>setTimeout(wfParse,0));
 $('wClr').onclick=()=>{ ['old','new'].forEach(k=>{ WD.forEach(d=>$(`w_${k}_${d}`).value=''); $(`w_${k}_s`).value=String(WF_HOSP); }); $('wWeeks').value=''; $('wMsg').textContent=''; $('wAdj')&&($('wPct').value=''); renderWf(); };
-['wStart','wWeeks','wUntil','wTgt'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wPct').addEventListener('change',renderWf); $('wPctB').innerHTML=WF_PCTS.map(v=>`<button type="button" class="btn sm" data-wp="${v}">${v>0?'+':''}${v}%</button>`).join(''); $('wPctB').querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{ $('wPct').value=b.dataset.wp; renderWf(); }); $('wPct').addEventListener('input',renderWf); $('wTgt').addEventListener('change',renderWf);
+['wStart','wWeeks','wUntil','wTgt','wTime'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wPct').addEventListener('change',renderWf); $('wPctB').innerHTML=WF_PCTS.map(v=>`<button type="button" class="btn sm" data-wp="${v}">${v>0?'+':''}${v}%</button>`).join(''); $('wPctB').querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{ $('wPct').value=b.dataset.wp; renderWf(); }); $('wPct').addEventListener('input',renderWf); $('wTgt').addEventListener('change',renderWf);
 ['old','new'].forEach(k=>{$(`w_${k}_s`).addEventListener('change',renderWf); WD.forEach(d=>$(`w_${k}_${d}`).addEventListener('input',renderWf));});
 $('t-wf').addEventListener('click',renderWf); $('inr').addEventListener('input',()=>{if(!$('p-wf').hidden)renderWf();});
 renderWf();

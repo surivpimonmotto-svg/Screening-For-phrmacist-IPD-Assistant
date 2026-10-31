@@ -2438,12 +2438,22 @@ function buildNote(evs,pt){
     const why=e.items.filter(m=>noteAll?m.lvl!=='info':(m.lvl==='flag'||m.lvl==='warn')).map(m=>m.txt);
     const rec=e.sugg&&(e.sugg.rx||e.sugg.txt)?`${e.sugg.where?e.sugg.where.replace(/\s+/g,' ')+': ':''}${e.sugg.rx||e.sugg.txt}`:'';
     probs.push({nm,req,lvl:e.status,raw:r.raw,dose,why,rec,src:d&&d.src?d.src:''}); });
-  const ask=probs.some(p=>p.lvl==='flag')?'จึงเรียนมาเพื่อโปรดพิจารณาปรับขนาด/ทบทวนคำสั่งใช้ยาตามข้อเสนอข้างต้น':probs.some(p=>p.lvl==='warn')?'จึงเรียนมาเพื่อโปรด confirm คำสั่งใช้ยาดังกล่าว':'ทุกรายการผ่านเกณฑ์ในฐานกฎ';
+  // แจ้งเพื่อทราบ: ประวัติแพ้ยาที่ประเมินแล้วใช้ได้ (แพ้ข้ามต่ำ)
+  const infos=[]; rows.forEach((r,i)=>{ const e=evs[i]; const al=e.items.filter(m=>m.lvl==='info'&&/^ประวัติแพ้/.test(m.txt)); if(!al.length||['flag'].includes(e.status)) return;
+    const d=e.drug, mm=e.master, nm=d?d.name:mm?mm[1]:r.raw.slice(0,50);
+    al.forEach(m=>{ const mt=m.txt.match(/^ประวัติแพ้ (.+?) → (.+?): (.*)$/); const BL=d&&typeof XA!=='undefined'&&XA.some(x=>x[2]==='bl'&&x[1].test(nm));
+      infos.push({nm,raw:r.raw,a:mt?mt[1]:'',why:mt?mt[3]:m.txt,bl:BL}); }); });
+  const allergyTxt=$('allergy').value.trim();
+  const ask=probs.some(p=>p.lvl==='flag')?'จึงเรียนมาเพื่อโปรดพิจารณาปรับขนาด/ทบทวนคำสั่งใช้ยาตามข้อเสนอข้างต้น':probs.some(p=>p.lvl==='warn')?'จึงเรียนมาเพื่อโปรด confirm คำสั่งใช้ยาดังกล่าว':infos.length?'จึงเรียนมาเพื่อโปรดทราบ':'ทุกรายการผ่านเกณฑ์ในฐานกฎ';
   const LN='━'.repeat(34);
   const T=[LN,'ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)',`${ward?'หอผู้ป่วย '+ward+' · ':''}วันที่ ${dt}`,LN,'','■ ข้อมูลผู้ป่วย',...ptl.map(x=>'  • '+x),'',`■ ปัญหาที่พบ (${probs.length} รายการ)`];
   probs.forEach((p,i)=>{ T.push('',`${i+1}) ${p.nm} — ${p.req}`); T.push(`   คำสั่งยา   : ${p.raw}`); if(p.dose) T.push(`   ขนาดที่สั่ง : ${p.dose}`);
     p.why.forEach((w,j)=>T.push(`   ${j?'          ':'เหตุผล     '}: ${w}`)); if(p.rec) T.push(`   ข้อเสนอ    : ${p.rec}`); if(p.src) T.push(`   อ้างอิง     : ${p.src}`); });
-  if(!probs.length) T.push('  ทุกรายการผ่านเกณฑ์ในฐานกฎ');
+  if(!probs.length) T.push(infos.length?'  ไม่พบปัญหาขนาดยา':'  ทุกรายการผ่านเกณฑ์ในฐานกฎ');
+  if(infos.length){ T.push('',`■ แจ้งเพื่อทราบ — ประวัติแพ้ยา (${infos.length} รายการ)`);
+    infos.forEach((x,i)=>{ T.push('',`${i+1}) ${x.nm} — แจ้งเพื่อทราบ (ไม่ต้องเปลี่ยนยา)`,`   ประวัติแพ้  : ${allergyTxt||x.a}`,`   คำสั่งยา   : ${x.raw}`,`   การประเมิน : ${x.why}`);
+      if(x.bl) T.push(`   เหตุผล     : การแพ้ข้ามระหว่าง penicillin กับ cephalosporin ขึ้นกับความคล้ายของ side chain (R1) มากกว่า beta-lactam ring`,`               เมื่อ R1 ต่างกัน อุบัติการณ์แพ้ข้าม <1–2% · ผู้ที่แพ้ penicillin แบบไม่รุนแรง (เช่น MP rash, urticaria`,`               ที่ไม่ใช่ anaphylaxis/SCAR) ใช้ cephalosporin ที่ R1 ต่างได้โดยไม่ต้องทดสอบก่อน`,`               (AAAAI/ACAAI Drug Allergy Practice Parameter 2022)`);
+      T.push(`   ข้อเสนอ    : ให้ยาได้ตามคำสั่ง · เฝ้าระวังอาการแพ้หลังให้ยาครั้งแรก (ผื่น คัน บวม หายใจลำบาก) หากเกิดอาการให้หยุดยาและแจ้งแพทย์`); }); }
   T.push('',ask,'',`ลงชื่อ ${who}`,`เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+tel:''}`,LN);
   $('note').value=T.join('\n');
   const C={flag:'#b91c1c',warn:'#b45309',ok:'#15803d',none:'#475569'};
@@ -2454,7 +2464,7 @@ function buildNote(evs,pt){
 <div style="font-weight:700">ปัญหาที่พบ (${probs.length} รายการ)</div>
 ${probs.map((p,i)=>`<div style="border-left:4px solid ${C[p.lvl]};padding:4px 10px;margin:8px 0;background:#f8fafc"><div><b>${i+1}) ${esc(p.nm)}</b> — <b style="color:${C[p.lvl]}">${esc(p.req)}</b></div>
 <table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
-<p style="margin:10px 0">${esc(ask)}</p><div style="text-align:right">ลงชื่อ ${esc(who)}<br><span style="font-size:13px;color:#475569">เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+esc(tel):''}</span></div></div>`;
+${infos.length?`<div style="font-weight:700;margin-top:10px">แจ้งเพื่อทราบ — ประวัติแพ้ยา</div>${infos.map((x,i)=>`<div style="border-left:4px solid #1d4ed8;padding:4px 10px;margin:8px 0;background:#eff6ff"><div><b>${i+1}) ${esc(x.nm)}</b> — <b style="color:#1d4ed8">แจ้งเพื่อทราบ (ไม่ต้องเปลี่ยนยา)</b></div><table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ประวัติแพ้</td><td>${esc(allergyTxt||x.a)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(x.raw)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">การประเมิน</td><td>${esc(x.why)}</td></tr>${x.bl?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>การแพ้ข้ามระหว่าง penicillin กับ cephalosporin ขึ้นกับความคล้ายของ side chain (R1) มากกว่า beta-lactam ring เมื่อ R1 ต่างกัน อุบัติการณ์แพ้ข้าม &lt;1–2% · ผู้ที่แพ้ penicillin แบบไม่รุนแรง (ไม่ใช่ anaphylaxis/SCAR) ใช้ cephalosporin ที่ R1 ต่างได้โดยไม่ต้องทดสอบก่อน <span style="font-size:12.5px">(AAAAI/ACAAI Drug Allergy Practice Parameter 2022)</span></td></tr>`:''}<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">ให้ยาได้ตามคำสั่ง · เฝ้าระวังอาการแพ้หลังให้ยาครั้งแรก (ผื่น คัน บวม หายใจลำบาก) หากเกิดอาการให้หยุดยาและแจ้งแพทย์</b></td></tr></table></div>`).join('')}`:''}<p style="margin:10px 0">${esc(ask)}</p><div style="text-align:right">ลงชื่อ ${esc(who)}<br><span style="font-size:13px;color:#475569">เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+esc(tel):''}</span></div></div>`;
 }
 function copyRich(html,text,okEl){ const done=m=>{ if(okEl){ okEl.textContent=m; setTimeout(()=>okEl.textContent='',2200);} };
   try{ if(window.ClipboardItem&&navigator.clipboard.write&&html){ navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})]).then(()=>done('คัดลอกแล้ว'),()=>navigator.clipboard.writeText(text).then(()=>done('คัดลอกแล้ว (ข้อความ)'),()=>done('คัดลอกไม่ได้ — เลือกข้อความแล้วกด Ctrl+C'))); return; }
@@ -2666,7 +2676,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

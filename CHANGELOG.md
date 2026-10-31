@@ -9,6 +9,10 @@
 
 ---
 
+## v0.9.5 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
+- แพ้ "penicillin" (ไม่ระบุตัว): cephalosporin ที่ side chain ต่าง (cefazolin, cefotaxime, ceftriaxone, ceftazidime, cefepime ฯลฯ) และ carbapenem ขึ้น OK · cephalexin/cefadroxil/cefaclor, cefoxitin, cefoperazone ขึ้นทบทวน (เดิมขึ้นทบทวนทุกตัว)
+- คู่มือย่อ: เพิ่มหัวข้อ "คำถามพบบ่อย: แพ้ penicillin ใช้ cephalosporin ตัวไหนได้"
+
 ## v0.9.4 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
 - แท็บคำนวณ HAD: ข้อความ note แยกบรรทัด — สูตรผสม · Rate · Dose · Conc · จ่าย · ผลตรวจ (✓/⚠/✗ ทีละข้อ) · มาตรฐาน (usual/max dose/max conc) · ช่องผู้ตรวจ check2 + ปุ่มคัดลอก
 

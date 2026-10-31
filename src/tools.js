@@ -25,6 +25,19 @@ function arvRender(){
 
 /* ---------- 2) คู่มือย่อ ---------- */
 const REF=[
+ {id:'faq-pen',t:'คำถามพบบ่อย: แพ้ penicillin ใช้ cephalosporin ตัวไหนได้',src:'Beta-lactam cross-allergy chart (side chain R1) · ตรงกับกฎใน cross.js',h:`
+ <p><b>หลักการ:</b> แพ้ข้าม penicillin → cephalosporin ต่ำ (~1–2%) และขึ้นกับ <b>side chain (R1)</b> เป็นหลัก ไม่ใช่ beta-lactam ring · ยกเว้นแพ้แบบรุนแรงชนิดล่าช้า (SJS/TEN/DRESS/AGEP, ไตอักเสบ, ตับอักเสบ, hemolytic anemia) → <b>หลีกเลี่ยง beta-lactam ทุกตัว</b></p>
+ <table class="ctbl"><tr><th>Cephalosporin</th><th>แพ้ penicillin ทั่วไป / amoxicillin / ampicillin</th><th>หมายเหตุ</th></tr>
+ <tr><td><b>Cefazolin</b></td><td>✓ ใช้ได้</td><td>side chain เฉพาะตัว ไม่เหมือน beta-lactam อื่น</td></tr>
+ <tr><td><b>Cefotaxime / Ceftriaxone / Cefepime</b></td><td>✓ ใช้ได้</td><td>side chain (methoxyimino) ต่างจาก penicillin · แต่ 3 ตัวนี้แพ้ข้ามกันเอง</td></tr>
+ <tr><td><b>Ceftazidime</b></td><td>✓ ใช้ได้</td><td>side chain เหมือน <b>aztreonam</b> (แพ้ ceftazidime ห้ามใช้ aztreonam)</td></tr>
+ <tr><td>Cefuroxime / Cefixime / Cefdinir / Cefpodoxime</td><td>✓ ใช้ได้</td><td>ต่างจาก penicillin</td></tr>
+ <tr><td>Cephalexin / Cefadroxil / Cefaclor (Cefprozil)</td><td>✗ <b>หลีกเลี่ยง</b> ถ้าแพ้ amoxicillin/ampicillin</td><td>side chain เหมือน/คล้าย aminopenicillin</td></tr>
+ <tr><td>Cefoxitin</td><td>⚠ ระวังถ้าแพ้ penicillin G/V</td><td>side chain คล้าย benzylpenicillin</td></tr>
+ <tr><td>Cefoperazone</td><td>⚠ ระวังถ้าแพ้ piperacillin</td><td>side chain คล้ายกัน</td></tr>
+ <tr><td>Carbapenem</td><td>✓ ใช้ได้ (แพ้ข้าม &lt;1%)</td><td>Aztreonam ใช้ได้ (ยกเว้นแพ้ ceftazidime)</td></tr></table>
+ <ul><li><b>เคย anaphylaxis จาก penicillin:</b> ใช้ cephalosporin ที่ side chain ต่างได้ แต่แนะนำ test dose / graded challenge ภายใต้การดูแล</li>
+ <li><b>ไม่ทราบว่าแพ้ penicillin ตัวไหน:</b> ถือว่าอาจเป็น amoxicillin/ampicillin → เลี่ยง cephalexin/cefadroxil/cefaclor · ระบุชื่อยาและอาการที่แพ้ในช่อง "แพ้ยา" เพื่อให้โปรแกรมประเมินแม่นขึ้น</li></ul>`},
  {id:'ac',t:'ยาต้านการแข็งตัวของเลือด (Heparin · Enoxaparin · Dabigatran · Warfarin ตั้งครรภ์)',src:SRC_AC,h:`
  <h3>Enoxaparin — ปรับตามไต</h3><ul><li>CrCl ≥30: ไม่ต้องปรับ</li><li>CrCl &lt;30: VTE prophylaxis 30 mg SC OD · VTE treatment 1 mg/kg SC OD · NSTEMI 1 mg/kg SC OD · STEMI &lt;75 ปี 30 mg IV แล้ว 1 mg/kg SC OD, ≥75 ปี ไม่ให้ IV bolus</li><li>Dialysis: ไม่ได้รับรองโดย FDA · Heparin ไม่ต้องปรับตามไต/ตับ</li></ul>
  <h3>Dabigatran (110 mg cap)</h3><ul><li>AF: 150 mg bid หรือ 110 mg bid (เสี่ยงเลือดออก) · DVT/PE: 150 mg bid (provoked 3 เดือน) · THA/TKA: 110 mg 1–4 ชม. หลังผ่าตัด แล้ว 220 mg OD</li><li>ไต: VTE — CrCl ≤30/HD ไม่แนะนำ · AF — CrCl 30–50 ไม่ต้องปรับ (ยกเว้นใช้ร่วม dronedarone/ketoconazole: 75 mg) · &lt;15 ไม่แนะนำ</li>

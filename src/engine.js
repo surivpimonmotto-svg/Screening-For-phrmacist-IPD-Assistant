@@ -59,17 +59,19 @@ function parseWeekly(sig){
     if(xu) exc={days:[...daysIn(om[2])],units:num(xu[1]),raw:om[0].trim()}; else off=daysIn(om[2]); sig=sig.slice(0,om.index);}
   if(exc&&exc.days.length){ const base=sig.trim(); const all=new Set(['Mo','Tu','We','Th','Fr','Sa','Su']); const bd=daysIn(base); const bdays=bd.size?bd:all; exc.days.forEach(d=>bdays.delete(d));
     const bm=base.match(/(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)\s*[x×*]\s*\d/)||base.match(/ครั้งละ\s*(\d+(?:\.\d+)?|\d*[½¼¾])/)||base.match(/(?:^|\s)(\d+(?:\.\d+)?|\d*[½¼¾])(?=\s*(?:เม็ด|tab))/i);
-    if(bm){ const segs=[{units:num(bm[1]),days:[...bdays],raw:base,noDays:false,noUnits:false},{units:exc.units,days:exc.days,raw:exc.raw,noDays:false,noUnits:false}];
+    if(bm){ const segs=[{units:num(bm[1]),days:[...bdays],raw:base,noDays:false,noUnits:false,tpd:1},{units:exc.units,days:exc.days,raw:exc.raw,noDays:false,noUnits:false,tpd:1}];
       return {segs,covered:[...bdays,...exc.days],off:[]}; } }
   const parts=sig.split(/\s*(?:และ|,|;|\+|\bthen\b)\s*/).filter(x=>x.trim());
   const segs=[]; let last=null;
+  const tpdOf=t=>{const m=t.match(/(?:\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)\s*[x×*]\s*(\d+)/)||t.match(/วันละ\s*(\d+)\s*ครั้ง/)||t.match(/(\d+)\s*ครั้ง\s*\/\s*วัน/);return m?+m[1]:null;};
+  const meals=(sig.match(/เช้า|กลางวัน|เที่ยง|เย็น|ก่อนนอน/g)||[]); const sigTpd=tpdOf(sig)??(new Set(meals).size>=2?new Set(meals).size:null);
   for(const p of parts){
     const d=/ทุกวัน|daily|\bod\b/i.test(p)&&daysIn(p).size===0?new Set(['Mo','Tu','We','Th','Fr','Sa','Su']):daysIn(p);
     off.forEach(x=>d.delete(x));
     let m=p.match(/(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)\s*[x×*]\s*\d/)||p.match(/ครั้งละ\s*(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)/)||p.match(/(?:^|\s)(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)(?=\s|เม็ด|tab|$)/);
     const units=m?num(m[1]):null;
     if(units==null&&d.size===0) continue;
-    segs.push({units:units??(last?last.units:null),days:[...d],raw:p.trim(),noDays:d.size===0,noUnits:units==null});
+    segs.push({units:units??(last?last.units:null),days:[...d],raw:p.trim(),noDays:d.size===0,noUnits:units==null,tpd:tpdOf(p)??(parts.length===1?sigTpd:null)??1});
     if(units!=null) last={units};
   }
   if(!segs.length) return null;
@@ -220,10 +222,11 @@ function parseLine(raw){
     wk.segs.filter(s=>s.noUnits&&!s.noDays).forEach(s=>row.issues.push(`ส่วน "${s.raw}" ไม่ระบุจำนวนเม็ด`));
     const missing=['Mo','Tu','We','Th','Fr','Sa','Su'].filter(d=>!wk.covered.includes(d)&&!wk.off.includes(d));
     if(missing.length&&missing.length<7) row.issues.push(`ระบุวันไม่ครบ 7 วัน (ไม่ระบุ: ${missing.map(d=>DAY_TH[d]).join(', ')}) — หยุดยาวันดังกล่าว หรือคำสั่งไม่ครบ?`);
-    const weekUnits=wk.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*s.days.length,0);
+    const weekUnits=wk.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0);
     wk.weekUnits=weekUnits; wk.mgU=mgU; wk.mgWeek=mgU!=null?weekUnits*mgU:null;
-    wk.maxUnits=Math.max(...wk.segs.filter(s=>s.units!=null).map(s=>s.units));
-    if(unitsSet.length===1&&unitsSet[0]!=null){row.doseVal=unitsSet[0];row.doseUnit='unit';row.F=wk.covered.length/7;}
+    wk.maxUnits=Math.max(...wk.segs.filter(s=>s.units!=null).map(s=>s.units*(s.tpd||1)));
+    const tpdSet=[...new Set(wk.segs.filter(s=>!s.noDays).map(s=>s.tpd||1))];
+    if(unitsSet.length===1&&unitsSet[0]!=null&&tpdSet.length===1){row.doseVal=unitsSet[0];row.doseUnit='unit';row.F=wk.covered.length*tpdSet[0]/7;}
     else if(mgU!=null){row.doseVal=Math.round(weekUnits*mgU/7*100)/100;row.doseUnit='mg';row.F=1;row.formIdx=fi; wk.avgOnly=true;}
     else {row.F=null;}
   } else {
@@ -355,10 +358,10 @@ function evaluate(row,pt,rows){
     const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':lv===2?'warn':'ok'; return res; }
   row.issues&&row.issues.forEach(x=>add('warn','อ่านคำสั่ง: '+x,'parse'));
   if(row.weekly){const w=row.weekly, mu=w.mgU;
-    { const wu=w.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*s.days.length,0), dp=dispOf(row.raw);
+    { const wu=w.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0), dp=dispOf(row.raw);
       const tabs=d=>Math.ceil(wu*d/7-1e-9);
       if(wu>0) add('info',dp?`จ่ายตามคำสั่ง "${dp.txt}": ${fmtN(wu)} เม็ด/สัปดาห์ × ${fmtN(dp.days/7)} สัปดาห์ = ${tabs(dp.days)} เม็ด${mu?` (${mu} mg)`:''}${dp.days%7?' — ไม่ครบสัปดาห์ จำนวนขึ้นกับวันเริ่ม ดูแท็บ Warfarin':''}`:`จำนวนจ่าย: ${fmtN(wu)} เม็ด/สัปดาห์ · 2 สัปดาห์ = ${tabs(14)} · 4 สัปดาห์ = ${tabs(28)} เม็ด${mu?` (${mu} mg)`:''}`); }
-    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>`${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} เม็ด${mu!=null&&s.units!=null?` (${fmtN(s.units*mu)} mg)`:''}`).join(' / ');
+    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>{const t=s.tpd||1;return `${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} เม็ด${t>1?` × ${t} ครั้ง/วัน`:''}${mu!=null&&s.units!=null?` (${t>1?fmtN(s.units*mu)+' mg/ครั้ง = '+fmtN(s.units*mu*t)+' mg/วัน':fmtN(s.units*mu)+' mg'})`:''}`;}).join(' / ');
     if(w.off&&w.off.length) add('info',`หยุดยา: ${w.off.map(d=>DAY_TH[d]).join(', ')}`);
     add('info',`สูตรรายวันในสัปดาห์: ${segTxt}${w.mgWeek!=null?` = ${fmtN(w.mgWeek)} mg/สัปดาห์ (เฉลี่ย ${fmtN(w.mgWeek/7)} mg/วัน)`:''}`);
     if(mu!=null&&w.maxUnits*mu>10&&row.drugId==='warfarin') add('warn',`Warfarin วันที่สูงสุด ${fmtN(w.maxUnits*mu)} mg/วัน (>10 mg) — ยืนยันขนาด`);}

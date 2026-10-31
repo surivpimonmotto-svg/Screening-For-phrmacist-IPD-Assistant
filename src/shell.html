@@ -603,6 +603,11 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <h2>RCA — วิเคราะห์สาเหตุรากเหตุการณ์ด้านยา</h2>
         <p class="hint" style="margin-top:0">ห้ามใส่ชื่อ/HN/AN ผู้ป่วย หรือชื่อผู้เกี่ยวข้อง (just culture — ใช้ตำแหน่ง) · ข้อมูลเก็บในเครื่องนี้ บันทึกเป็นไฟล์เพื่อเปิดภายหลังได้</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm pri" id="rPrint">พิมพ์แบบฟอร์ม RCA</button><button type="button" class="btn sm" id="rCopy">คัดลอกข้อความ</button><button type="button" class="btn sm" id="rCpSw">คัดลอกรูปด่านป้องกัน</button><button type="button" class="btn sm" id="rCpImg">คัดลอกรูปก้างปลา</button><button type="button" class="btn sm" id="rSaveF">บันทึกเป็นไฟล์</button><button type="button" class="btn sm" id="rOpen">เปิดไฟล์</button><input type="file" id="rFile" accept=".json" hidden><button type="button" class="btn sm" id="rNew">เริ่มใหม่</button><select id="rEx" class="btn sm" style="max-width:260px" title="เปิดเคสตัวอย่าง (ไม่ระบุตัวตน)"></select><span class="toast" id="rMsg"></span></div>
+        <details class="labbox" open style="margin:10px 0 0"><summary>คลังเคส RCA ในเครื่องนี้ <span class="hint" id="rLibN"></span></summary>
+          <p class="hint" style="margin:4px 0 6px">แก้ไขแล้วบันทึกเข้าคลังอัตโนมัติ · กด "เริ่มใหม่" ได้โดยไม่ทำให้เคสเดิมหาย · ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น — ส่งออกเป็นไฟล์เพื่อสำรอง/ย้ายเครื่อง/ส่งให้เพื่อน</p>
+          <div id="rLib" style="overflow-x:auto"></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="btn sm" id="rLibExp">ส่งออกทั้งคลัง (.json)</button><button type="button" class="btn sm" id="rLibImp">นำเข้าไฟล์เข้าคลัง</button><input type="file" id="rLibFile" accept=".json" multiple hidden><span class="toast" id="rLibMsg"></span></div>
+        </details>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
         <h2>1. ข้อมูลเหตุการณ์</h2>

@@ -198,7 +198,7 @@ $('printNote').onclick=()=>{ if(noteHtml) printHtml(noteHtml); };
 [['cnName','name'],['cnTitle','title'],['cnTel','tel'],['cnWard','ward']].forEach(([id,k])=>{ const el=$(id); const v=cnPref(k); if(v&&k!=='ward') el.value=v; el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ if(k!=='ward') cnPref(k,el.value); renderRows(); }); });
 
 /* tabs */
-const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','rca','ref','kb'];
+const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','crrt','adr','rca','ref','kb'];
 function tab(n){TABS.forEach(t=>{$('t-'+t).setAttribute('aria-selected',t===n);$('p-'+t).hidden=t!==n;});}
 TABS.forEach(t=>$('t-'+t).onclick=()=>tab(t));
 
@@ -346,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.13.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.14.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

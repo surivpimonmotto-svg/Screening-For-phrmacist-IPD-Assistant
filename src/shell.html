@@ -376,7 +376,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
-      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
+      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
       <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
@@ -651,6 +651,34 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <h2>คู่มือย่อ — แนวทางจากเอกสารของ รพ. / academic</h2>
         <label class="f" style="max-width:420px">ค้นหา<input id="refQ" placeholder="เช่น dabigatran, rechallenge, naloxone, clozapine"></label>
         <div id="refOut" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="p-crrt" hidden>
+      <div class="had" style="grid-template-columns:minmax(0,1fr)">
+        <div class="panel sec" style="margin:0">
+          <h2>CRRT — ปริมาณน้ำยาต่อวัน และยาที่ต้องเตรียม (ใบสั่ง CRRT รพ.มหาสารคาม)</h2>
+          <div class="grid2">
+            <label class="f">น้ำหนัก (IBW ตามใบสั่ง) kg<input id="cWt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">CRRT dose (ml/kg/hr)<input id="cDose" type="number" step="any" inputmode="decimal" placeholder="เช่น 30"></label>
+            <label class="f">Mode<select id="cMode"><option>CVVHDF</option><option>CVVH</option><option>CVVHD</option><option>SCUF</option></select></label>
+            <label class="f">ระยะเวลา (ชม.)<input id="cHr" type="number" step="any" inputmode="decimal" value="24"></label>
+            <label class="f">Pre-dilution / Replacement (ml/hr)<input id="cPre" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">Post-dilution (ml/hr)<input id="cPost" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">Dialysate flow (ml/hr)<input id="cQd" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">สูตรน้ำยา (1–25)<input id="cF" type="number" min="1" max="25" step="1" inputmode="numeric"></label>
+            <label class="f">Serum Na (mEq/L)<input id="cNa" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">pH<input id="cPh" type="number" step="0.01" inputmode="decimal"></label>
+            <label class="f">Additive KCl (mEq/L)<input id="cK" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">ขนาดชุดน้ำยา (ลิตร/ชุด)<select id="cSet"><option value="1">1 ลิตร (ตามตารางสูตร)</option><option value="2">2 ลิตร</option><option value="3">3 ลิตร</option><option value="5">5 ลิตร</option></select></label>
+            <label class="f">10% Ca gluconate (ml/hr)<input id="cCa" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">50% MgSO4 (ml/วัน)<input id="cMg" type="number" step="any" inputmode="decimal"></label>
+          </div>
+          <p id="cSug" style="margin:8px 0 0"></p>
+          <details style="margin-top:10px"><summary>ตารางสูตรน้ำยา 25 สูตร (ต่อ 1,000 ml)</summary><div id="cFt" style="overflow-x:auto;margin-top:6px"></div></details>
+          <p class="hint" style="margin:8px 0 0">ปริมาณน้ำยาคิดจากผลรวมอัตราไหล (pre + post + dialysate) ถ้ากรอก — ถ้าไม่กรอกใช้ dose × น้ำหนัก · ไม่รวม net ultrafiltration</p>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="cOut"></div>
       </div>
     </section>
 

@@ -58,6 +58,7 @@ function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.i
    ${mrPlanTbl()}
    <h2 style="margin-top:14px">ใบส่งคีย์ให้เจ้าพนักงาน</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm" id="mrCp" type="button">คัดลอกใบส่งคีย์</button><button class="btn sm pri" id="mrPr" type="button">พิมพ์ใบส่งคีย์</button><span class="toast" id="mrMsg"></span></div><pre id="mrSheet" style="white-space:pre-wrap;font-family:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0"></pre>`;
   out.querySelectorAll('[data-mi]').forEach(s=>s.onchange=()=>{ const r=MR.rows[+s.dataset.mi]; r.st=s.value; MR.ov[r.key]=s.value; mrRender(); });
+  out.querySelectorAll('[data-tk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.tk]; if(P&&P.tl){ P.tl[el.dataset.tf]=el.value; } const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
   out.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.pk]||(MR.plan[el.dataset.pk]={}); P[el.dataset.pf]=el.value; const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
   const t=mrSheet(); $('mrSheet').textContent=t;
   $('mrCp').onclick=()=>copyRich(txtHtml(t),t,$('mrMsg'));
@@ -90,7 +91,7 @@ ATORVASTATIN 40 MG TAB 1x1 hs
 CEFIXIME 100 MG CAP 2x2 pc
 OMEPRAZOLE 20 MG CAP 1x1 ac เช้า`};
 (function(){ if(!$('mrOut')) return;
-  $('mrStart').value=tlFmt(new Date(),false); ['mrStart','mrDays','mrUntil'].forEach(id=>$(id).addEventListener('change',()=>{ if(MR.rows.length) mrRender(); $('mrWinTxt').textContent=(w=>w.days?`= ${mrFs(w.st)} ถึง ${mrFs(w.end)} (${w.days} วัน)`:'')(mrWin()); }));
+  $('mrStart').value=tlFmt(new Date(),false); { const n=new Date(); $('mrTime').value=pad2(n.getHours())+':'+pad2(n.getMinutes()); } ['mrStart','mrDays','mrUntil','mrTime'].forEach(id=>$(id).addEventListener('change',()=>{ if(MR.rows.length) mrRender(); $('mrWinTxt').textContent=(w=>w.days?`= ${mrFs(w.st)} ถึง ${mrFs(w.end)} (${w.days} วัน)`:'')(mrWin()); }));
   $('mrRun').onclick=()=>{ MR.ov={}; MR.plan={}; mrRun(); };
   $('mrEx').onclick=()=>{ $('mrA1').value=MR_EX.a1; $('mrA2').value=MR_EX.a2; $('mrB').value=MR_EX.b; $('mrC').value=MR_EX.c; MR.ov={}; MR.plan={}; mrRun(); };
   $('mrClr').onclick=()=>{ ['mrA1','mrA2','mrB','mrC'].forEach(id=>$(id).value=''); MR={rows:[],ov:{},plan:{}}; mrRender(); };

@@ -76,7 +76,9 @@ function mrSched(phs,s,e,tm){ let need=0, ok=true; const packs=phs.map((x,i)=>({
 function mrPackLines(p){ if(!p.packs) return []; if(p.tp) return [...p.packs.map(k=>`ซอง ${k.i}: ${mrFs(k.a)}${k.b>k.a?`–${mrFs(k.b)}`:''} วันละ ${wfDayTxt(k.u)} เม็ด รวม ${fmtN(k.q)} เม็ด`),'จากนั้นหยุดยา'];
   return p.packs.map(k=>`${p.packs.length>1?`ช่วง ${k.i} (${k.seg}): `:''}${mrFs(k.a)}–${mrFs(k.b)} = ${fmtN(Math.round(k.q*100)/100)} เม็ด${k.dates.length?` · กินวันที่ ${k.dates.slice(0,10).map(d=>`${DAY_TH[WD[(d.getDay()+6)%7]]} ${d.getDate()}/${d.getMonth()+1}${k.H%24?` ${pad2(d.getHours())}:${pad2(d.getMinutes())}`:''}`).join(', ')}${k.dates.length>10?` … (${k.dates.length} ครั้ง)`:''}`:''}`); }
 function mrPackHtml(p){ return mrPackLines(p).map(x=>`<div>${esc(x)}</div>`).join(''); }
-function mrPlanTbl(){ const rows=MR.rows.filter(r=>['same','chg','new','eq'].includes(r.st)&&r.c.length); if(!rows.length) return '';
+function mrIsInj(r){ const m=masterOf(r); return /\b(?:iv|im|sc|ivd|iv\s*drip|ivp|inj\.?|injection|vial|amp)\b/i.test(r.raw)||!!(m&&/INJECTION/i.test(m[4]||'')); }
+function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].includes(r.st)&&r.c.length), rows=all.filter(r=>!mrIsInj(r.c[0].r)), inj=all.filter(r=>mrIsInj(r.c[0].r)); if(!all.length) return '';
+  if(!rows.length) return mrInjTbl(inj);
   const W=mrWin();
   return `<h2 style="margin-top:14px">แผนจ่ายยา — ${W.days?`${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)`:'ระบุจำนวนวัน หรือวันนัด'}</h2>
   <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน</p>
@@ -89,7 +91,25 @@ function mrPlanTbl(){ const rows=MR.rows.filter(r=>['same','chg','new','eq'].inc
      <td>${p.need!=null?fmtN(Math.round(p.need*100)/100):'?'}<div>${inp('qty',p.P.qty,'แก้เอง',60)}</div></td>
      <td>${inp('left',p.P.left,'0',60)}</td>
      <td style="font-size:1.1em"><b>${p.give!=null?p.give:'?'}</b></td>
-     <td>${mrPackHtml(p)}${p.notes.map(n=>`<div class="hint" style="color:${/≠|ก่อน|ไม่ได้/.test(n)?'#b45309':''}">• ${esc(n)}</div>`).join('')}</td></tr>`; }).join('')}</tbody></table></div>`; }
-function mrPlanLine(r){ const p=mrPlan(r); if(!p||p.give==null) return ''; let t=` → จ่าย ${p.give} เม็ด`; if(p.left) t+=` (ใช้ ${fmtN(p.need)} − เหลือ ${fmtN(p.left)})`;
+     <td>${mrPackHtml(p)}${p.notes.map(n=>`<div class="hint" style="color:${/≠|ก่อน|ไม่ได้/.test(n)?'#b45309':''}">• ${esc(n)}</div>`).join('')}</td></tr>`; }).join('')}</tbody></table></div>${mrInjTbl(inj)}`; }
+
+/* ---------- ยาฉีด refer/กลับบ้าน: ใช้ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ (tlCalc) ---------- */
+function mrAsof(){ const W=mrWin(), t=($('mrTime')||{}).value||''; const m=t.match(/(\d{1,2})[:.](\d{2})/); const d=new Date(W.st); if(m) d.setHours(+m[1],+m[2]); else { const n=new Date(); d.setHours(n.getHours(),n.getMinutes()); } return d; }
+function mrTl(row){ const P=MR.plan[row.key]||(MR.plan[row.key]={}); if(!P.tl){ const r0={order:row.c[0].r.raw,name:'',dose:'',units:1,ulab:'vial',tau:24,sd:'',st:'08:00',mode:'total',n:'',ud:'',ut:''}; try{ tlFromOrder(r0,{querySelector:()=>null}); }catch(e){} if(!r0.sd) r0.sd=tlFmt(mrWin().st,false); P.tl=r0; } return P.tl; }
+function mrInjCalc(row){ const tl=mrTl(row), c=tlCalc(tl,mrAsof()); return {tl,c}; }
+function mrInjTbl(inj){ if(!inj.length) return ''; const asof=mrAsof();
+  const I=(row,k,w,ph,type)=>`<input data-tk="${esc(row.key)}" data-tf="${k}" value="${esc(mrTl(row)[k]??'')}" placeholder="${ph||''}" ${type?`type="${type}" step="any"`:''} style="width:${w}px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,#bfdbfe 30%,var(--surface))">`;
+  const S=(row)=>{ const v=mrTl(row).mode; return `<select data-tk="${esc(row.key)}" data-tf="mode" style="padding:4px">${[['total','ครบ N วัน นับจากวันเริ่ม'],['more','ต่ออีก N วัน นับจาก D/C'],['doses','ครบ N ครั้ง (รวมที่ให้แล้ว)'],['until','ฉีดถึงวันเวลา (รวม dose นั้น)']].map(([k,n])=>`<option value="${k}"${k===v?' selected':''}>${n}</option>`).join('')}</select>`; };
+  return `<h2 style="margin-top:14px">ยาฉีด refer / กลับบ้าน — คำนวณจำนวนครั้งที่เหลือ (ณ D/C ${tlFmt(asof)})</h2>
+  <p class="hint" style="margin:0 0 6px">ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ · อ่านวันเริ่ม/ความถี่/จำนวนวันจากคำสั่งให้ก่อน (เช่น "start 25/10/2569 8.00 ครบ 14 วัน") แก้ช่องสีฟ้าได้ · เวลา D/C ตั้งที่ช่องด้านบน</p>
+  <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา / คำสั่ง</th><th>dose แรก (วัน เวลา)</th><th>ทุก (ชม.)</th><th>ระยะเวลา</th><th>N / ถึง</th><th>จ่ายต่อครั้ง</th><th>ผล</th></tr></thead><tbody>
+  ${inj.map(row=>{ const {tl,c}=mrInjCalc(row);
+    return `<tr><td><b>${esc(row.name)}</b><div class="hint">${esc(mrSig(row.c[0].r))}</div></td>
+     <td>${I(row,'sd',100,'25/10/2569')} ${I(row,'st',56,'08:00')}</td><td>${I(row,'tau',50,'24','number')}</td><td>${S(row)}</td>
+     <td>${tl.mode==='until'?`${I(row,'ud',100,'วันที่')} ${I(row,'ut',56,'เวลา')}`:I(row,'n',56,'N','number')}</td>
+     <td>${I(row,'units',50,'1','number')} ${I(row,'ulab',56,'vial')}</td>
+     <td>${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
+function mrInjLine(row){ const {tl,c}=mrInjCalc(row); if(c.err) return ` → ฉีด: ${c.err}`; return c.rem?` → ฉีดต่อ ${c.rem} ครั้ง${tl.units?` = ${fmtN(c.units)} ${tl.ulab||''}`:''} (q${fmtN(c.tau)}h ${tlFmt(c.first)} – ${tlFmt(c.last)}) · ทั้งคอร์ส ${c.total} ครั้ง ให้แล้ว ${c.given}`:` → ฉีดครบคอร์สแล้ว (${c.total} ครั้ง) ไม่ต้องจ่าย`; }
+function mrPlanLine(r){ if(r.c[0]&&mrIsInj(r.c[0].r)) return mrInjLine(r); const p=mrPlan(r); if(!p||p.give==null) return ''; let t=` → จ่าย ${p.give} เม็ด`; if(p.left) t+=` (ใช้ ${fmtN(p.need)} − เหลือ ${fmtN(p.left)})`;
   if(p.e&&p.e>=p.s) t+=` · กิน ${mrFs(p.s)}–${mrFs(p.e)}`; if(p.packs) t+='\n'+mrPackLines(p).map(x=>'      '+x).join('\n');
   if(p.cEnd&&p.e&&p.cEnd>p.e) t+=` · คอร์สถึง ${mrFs(p.cEnd)}`; if(p.s>mrWin().st) t+=` · ⚠ เริ่มกิน ${mrFs(p.s)} ไม่ใช่วันแรก`; return t; }

@@ -65,6 +65,8 @@ function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.i
   out.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.pk]||(MR.plan[el.dataset.pk]={}); P[el.dataset.pf]=el.value; const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
   if($('mrCalPr')) $('mrCalPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ปฏิทินยากลับบ้าน / refer</div>${MR.calPrint||MR.calHtml||''}<p style="font-size:11px">แต่ละตารางแสดง 21 วัน · ผลรวมขวาสุดเป็นยอดทั้งช่วง</p></div>`,true);
   const t=mrSheet(); $('mrSheet').textContent=t;
+  out.querySelectorAll('[data-cpinj]').forEach(b=>b.onclick=()=>{ const row=MR.rows.find(r=>r.key===b.dataset.cpinj); if(!row) return; const tx=`${row.name}: ${mrSig(row.c[0].r)}${mrInjLine(row)}`; copyRich(txtHtml(tx),tx,$('mrMsg')); b.textContent='✓'; setTimeout(()=>b.textContent='📋',1500); });
+  cpSections(out);
   $('mrCp').onclick=()=>copyRich(txtHtml(t),t,$('mrMsg'));
   $('mrPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ใบส่งคีย์ยากลับบ้าน (Medication reconciliation)</div>${txtHtml(t)}</div>`); }
 function mrSheet(){ const R=MR.rows, W=mrWin(), L=[MR.onlyC?'ใบส่งคีย์ยากลับบ้าน':'ใบส่งคีย์ยากลับบ้าน — ผ่านการ reconcile โดยเภสัชกร',`วันที่ ${tlFmt(new Date())}`,W.days?`จ่ายยา ${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)${W.un?` · นัด ${mrFs(W.un)}`:''}`:'',''];

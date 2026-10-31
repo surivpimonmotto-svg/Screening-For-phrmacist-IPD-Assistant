@@ -376,7 +376,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
-      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT</button>
+      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
       <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
@@ -658,6 +658,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <div class="had" style="grid-template-columns:minmax(0,1fr)">
         <div class="panel sec" style="margin:0">
           <h2>CRRT — ปริมาณน้ำยาต่อวัน และยาที่ต้องเตรียม (ใบสั่ง CRRT รพ.มหาสารคาม)</h2>
+          <div style="margin:0 0 10px;padding:10px 12px;border-radius:10px;border:2px solid #f59e0b;background:color-mix(in srgb,#f59e0b 15%,transparent);font-weight:700">⚠ รอปรับปรุง — ยังไม่ใช้คำนวณจ่ายยาจริง<div style="font-weight:400;font-size:.92em;margin-top:4px">รอยืนยัน: ขนาดชุดน้ำยา ("1 set" ผสมสูตรกี่ลิตร) · สูตร 20–25 จากใบสั่งฉบับจริง · ความเข้มข้น HCO3 ในน้ำยา</div></div>
           <div class="grid2">
             <label class="f">น้ำหนัก (IBW ตามใบสั่ง) kg<input id="cWt" type="number" step="any" inputmode="decimal"></label>
             <label class="f">CRRT dose (ml/kg/hr)<input id="cDose" type="number" step="any" inputmode="decimal" placeholder="เช่น 30"></label>
@@ -2837,7 +2838,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.14.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.14.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

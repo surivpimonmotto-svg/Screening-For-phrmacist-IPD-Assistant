@@ -290,6 +290,10 @@ textarea.paste{border-color:var(--accent)}
   <aside class="panel pt" aria-label="ข้อมูลผู้ป่วย">
     <h2>ข้อมูลผู้ป่วย</h2>
     <div style="display:grid;gap:10px">
+      <details class="labbox" id="ptBox" open><summary>วางข้อมูลจากหน้าจอ HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
+        <textarea id="ptPaste" rows="3" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
+      </details>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
       <div class="grid2">
         <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>

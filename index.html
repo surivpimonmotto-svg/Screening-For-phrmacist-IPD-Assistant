@@ -290,6 +290,10 @@ textarea.paste{border-color:var(--accent)}
   <aside class="panel pt" aria-label="ข้อมูลผู้ป่วย">
     <h2>ข้อมูลผู้ป่วย</h2>
     <div style="display:grid;gap:10px">
+      <details class="labbox" id="ptBox" open><summary>วางข้อมูลจากหน้าจอ HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
+        <textarea id="ptPaste" rows="3" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
+      </details>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
       <div class="grid2">
         <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>
@@ -2693,7 +2697,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.8 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.9 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3277,6 +3281,36 @@ function dtText(){ const T=['■ แผนภาพลำดับเวลา�
   on('dtCpImg',()=>copyImg([...$('dtChart').querySelectorAll('svg')],$('dtCpMsg')));
   on('dtSvImg',()=>saveImg([...$('dtChart').querySelectorAll('svg')],'Drug-timeline.png',$('dtCpMsg')));
   on('dtCpTxt',()=>{ const t=dtText(); copyRich(txtHtml(t),t,$('dtCpMsg')); });
+})();
+
+/* ---------- 4) วางข้อมูลผู้ป่วยจากหน้าจอ HIS → กรอกอัตโนมัติ (ไม่เก็บชื่อ/HN) ---------- */
+function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
+  const ag=t.match(/อายุ\s*[:：]?\s*(\d+)\s*ปี(?:\s*(\d+)\s*เดือน)?(?:\s*(\d+)\s*วัน)?/)||t.match(/อายุ\s*[:：]?\s*(\d+)\s*(เดือน|วัน)/)||t.match(/\bage\s*[:：]?\s*(\d+)/i);
+  if(ag){ if(ag[2]==='เดือน') o.age={v:+ag[1],u:'m'}; else if(ag[2]==='วัน') o.age={v:+ag[1],u:'d'};
+    else { const y=+ag[1], m=+(ag[2]||0), d=+(ag[3]||0); o.age=y<1&&m?{v:m,u:'m'}:y===0&&d?{v:d,u:'d'}:{v:y,u:'y'}; } }
+  const sx=t.match(/เพศ\s*[:：]?\s*(ชาย|หญิง|male|female)/i)||t.match(/\bsex\s*[:：]?\s*(m|f|male|female)\b/i);
+  if(sx) o.sex=/หญิง|^f/i.test(sx[1])?'F':'M'; else if(/(^|\s)(นาง|นางสาว|น\.ส\.|ด\.ญ\.|เด็กหญิง)\s*\S/.test(t)) o.sex='F'; else if(/(^|\s)(นาย|ด\.ช\.|เด็กชาย)\s*\S/.test(t)) o.sex='M';
+  const bw=t.match(/น้ำหนัก\s*[:：]?\s*([\d.]+)\s*(kg|กก|กิโล)?/i)||t.match(/\b(?:bw|weight|wt)\s*[:：]?\s*([\d.]+)/i); if(bw) o.bw=+bw[1];
+  const ht=t.match(/(?:ส่วนสูง|สูง)\s*[:：]?\s*([\d.]+)\s*(cm|ซม)?/i)||t.match(/\b(?:height|ht)\s*[:：]?\s*([\d.]+)/i); if(ht) o.ht=+ht[1];
+  const wd=t.match(/Ward\s*\/?\s*Bed\s*[:：]?\s*([^\n]+?)\s*(?:\/\s*\d+\s*)?(?:\n|$)/i); if(wd) o.ward=wd[1].replace(/\s*\/\s*\d+\s*$/,'').trim();
+  const al=t.match(/ประวัติ(?:การ)?แพ้ยา\s*[:：]?\s*([\s\S]{0,160})/);
+  if(al){ let a=al[1].split(/\n\s*\n|Laboratory|ผล\s*Lab|Medication|Creatinine|ดูผล|\bLab\b/i)[0].replace(/ไม่พบประวัติ(การ)?แพ้ยา/g,'').replace(/\s+/g,' ').trim();
+    if(/ไม่พบ|ไม่มี|no known|nkda/i.test(al[1].slice(0,40))&&!/[a-z]{4,}/i.test(a)) a=''; o.allergy=a; o.allergyFound=true; }
+  if(/ตั้งครรภ์|pregnan/i.test(t)) o.preg=true;
+  return o; }
+(function(){ if(!$('ptParse')) return;
+  $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; const o=ptParse(raw), got=[];
+    if(o.sex){ setSex(o.sex); got.push(o.sex==='F'?'หญิง':'ชาย'); }
+    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`); }
+    if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
+    if(o.ht){ $('ht').value=o.ht; got.push(`สูง ${o.ht}`); }
+    if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }
+    if(o.allergyFound){ $('allergy').value=o.allergy; got.push(o.allergy?`แพ้ยา: ${o.allergy}`:'ไม่พบประวัติแพ้ยา'); }
+    if(o.preg){ $('preg').checked=true; got.push('ตั้งครรภ์'); }
+    const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(nl) got.push(`Lab ${nl} ค่า`);
+    $('ptPaste').value=''; // ไม่เก็บข้อความที่มีชื่อ/HN
+    $('ptMsg').textContent=got.length?`อ่านได้: ${got.join(' · ')} — ตรวจค่าก่อนใช้ (ลบข้อความที่วางแล้ว)`:'อ่านค่าไม่ได้ — กรอกเองในช่อง';
+    renderRows(); if(typeof renderHad==='function') renderHad(); if($('p-cmt')&&!$('p-cmt').hidden) renderCmt(); };
 })();
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */

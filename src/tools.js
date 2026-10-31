@@ -124,3 +124,33 @@ function dtText(){ const T=['■ แผนภาพลำดับเวลา�
   on('dtSvImg',()=>saveImg([...$('dtChart').querySelectorAll('svg')],'Drug-timeline.png',$('dtCpMsg')));
   on('dtCpTxt',()=>{ const t=dtText(); copyRich(txtHtml(t),t,$('dtCpMsg')); });
 })();
+
+/* ---------- 4) วางข้อมูลผู้ป่วยจากหน้าจอ HIS → กรอกอัตโนมัติ (ไม่เก็บชื่อ/HN) ---------- */
+function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
+  const ag=t.match(/อายุ\s*[:：]?\s*(\d+)\s*ปี(?:\s*(\d+)\s*เดือน)?(?:\s*(\d+)\s*วัน)?/)||t.match(/อายุ\s*[:：]?\s*(\d+)\s*(เดือน|วัน)/)||t.match(/\bage\s*[:：]?\s*(\d+)/i);
+  if(ag){ if(ag[2]==='เดือน') o.age={v:+ag[1],u:'m'}; else if(ag[2]==='วัน') o.age={v:+ag[1],u:'d'};
+    else { const y=+ag[1], m=+(ag[2]||0), d=+(ag[3]||0); o.age=y<1&&m?{v:m,u:'m'}:y===0&&d?{v:d,u:'d'}:{v:y,u:'y'}; } }
+  const sx=t.match(/เพศ\s*[:：]?\s*(ชาย|หญิง|male|female)/i)||t.match(/\bsex\s*[:：]?\s*(m|f|male|female)\b/i);
+  if(sx) o.sex=/หญิง|^f/i.test(sx[1])?'F':'M'; else if(/(^|\s)(นาง|นางสาว|น\.ส\.|ด\.ญ\.|เด็กหญิง)\s*\S/.test(t)) o.sex='F'; else if(/(^|\s)(นาย|ด\.ช\.|เด็กชาย)\s*\S/.test(t)) o.sex='M';
+  const bw=t.match(/น้ำหนัก\s*[:：]?\s*([\d.]+)\s*(kg|กก|กิโล)?/i)||t.match(/\b(?:bw|weight|wt)\s*[:：]?\s*([\d.]+)/i); if(bw) o.bw=+bw[1];
+  const ht=t.match(/(?:ส่วนสูง|สูง)\s*[:：]?\s*([\d.]+)\s*(cm|ซม)?/i)||t.match(/\b(?:height|ht)\s*[:：]?\s*([\d.]+)/i); if(ht) o.ht=+ht[1];
+  const wd=t.match(/Ward\s*\/?\s*Bed\s*[:：]?\s*([^\n]+?)\s*(?:\/\s*\d+\s*)?(?:\n|$)/i); if(wd) o.ward=wd[1].replace(/\s*\/\s*\d+\s*$/,'').trim();
+  const al=t.match(/ประวัติ(?:การ)?แพ้ยา\s*[:：]?\s*([\s\S]{0,160})/);
+  if(al){ let a=al[1].split(/\n\s*\n|Laboratory|ผล\s*Lab|Medication|Creatinine|ดูผล|\bLab\b/i)[0].replace(/ไม่พบประวัติ(การ)?แพ้ยา/g,'').replace(/\s+/g,' ').trim();
+    if(/ไม่พบ|ไม่มี|no known|nkda/i.test(al[1].slice(0,40))&&!/[a-z]{4,}/i.test(a)) a=''; o.allergy=a; o.allergyFound=true; }
+  if(/ตั้งครรภ์|pregnan/i.test(t)) o.preg=true;
+  return o; }
+(function(){ if(!$('ptParse')) return;
+  $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; const o=ptParse(raw), got=[];
+    if(o.sex){ setSex(o.sex); got.push(o.sex==='F'?'หญิง':'ชาย'); }
+    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`); }
+    if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
+    if(o.ht){ $('ht').value=o.ht; got.push(`สูง ${o.ht}`); }
+    if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }
+    if(o.allergyFound){ $('allergy').value=o.allergy; got.push(o.allergy?`แพ้ยา: ${o.allergy}`:'ไม่พบประวัติแพ้ยา'); }
+    if(o.preg){ $('preg').checked=true; got.push('ตั้งครรภ์'); }
+    const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(nl) got.push(`Lab ${nl} ค่า`);
+    $('ptPaste').value=''; // ไม่เก็บข้อความที่มีชื่อ/HN
+    $('ptMsg').textContent=got.length?`อ่านได้: ${got.join(' · ')} — ตรวจค่าก่อนใช้ (ลบข้อความที่วางแล้ว)`:'อ่านค่าไม่ได้ — กรอกเองในช่อง';
+    renderRows(); if(typeof renderHad==='function') renderHad(); if($('p-cmt')&&!$('p-cmt').hidden) renderCmt(); };
+})();

@@ -265,6 +265,24 @@ textarea.paste{border-color:var(--accent)}
 .lbsvg{width:100%;max-height:420px}.lbsvg rect,.lbsvg ellipse{fill:var(--sunk);stroke:var(--surface);stroke-width:2;cursor:pointer}
 .lbsvg .mR:hover,.lbsvg .mD:hover{fill:var(--accent-soft)} .lbsvg .lbr{fill:#fcd34d} .lbsvg .lbd{fill:#f87171} .lbsvg .lbd.lbr{fill:#ef4444}
 .lbsvg text{fill:var(--ink);pointer-events:none;font-weight:600}
+
+/* v0.10 — สีสถานะสดใส */
+.tag.ok,.pill.ok{background:#22c55e!important;color:#052e16!important;border-color:#16a34a!important}
+.tag.warn,.pill.warn{background:#f59e0b!important;color:#2a1600!important;border-color:#d97706!important}
+.tag.flag,.pill.flag{background:#ef4444!important;color:#fff!important;border-color:#dc2626!important}
+.tag.info{background:#3b82f6!important;color:#fff!important}
+.tag{font-weight:700;border:none!important;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.row.ok{border-left:6px solid #22c55e} .row.warn{border-left:6px solid #f59e0b} .row.flag{border-left:6px solid #ef4444}
+.row.ok>.rh{background:linear-gradient(90deg,#bbf7d0,#ecfdf5 70%)} .row.warn>.rh{background:linear-gradient(90deg,#fde68a,#fffbeb 70%)} .row.flag>.rh{background:linear-gradient(90deg,#fecaca,#fef2f2 70%)}
+ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li:has(.tag.warn){background:#fef3c7;border-left-color:#f59e0b} ul.msgs li:has(.tag.flag){background:#fee2e2;border-left-color:#ef4444}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+ .row.ok{box-shadow:0 0 0 1px #22c55e55,0 6px 18px rgba(34,197,94,.12)} .row.warn{box-shadow:0 0 0 1px #f59e0b55,0 6px 18px rgba(245,158,11,.12)} .row.flag{box-shadow:0 0 0 1px #ef444466,0 6px 18px rgba(239,68,68,.15)}
+ .row.ok>.rh{background:linear-gradient(90deg,#15803d,#14532d 45%,#0f2a1c)} .row.warn>.rh{background:linear-gradient(90deg,#b45309,#78350f 45%,#2e1f0a)} .row.flag>.rh{background:linear-gradient(90deg,#b91c1c,#7f1d1d 45%,#2e1212)}
+ .row.ok>.rh *,.row.warn>.rh *,.row.flag>.rh *{color:#fff}
+ ul.msgs li:has(.tag.ok){background:#14532d;border-left-color:#4ade80;color:#ecfdf5} ul.msgs li:has(.tag.warn){background:#713f12;border-left-color:#fbbf24;color:#fffbeb} ul.msgs li:has(.tag.flag){background:#7f1d1d;border-left-color:#f87171;color:#fff}
+ .tag.ok{background:#4ade80!important} .tag.warn{background:#fbbf24!important}}}
+:root[data-theme="dark"] .row.ok>.rh{background:linear-gradient(90deg,#15803d,#14532d 45%,#0f2a1c)} :root[data-theme="dark"] .row.warn>.rh{background:linear-gradient(90deg,#b45309,#78350f 45%,#2e1f0a)} :root[data-theme="dark"] .row.flag>.rh{background:linear-gradient(90deg,#b91c1c,#7f1d1d 45%,#2e1212)}
+:root[data-theme="dark"] ul.msgs li:has(.tag.ok){background:#14532d;border-left-color:#4ade80;color:#ecfdf5} :root[data-theme="dark"] ul.msgs li:has(.tag.warn){background:#713f12;border-left-color:#fbbf24;color:#fffbeb} :root[data-theme="dark"] ul.msgs li:has(.tag.flag){background:#7f1d1d;border-left-color:#f87171;color:#fff}
 #printArea{display:none}
 @media print{
  :root{--bg:#fff;--surface:#fff;--sunk:#f4f4f4;--ink:#000;--muted:#444;--line:#999;--line2:#ccc;--flag:#c00;--warn:#b45309;--info:#1d4ed8;--ok:#15803d}
@@ -2697,7 +2715,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.9 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.10.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

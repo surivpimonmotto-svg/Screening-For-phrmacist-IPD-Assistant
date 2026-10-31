@@ -41,13 +41,16 @@ function mrRun(){ const pt=getPt(), lists={a1:mrParse($('mrA1').value),a2:mrPars
   const fin=rows.filter(r=>r.c.length||(['own','same','eq','chg'].includes(r.st)&&(r.a1.length||r.a2.length)));
   MR_CLS.forEach(([cn,re])=>{ const hit=fin.filter(r=>re.test(r.name+' '+[...r.c,...r.a1,...r.a2].map(x=>x.r.raw).join(' '))); if(hit.length>1) hit.forEach(r=>{ if(r.notes.some(n=>n.includes(`(${cn})`)||n.includes(`ซ้ำซ้อน (${cn}`))) return; r.notes.push(`ซ้ำซ้อนกลุ่ม ${cn}: ${hit.filter(x=>x!==r).map(x=>x.name).join(', ')}`); }); });
   const ord={ask:0,chg:1,new:2,stop:3,own:4,eq:5,same:6,none:7}; rows.sort((a,b)=>ord[a.st]-ord[b.st]);
-  MR.rows=rows; mrRender(); }
+  MR.onlyC=!lists.a1.length&&!lists.a2.length&&!lists.b.length; MR.rows=rows; mrRender(); }
 function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.innerHTML='<div class="empty">วางรายการยาแล้วกด "เปรียบเทียบ"</div>'; return; }
   const cnt={}; rows.forEach(r=>cnt[r.st]=(cnt[r.st]||0)+1);
   const pill=(k,n)=>`<span class="pill" style="background:${MR_COL[k]||'#94a3b8'};color:#fff">${(MR_ST.find(s=>s[0]===k)||['','ไม่ต่อ'])[1]} ${n}</span>`;
   const cell=(arr)=>arr.length?arr.map(x=>`<div style="margin-bottom:2px">${esc(mrSig(x.r))}</div>`).join(''):'<span class="hint">—</span>';
   const opt=st=>MR_ST.map(([k,n])=>`<option value="${k}"${k===st?' selected':''}>${n}</option>`).join('');
-  out.innerHTML=`<h2>ผลเปรียบเทียบ</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(cnt).map(([k,n])=>pill(k,n)).join('')}</div>
+  if(MR.onlyC){ out.innerHTML=`<h2>ยากลับบ้าน ${rows.length} รายการ</h2><p class="hint" style="margin:0 0 6px">โหมดยากลับบ้านอย่างเดียว — ไม่ได้วางยาเดิม/ยาระหว่างนอน รพ. จึงไม่ได้เทียบ (reconcile) · คำนวณแผนจ่ายยา ยาฉีด และปฏิทินให้ · คัดกรองขนาดยาตามแผงข้อมูลผู้ป่วย</p>${rows.some(r=>r.notes.length)?`<ul class="msgs">${rows.filter(r=>r.notes.length).map(r=>r.notes.map(n=>`<li><span class="tag warn">ทบทวน</span><span>${esc(r.name)}: ${esc(n)}</span></li>`).join('')).join('')}</ul>`:''}
+   ${mrPlanTbl()}
+   <h2 style="margin-top:14px">ใบส่งคีย์ให้เจ้าพนักงาน</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm" id="mrCp" type="button">คัดลอกใบส่งคีย์</button><button class="btn sm pri" id="mrPr" type="button">พิมพ์ใบส่งคีย์</button><span class="toast" id="mrMsg"></span></div><pre id="mrSheet" style="white-space:pre-wrap;font-family:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0"></pre>`; }
+  else out.innerHTML=`<h2>ผลเปรียบเทียบ</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(cnt).map(([k,n])=>pill(k,n)).join('')}</div>
    ${cnt.ask?`<p style="margin:0 0 8px;color:#dc2626;font-weight:700">มี ${cnt.ask} รายการที่ต้องยืนยันกับแพทย์ก่อนส่งคีย์ — เปลี่ยนสถานะเมื่อได้คำตอบ</p>`:''}
    <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา</th><th>ยาเดิม</th><th>ระหว่างนอน รพ.</th><th>ยากลับบ้าน</th><th>สถานะ</th><th>หมายเหตุ / คำเตือน</th></tr></thead><tbody>
    ${rows.map((r,i)=>`<tr style="border-left:5px solid ${MR_COL[r.st]||'#cbd5e1'}"><td><b>${esc(r.name||'')}</b>${r.scr&&r.scr!=='ok'&&r.scr!=='none'?` <span class="pill ${r.scr}">${ST_TXT[r.scr]}</span>`:''}</td>
@@ -64,19 +67,19 @@ function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.i
   const t=mrSheet(); $('mrSheet').textContent=t;
   $('mrCp').onclick=()=>copyRich(txtHtml(t),t,$('mrMsg'));
   $('mrPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ใบส่งคีย์ยากลับบ้าน (Medication reconciliation)</div>${txtHtml(t)}</div>`); }
-function mrSheet(){ const R=MR.rows, W=mrWin(), L=['ใบส่งคีย์ยากลับบ้าน — ผ่านการ reconcile โดยเภสัชกร',`วันที่ ${tlFmt(new Date())}`,W.days?`จ่ายยา ${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)${W.un?` · นัด ${mrFs(W.un)}`:''}`:'',''];
+function mrSheet(){ const R=MR.rows, W=mrWin(), L=[MR.onlyC?'ใบส่งคีย์ยากลับบ้าน':'ใบส่งคีย์ยากลับบ้าน — ผ่านการ reconcile โดยเภสัชกร',`วันที่ ${tlFmt(new Date())}`,W.days?`จ่ายยา ${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)${W.un?` · นัด ${mrFs(W.un)}`:''}`:'',''];
   const sig=x=>x?mrSig(x.r):'';
   const grp=(st,title,f)=>{ const g=R.filter(r=>r.st===st); if(!g.length) return; L.push(`■ ${title} (${g.length})`); g.forEach(r=>L.push('  '+f(r))); L.push(''); };
   grp('ask','รอยืนยันกับแพทย์ — ห้ามคีย์',r=>`? ${r.name}: ${r.auto||''}`);
   grp('chg','คีย์ตามคำสั่งใหม่ (มีการเปลี่ยนแปลง)',r=>`Δ ${sig(r.c[0])}   [เดิม: ${sig(r.a1[0]||r.a2[0])}]`+mrPlanLine(r));
-  grp('new','คีย์ใหม่',r=>`+ ${sig(r.c[0])}`+mrPlanLine(r));
+  grp('new',MR.onlyC?'รายการยากลับบ้าน':'คีย์ใหม่',r=>`+ ${sig(r.c[0])}`+mrPlanLine(r));
   grp('same','คีย์ตามเดิม',r=>`= ${sig(r.c[0])}`+mrPlanLine(r));
   grp('eq','คีย์ยา รพ.มค แทนยา รพ.อื่น',r=>`≈ ${sig(r.c[0])}   [แทน: ${sig(r.a2[0])}] — แจ้งผู้ป่วยไม่ให้กินซ้ำ`+mrPlanLine(r));
   grp('stop','หยุดยา — ไม่คีย์ และยกเลิกรายการเดิมในระบบ',r=>`✕ ${sig(r.a1[0]||r.a2[0])}`);
   grp('own','ใช้ยาเดิมของผู้ป่วยต่อ — ไม่จ่าย',r=>`◇ ${sig(r.a2[0]||r.a1[0])}`);
   const w=R.filter(r=>r.notes.some(n=>/^ซ้ำ|^คัดกรอง/.test(n))); if(w.length){ L.push('■ ข้อสังเกตเภสัชกร'); w.forEach(r=>r.notes.filter(n=>/^ซ้ำ|^คัดกรอง/.test(n)).forEach(n=>L.push(`  • ${r.name}: ${n}`))); L.push(''); }
   const who=`${($('cnTitle')||{}).value||''} ${(($('cnName')||{}).value||'').trim()||'..............................'}`;
-  L.push(`เภสัชกรผู้ reconcile: ${who}   ผู้คีย์: ..............................`); return L.join('\n'); }
+  L.push(`${MR.onlyC?'เภสัชกรผู้ตรวจ':'เภสัชกรผู้ reconcile'}: ${who}   ผู้คีย์: ..............................`); return L.join('\n'); }
 const MR_EX={a1:`AMLODIPINE 10 MG TAB 1x1 pc เช้า
 METFORMIN 500 MG TAB 1x2 pc
 SIMVASTATIN 20 MG TAB 1x1 hs
@@ -94,6 +97,7 @@ OMEPRAZOLE 20 MG CAP 1x1 ac เช้า`};
 (function(){ if(!$('mrOut')) return;
   $('mrStart').value=tlFmt(new Date(),false); { const n=new Date(); $('mrTime').value=pad2(n.getHours())+':'+pad2(n.getMinutes()); } ['mrStart','mrDays','mrUntil','mrTime'].forEach(id=>$(id).addEventListener('change',()=>{ if(MR.rows.length) mrRender(); $('mrWinTxt').textContent=(w=>w.days?`= ${mrFs(w.st)} ถึง ${mrFs(w.end)} (${w.days} วัน)`:'')(mrWin()); }));
   $('mrRun').onclick=()=>{ MR.ov={}; MR.plan={}; mrRun(); };
+  let mrT=0; ['mrA1','mrA2','mrB','mrC'].forEach(id=>$(id).addEventListener('input',()=>{ clearTimeout(mrT); mrT=setTimeout(()=>{ if(['mrA1','mrA2','mrB','mrC'].some(x=>$(x).value.trim())) mrRun(); },700); }));
   $('mrEx').onclick=()=>{ $('mrA1').value=MR_EX.a1; $('mrA2').value=MR_EX.a2; $('mrB').value=MR_EX.b; $('mrC').value=MR_EX.c; MR.ov={}; MR.plan={}; mrRun(); };
   $('mrClr').onclick=()=>{ ['mrA1','mrA2','mrB','mrC'].forEach(id=>$(id).value=''); MR={rows:[],ov:{},plan:{}}; mrRender(); };
   $('mrFromScr').onclick=()=>{ if(!rows.length){ cpMsg($('mrMsg0'),'หน้าคัดกรองยังไม่มีรายการยา'); return; } $('mrC').value=rows.map(r=>r.raw).join('\n'); cpMsg($('mrMsg0'),`ดึง ${rows.length} รายการจากหน้าคัดกรองมาเป็นยากลับบ้าน`); };

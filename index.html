@@ -2809,7 +2809,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.13.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.13.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3044,8 +3044,8 @@ const wfTabTh=x=>{ if(!x) return 'งดยา'; const f=Math.floor(x+1e-9), r=x
 // ข้อความภาษาไทยสำหรับผู้ป่วย: กลุ่มวันที่ขนาดเท่ากัน (ช่วงวันติดกันใช้ "–")
 function wfPatThai(u,s){ const g=new Map(); u.forEach((x,i)=>{ const k=String(x||0); if(!g.has(k)) g.set(k,[]); g.get(k).push(i); });
   const runs=ix=>{ const o=[]; let a=ix[0],b=ix[0]; for(let j=1;j<=ix.length;j++){ if(ix[j]===b+1){ b=ix[j]; continue; } o.push(a===b?`วัน${TH_DAYF[WD[a]]}`:`วัน${TH_DAYF[WD[a]]}–วัน${TH_DAYF[WD[b]]}`); a=b=ix[j]; } return o.join(', '); };
-  if(g.size===1){ const x=+[...g.keys()][0]; return [x?`ทุกวัน ครั้งละ ${wfTabTh(x)} (${fmtN(x*s)} มิลลิกรัม)`:'งดยาทุกวัน']; }
-  return [...g.entries()].sort((a,b)=>a[1][0]-b[1][0]).map(([k,ix])=>{ const x=+k; return `${runs(ix)} ${x?`ครั้งละ ${wfTabTh(x)} (${fmtN(x*s)} มิลลิกรัม)`:'งดยา'}`; }); }
+  if(g.size===1){ const x=+[...g.keys()][0]; return [x?`ทุกวัน ครั้งละ ${wfTabTh(x)}`:'งดยาทุกวัน']; }
+  return [...g.entries()].sort((a,b)=>a[1][0]-b[1][0]).map(([k,ix])=>{ const x=+k; return `${runs(ix)} ${x?`ครั้งละ ${wfTabTh(x)}`:'งดยา'}`; }); }
 const TH_MON=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 function wfPillSvg(cx,cy,x){ let g=''; const f=Math.floor(x+1e-9), r=x-f, n=f+(r>1e-9?1:0), gap=22; let px=cx-(n-1)*gap/2;
   for(let i=0;i<f;i++,px+=gap) g+=`<circle cx="${px}" cy="${cy}" r="9" fill="#f59e0b" stroke="#b45309" stroke-width="1.5"/>`;

@@ -1177,7 +1177,7 @@ const DUE=[
    · AED cross-reactivity (aromatic AEDs) · Sulfonamide antibiotic vs non-antibiotic (arylamine N4) */
 const XA=[ // [name, regex, group, attrs]
  // beta-lactams: c=class pen/ceph/carb/mono, s=side-chain group, s2=similar side-chain group
- ['Amoxicillin',/amoxi|amoksiklav|augmentin|cavumox/i,'bl',{c:'pen',s:'amp'}],
+ ['Amoxicillin',/amox[iy]|amoksiklav|augmentin|cavumox/i,'bl',{c:'pen',s:'amp'}],
  ['Ampicillin',/ampicillin|unasyn/i,'bl',{c:'pen',s:'amp'}],
  ['Penicillin G/V',/penicillin\s*(g|v)|pen\s*g\b|benzyl\s*penic|phenoxymethyl|benzathine/i,'bl',{c:'pen',s:'benz'}],
  ['Cloxacillin / Dicloxacillin',/cloxacillin/i,'bl',{c:'pen',s:'clox'}],
@@ -2666,7 +2666,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

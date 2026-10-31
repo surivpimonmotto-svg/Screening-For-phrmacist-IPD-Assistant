@@ -4,7 +4,7 @@
    · AED cross-reactivity (aromatic AEDs) · Sulfonamide antibiotic vs non-antibiotic (arylamine N4) */
 const XA=[ // [name, regex, group, attrs]
  // beta-lactams: c=class pen/ceph/carb/mono, s=side-chain group, s2=similar side-chain group
- ['Amoxicillin',/amoxi|amoksiklav|augmentin|cavumox/i,'bl',{c:'pen',s:'amp'}],
+ ['Amoxicillin',/amox[iy]|amoksiklav|augmentin|cavumox/i,'bl',{c:'pen',s:'amp'}],
  ['Ampicillin',/ampicillin|unasyn/i,'bl',{c:'pen',s:'amp'}],
  ['Penicillin G/V',/penicillin\s*(g|v)|pen\s*g\b|benzyl\s*penic|phenoxymethyl|benzathine/i,'bl',{c:'pen',s:'benz'}],
  ['Cloxacillin / Dicloxacillin',/cloxacillin/i,'bl',{c:'pen',s:'clox'}],

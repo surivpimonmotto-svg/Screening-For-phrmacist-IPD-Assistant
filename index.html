@@ -2527,6 +2527,21 @@ $('hDrug').innerHTML=Object.entries(HAD).map(([k,h])=>`<option value="${k}">${h.
 $('hInd').innerHTML=HEP_IND.map((x,i)=>`<option value="${i}">${x[0]}</option>`).join('');
 const HAD_EX={ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
 function loadHadEx(){const k=$('hDrug').value,e=HAD_EX[k]; $('hAmt').value=e[0];$('hVol').value=e[1];$('hRate').value=e[2];$('hAmp').value=+(e[0]/HAD[k].amp).toFixed(2);}
+function hadNote(k,h,o,cu){
+  const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
+  const amt=$('hAmt').value, amp=$('hAmp').value, vol=$('hVol').value, rate=$('hRate').value, bw=$('hBw').value;
+  const lineSel=$('hLine'), line=lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'';
+  const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
+  const L=[`■ ${h.name} — ผล: ${st}`,
+   `  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
+   `  Rate    : ${rate} ml/h`,
+   `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
+   `  Conc    : ${o.concTxt||fmtN(o.conc)+' '+cu}`,
+   `  จ่าย     : ${o.ampDispense??'–'} amp/วัน${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
+   '','  ผลตรวจ',...o.checks.map(c=>`   ${ic[c.lvl]||'•'} ${c.txt}`)];
+  if(S.usual||S.maxDose||S.maxConc) L.push('','  มาตรฐาน',`   Usual dose : ${S.usual||'ยังไม่มีข้อมูล'}`,`   Max dose   : ${S.maxDose||'ยังไม่มีข้อมูล'}`,`   Max conc   : ${S.maxConc||'ยังไม่มีข้อมูล'}`);
+  L.push('','  ผู้ตรวจ ............................ (check2)');
+  return L.join('\n'); }
 function renderHad(){
   const k=$('hDrug').value,h=HAD[k];
   $('hAmtLab').textContent=`ปริมาณยาในขวด (${h.u})`; $('hInfo').textContent=[h.ampTxt,h.dil,h.note].filter(Boolean).join(' · ');
@@ -2545,7 +2560,9 @@ function renderHad(){
    <dl class="kv" style="margin-bottom:12px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
    <ul class="msgs">${o.checks.map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>
    <p class="hint" style="margin:12px 0 4px">ข้อความ note</p>
-   <div class="note" style="min-height:auto">${esc(`${h.name} ${$('hAmt').value} ${h.u} in ${$('hVol').value} ml rate ${$('hRate').value} ml/h = ${fmtN(o.dose)} ${o.doseU||''}${$('hBw').value?` (BW ${$('hBw').value})`:''} · conc ${o.concTxt||fmtN(o.conc)+' '+cu} · จ่าย ${o.ampDispense} amp/วัน → ${o.checks.some(c=>c.lvl==='flag')?'consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'ok (check2)'}`)}</div>`;
+   <div class="inrow" style="justify-content:flex-end;margin:-26px 0 4px"><button class="btn sm pri" id="hCopy" type="button">คัดลอก</button><span class="toast" id="hToast"></span></div>
+   <div class="note" id="hNote" style="min-height:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.6">${esc(hadNote(k,h,o,cu))}</div>`;
+  $('hCopy').onclick=()=>copyRich('',hadNote(k,h,o,cu),$('hToast'));
 }
 $('hDrug').addEventListener('change',()=>{loadHadEx();renderHad();});
 $('hAmp').addEventListener('input',()=>{const a=+$('hAmp').value;if(a>0)$('hAmt').value=+(a*HAD[$('hDrug').value].amp).toFixed(3);renderHad();});
@@ -2649,7 +2666,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

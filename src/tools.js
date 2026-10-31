@@ -63,3 +63,51 @@ function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
     return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }
 (function(){ if(!$('refOut')) return; $('refQ').addEventListener('input',renderRef); renderRef(); })();
+
+/* ---------- 3) คัดลอกรูป/ข้อความ timeline และ Naranjo ---------- */
+function svgFlat(svg){ const cs=getComputedStyle(document.documentElement); let x=new XMLSerializer().serializeToString(svg);
+  x=x.replace(/var\((--[\w-]+)\)/g,(m,v)=>cs.getPropertyValue(v).trim()||'#333');
+  if(!/xmlns=/.test(x)) x=x.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+  return x.replace(/(<svg[^>]*>)/,'$1<style>text{font-family:Sarabun,Tahoma,"Noto Sans Thai",sans-serif}text:not([fill]):not([style*="fill"]){fill:#334155}</style><rect width="100%" height="100%" fill="#fff"/>'); }
+function svgPng(svg,scale=2){ return new Promise((res,rej)=>{ const vb=svg.viewBox.baseVal, w=vb&&vb.width||svg.clientWidth, h=vb&&vb.height||svg.clientHeight;
+  const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale; const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); g.drawImage(img,0,0,c.width,c.height); c.toBlob(b=>b?res(b):rej(),'image/png'); };
+  img.onerror=rej; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgFlat(svg)); }); }
+async function svgsPng(svgs){ if(svgs.length===1) return svgPng(svgs[0]); const bs=await Promise.all(svgs.map(s=>svgPng(s))); const ims=await Promise.all(bs.map(b=>createImageBitmap(b)));
+  const W=Math.max(...ims.map(i=>i.width)), H=ims.reduce((a,i)=>a+i.height+20,0); const c=document.createElement('canvas'); c.width=W; c.height=H; const g=c.getContext('2d'); g.fillStyle='#fff'; g.fillRect(0,0,W,H); let y=0; ims.forEach(i=>{g.drawImage(i,0,y); y+=i.height+20;}); return new Promise(r=>c.toBlob(r,'image/png')); }
+function cpMsg(el,m){ if(!el) return; el.textContent=m; setTimeout(()=>el.textContent='',2600); }
+async function copyImg(svgs,msg){ if(!svgs.length){ cpMsg(msg,'ยังไม่มีแผนภาพ'); return; }
+  try{ const b=await svgsPng(svgs); await navigator.clipboard.write([new ClipboardItem({'image/png':b})]); cpMsg(msg,'คัดลอกรูปแล้ว — วางใน Word/LINE/PowerPoint ได้'); }
+  catch(e){ cpMsg(msg,'เบราว์เซอร์นี้คัดลอกรูปไม่ได้ — ใช้ปุ่มบันทึกรูป PNG'); } }
+async function saveImg(svgs,name,msg){ if(!svgs.length){ cpMsg(msg,'ยังไม่มีแผนภาพ'); return; } try{ const b=await svgsPng(svgs); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); cpMsg(msg,'บันทึกรูปแล้ว'); }catch(e){ cpMsg(msg,'บันทึกรูปไม่ได้'); } }
+const txtHtml=t=>`<pre style="font-family:Sarabun,Tahoma,sans-serif;font-size:14px;white-space:pre-wrap">${esc(t)}</pre>`;
+
+function adrTlText(){ const ds=ADR.drugs.filter(d=>d.name), on=adrOnset();
+  const evs=[...ADR.evs].filter(e=>e.d).sort((a,b)=>((tlDate(a.d,a.t)||0)-(tlDate(b.d,b.t)||0)));
+  const RL={S:'S (ยาที่สงสัย)',O:'O (ยาที่ใช้ร่วม)',I:'I (ยาที่เกิดปฏิกิริยาต่อกัน)'}, TY={adr:'อาการ (ADR)',relief:'ยาบรรเทา',lab:'Lab',note:'หมายเหตุ'};
+  const T=['■ ADR Timeline',`ผู้ป่วย ${sex==='F'?'หญิง':'ชาย'} อายุ ${ageTxt()||'–'} น้ำหนัก ${$('bw').value||'–'} kg${on?` · เริ่มเกิดอาการ ${tlFmt(on)}`:''}`,'','ยาที่ได้รับ:'];
+  ds.forEach((d,i)=>{ const L=typeof adrLat==='function'?adrLat(d,on):null; T.push(`${i+1}. [${d.role}] ${d.name}${d.dose&&d.dose!==d.name?' · '+d.dose:''}`,`   เริ่ม ${d.sd||'–'} ${d.st||''} → หยุด ${d.ed?d.ed+' '+(d.et||''):'ยังใช้อยู่'}${L&&L.txt?` · ${L.txt}`:''}`); });
+  T.push('','ลำดับเหตุการณ์:'); evs.forEach(e=>T.push(`• ${e.d} ${e.t||''} — ${TY[e.type]}: ${e.type==='lab'?`${e.lab||''} ${e.val||''}`:e.text||''}`.replace(/\s+—/,' —')));
+  T.push('','S = ยาที่สงสัย · O = ยาที่ใช้ร่วม · I = ยาที่เกิดปฏิกิริยาต่อกัน'); return T.join('\n'); }
+function narText(){ const ds=ADR.drugs.filter(d=>d.name&&narScore(d.id)!=null); const A={y:'ใช่',n:'ไม่ใช่',u:'ไม่ทราบ'};
+  const T=['■ Naranjo\'s ADR probability scale'];
+  if(!ds.length) T.push('(ยังไม่ได้ประเมิน)');
+  ds.forEach(d=>{ const s=narScore(d.id), a=ADR.nar[d.id]||[]; T.push('',`ยา: ${d.name}`);
+    NAR_Q.forEach(([q,p],i)=>{ const v=a[i]; const sc=v==='y'?p[0]:v==='n'?p[1]:v==='u'?p[2]:null; T.push(`  ${String(i+1).padStart(2)}. ${q} — ${v?A[v]:'–'}${sc!=null?` (${sc>0?'+':''}${sc})`:''}`); });
+    T.push(`  รวม ${s} คะแนน → ${narCat(s)[0]} (${narCat(s)[1]})`); });
+  T.push('','เกณฑ์: Definite ≥9 · Probable 5–8 · Possible 1–4 · Unlikely ≤0');
+  if(ADR.who){ const w=WHO_UMC.find(x=>x[0]===ADR.who); T.push('',`■ WHO-UMC causality: ${ADR.who}${w?' ('+w[1]+')':''}`); }
+  return T.join('\n'); }
+function dtText(){ const T=['■ แผนภาพลำดับเวลาการใช้ยา (Drug Timeline)',`หอผู้ป่วย ${DT.hdr.ward||'–'} · วันที่ ${DT.hdr.date||'–'}${DT.hdr.by?' · จัดทำโดย '+DT.hdr.by:''}`,'','ยา:'];
+  DT.drugs.forEach((d,i)=>T.push(`${i+1}. ${d.name}${d.dose?' · '+d.dose:''}`,`   ${d.prior?'ได้รับมาก่อน · ':''}เริ่ม ${d.sd||'–'} → ${d.ed?'หยุด '+d.ed:'ยังใช้อยู่'}`));
+  const TY={adr:'อาการไม่พึงประสงค์',lab:'ผล Lab',note:'ความเห็นเภสัชกร'}; const ev=[...DT.evs].sort((a,b)=>(dtDay(a.d)||0)-(dtDay(b.d)||0));
+  if(ev.length){ T.push('','เหตุการณ์:'); ev.forEach(e=>T.push(`• ${e.d} — ${TY[e.type]}: ${e.text}${e.type==='lab'?' = '+(e.val||''):''}`)); }
+  return T.join('\n'); }
+(function(){ const on=(id,f)=>{ const el=$(id); if(el) el.onclick=f; };
+  on('aCpImg',()=>{ adrChart&&adrOut(); copyImg([...$('aChart').querySelectorAll('svg')],$('aCpMsg')); });
+  on('aSvImg',()=>saveImg([...$('aChart').querySelectorAll('svg')],'ADR-timeline.png',$('aCpMsg')));
+  on('aCpTxt',()=>{ const t=adrTlText(); copyRich(txtHtml(t),t,$('aCpMsg')); });
+  on('aCpNar',()=>{ const t=narText(); copyRich(txtHtml(t),t,$('aNarMsg')); });
+  on('dtCpImg',()=>copyImg([...$('dtChart').querySelectorAll('svg')],$('dtCpMsg')));
+  on('dtSvImg',()=>saveImg([...$('dtChart').querySelectorAll('svg')],'Drug-timeline.png',$('dtCpMsg')));
+  on('dtCpTxt',()=>{ const t=dtText(); copyRich(txtHtml(t),t,$('dtCpMsg')); });
+})();

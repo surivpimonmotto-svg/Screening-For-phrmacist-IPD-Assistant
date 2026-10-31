@@ -371,13 +371,20 @@ textarea.paste{border-color:var(--accent)}
 
       <div class="panel sec" style="margin-top:14px">
         <div class="inrow" style="justify-content:space-between;margin-bottom:8px">
-          <h2 style="margin:0">ข้อความสำหรับ Pharmacist note / consult</h2>
+          <h2 style="margin:0">ใบปรึกษาแพทย์ (Pharmacist note / consult)</h2>
           <div class="inrow">
             <div class="seg" role="group" aria-label="ขอบเขต"><button type="button" id="nProb" aria-pressed="true">เฉพาะที่ต้องทบทวน</button><button type="button" id="nAll" aria-pressed="false">ทั้งหมด</button></div>
-            <button class="btn pri sm" id="copyNote" type="button">คัดลอก</button><span class="toast" id="toast" aria-live="polite"></span>
+            <button class="btn pri sm" id="copyNote" type="button">คัดลอก</button><button class="btn sm" id="printNote" type="button">พิมพ์ใบ consult</button><span class="toast" id="toast" aria-live="polite"></span>
           </div>
         </div>
-        <textarea class="note" id="note" readonly aria-label="ข้อความ note"></textarea>
+        <div class="grid2" style="grid-template-columns:110px 1.4fr 1fr 1fr;margin-bottom:8px;align-items:end">
+          <label class="f">คำนำหน้า<select id="cnTitle"><option>ภญ.</option><option>ภก.</option></select></label>
+          <label class="f">ชื่อเภสัชกร (จำไว้ในเครื่องนี้)<input id="cnName" placeholder="ชื่อ-สกุลผู้ consult"></label>
+          <label class="f">หอผู้ป่วย<input id="cnWard"></label>
+          <label class="f">เบอร์ติดต่อ<input id="cnTel" placeholder="เช่น 1234"></label>
+        </div>
+        <textarea class="note" id="note" readonly aria-label="ข้อความ note" style="min-height:320px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55"></textarea>
+        <p class="hint" style="margin:6px 0 0">ปุ่มคัดลอกจะคัดลอกแบบมีรูปแบบ (ตัวหนา/สี) เมื่อวางใน Word/LINE PC และเป็นข้อความธรรมดาเมื่อวางใน HIS · ห้ามใส่ชื่อ/HN ผู้ป่วย</p>
       </div>
     </section>
 
@@ -537,6 +544,7 @@ textarea.paste{border-color:var(--accent)}
       </div>
       <div class="panel sec" style="margin:0">
         <h2>3. แผนภาพ</h2>
+        <div class="inrow cpbar" style="margin:6px 0"><button class="btn sm pri" id="dtCpImg" type="button">คัดลอกรูป</button><button class="btn sm" id="dtCpTxt" type="button">คัดลอกข้อความ</button><button class="btn sm" id="dtSvImg" type="button">บันทึกรูป PNG</button><span class="toast" id="dtCpMsg" aria-live="polite"></span></div>
         <div id="dtChart" style="overflow-x:auto"></div>
       </div>
     </section>
@@ -617,12 +625,13 @@ textarea.paste{border-color:var(--accent)}
       </div>
       <div class="panel sec" style="margin:0 0 14px">
         <div class="inrow" style="justify-content:space-between"><h2 style="margin:0">4. Timeline</h2><label class="f" style="min-width:260px">ชนิดอาการ (ใช้เทียบระยะเวลา)<select id="aRt"></select></label></div>
+        <div class="inrow cpbar" style="margin:6px 0"><button class="btn sm pri" id="aCpImg" type="button">คัดลอกรูป timeline</button><button class="btn sm" id="aCpTxt" type="button">คัดลอกข้อความ timeline</button><button class="btn sm" id="aSvImg" type="button">บันทึกรูป PNG</button><span class="toast" id="aCpMsg" aria-live="polite"></span></div>
         <div id="aChart" style="margin-top:10px"></div>
         <h2 style="margin-top:14px">ระยะเวลาตั้งแต่เริ่มยาถึงเกิดอาการ</h2><div id="aLat"></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
         <h2>5. ประเมินความสัมพันธ์กับยา</h2>
-        <div class="adr2"><div><label class="f" style="margin-bottom:6px">Naranjo (ประเมินเฉพาะ Type B ADR) — ยาที่ประเมิน<select id="aNarSel"></select></label><div class="inrow" style="margin-bottom:8px"><input class="ctl" id="aNarNew" placeholder="ยังไม่มียา? พิมพ์ชื่อยาที่สงสัยแล้วกด เพิ่ม" list="aDrugList" style="flex:1"><button class="btn sm" id="aNarAdd" type="button">+ เพิ่มยา</button></div><div id="aNar"></div><div id="aNarRes" style="margin-top:10px"></div></div>
+        <div class="adr2"><div><label class="f" style="margin-bottom:6px">Naranjo (ประเมินเฉพาะ Type B ADR) — ยาที่ประเมิน<select id="aNarSel"></select></label><div class="inrow" style="margin-bottom:8px"><input class="ctl" id="aNarNew" placeholder="ยังไม่มียา? พิมพ์ชื่อยาที่สงสัยแล้วกด เพิ่ม" list="aDrugList" style="flex:1"><button class="btn sm" id="aNarAdd" type="button">+ เพิ่มยา</button></div><div id="aNar"></div><div class="inrow cpbar" style="margin:6px 0"><button class="btn sm pri" id="aCpNar" type="button">คัดลอก Naranjo / WHO-UMC</button><span class="toast" id="aNarMsg" aria-live="polite"></span></div><div id="aNarRes" style="margin-top:10px"></div></div>
           <div><div class="hint" style="margin-bottom:6px">WHO-UMC causality (ตามแบบ HPVC)</div><div style="display:grid;gap:6px"><label class="rchk wh"><input type="radio" name="who" data-who value="Certain"><span><b>Certain</b> · ใช่แน่นอน<br><small>เวลาเหมาะสม · อธิบายด้วยโรค/ยาอื่นไม่ได้ · หยุดยาแล้วดีขึ้น · อาการจำเพาะ · ให้ยาซ้ำเกิดซ้ำ (ถ้าจำเป็น)</small></span></label><label class="rchk wh"><input type="radio" name="who" data-who value="Probable"><span><b>Probable</b> · น่าจะใช่<br><small>เวลาเหมาะสม · ไม่น่าเกิดจากโรค/ยาอื่น · หยุดยาแล้วดีขึ้น · ไม่ต้องให้ยาซ้ำ</small></span></label><label class="rchk wh"><input type="radio" name="who" data-who value="Possible"><span><b>Possible</b> · อาจจะใช่<br><small>เวลาเหมาะสม · แต่โรค/ยาอื่นอธิบายได้ · ข้อมูลการหยุดยาไม่ชัด</small></span></label><label class="rchk wh"><input type="radio" name="who" data-who value="Unlikely"><span><b>Unlikely</b> · ไม่น่าใช่<br><small>เวลาไม่น่าเป็นไปได้ · โรค/ยาอื่นอธิบายได้ดีกว่า</small></span></label><label class="rchk wh"><input type="radio" name="who" data-who value="Unclassified"><span><b>Unclassified</b> · ไม่สามารถระบุระดับ<br><small>ข้อมูลไม่พอหรือขัดแย้ง</small></span></label></div></div></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">

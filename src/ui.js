@@ -79,24 +79,52 @@ function renderRows(){
   buildNote(evs,pt);
 }
 
+let noteHtml='';
+function cnPref(k,v){ try{ if(v===undefined) return localStorage.getItem('ipd_cn_'+k)||''; localStorage.setItem('ipd_cn_'+k,v); }catch(e){ return ''; } }
 function buildNote(evs,pt){
-  if(!rows.length){$('note').value='';return}
-  const hdr=[`[Screen IPD] ${sex==='F'?'หญิง':'ชาย'} ${ageTxt()||'– ปี'} BW ${$('bw').value||'–'} kg`];
-  if(pt.dial) hdr.push(pt.dial); else if(pt.isPed) hdr.push(`eGFR(Schwartz) ${pt.schwartz!=null?r0(pt.schwartz):'–'}`);
-  else hdr.push(`${pt.crclSrc==='HIS'?'CrCl(HIS)':`SCr ${$('scr').value||'–'} → CrCl(CG)`} ${pt.crcl!=null?r1(pt.crcl):'–'} ml/min${pt.egfr!=null?`, eGFR ${r0(pt.egfr)}`:''}`);
-  if(pt.inr!=null) hdr.push(`INR ${pt.inr}`); if(pt.k!=null) hdr.push(`K ${pt.k}`);
-  const lines=[hdr.join(' | ')];
-  rows.forEach((r,i)=>{const e=evs[i]; if(!noteAll&&!['flag','warn'].includes(e.status)) return;
-    const tag=e.status==='flag'?'[consult]':e.status==='warn'?'[ทบทวน]':e.status==='ok'?'[ok]':'[ไม่มีกฎ]';
-    const label=r.raw||(e.drug?`${e.drug.name} ${r.doseVal} ${r.doseUnit} ${freqLabel(r.F)}`:'');
-    const rxMsg=e.sugg&&e.sugg.rx&&e.items.some(m=>(m.tag==='renal'||m.tag==='low')&&m.lvl!=='ok')?`${e.sugg.where.replace(/\s+/g,' ')}: ขออนุญาต consult ปรับขนาดยา แนะนำ ${e.sugg.rx}`:'';
-    const msg=[rxMsg,...e.items.filter(m=>(m.lvl==='flag'||m.lvl==='warn')&&!(rxMsg&&(m.tag==='renal'||m.tag==='low'))).map(m=>m.txt)].filter(Boolean).join(' ; ');
-    lines.push(`${tag} ${label}${msg?` → ${msg}`:''}`);
-  });
-  if(lines.length===1) lines.push('ทุกรายการผ่านเกณฑ์ในฐานกฎ (ok)');
-  $('note').value=lines.join('\n');
+  if(!rows.length){$('note').value='';noteHtml='';return}
+  const n=new Date(), p2=x=>String(x).padStart(2,'0'), dt=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()+543} เวลา ${p2(n.getHours())}:${p2(n.getMinutes())} น.`;
+  const ward=$('cnWard').value.trim(), who=`${$('cnTitle').value} ${$('cnName').value.trim()||'..............................'}`, tel=$('cnTel').value.trim();
+  const L=pt.lab||{}, fx=v=>fmtN(Math.round(v*100)/100);
+  const ptl=[`${sex==='F'?'หญิง':'ชาย'} อายุ ${ageTxt()||'–'} · น้ำหนัก ${$('bw').value||'–'} kg${$('ht').value?` · ส่วนสูง ${$('ht').value} cm`:''}`];
+  if(pt.dial) ptl.push(`การบำบัดทดแทนไต: ${pt.dial}`);
+  else if(pt.isPed) ptl.push(`eGFR (Schwartz) ${pt.schwartz!=null?r0(pt.schwartz):'–'} ml/min/1.73m²`);
+  else ptl.push(`${$('scr').value?`SCr ${$('scr').value} mg/dL → `:''}CrCl ${pt.crcl!=null?r1(pt.crcl):'–'} ml/min (${pt.crclSrc==='HIS'?'จาก HIS':'Cockcroft-Gault'})${pt.egfr!=null?` · eGFR ${r0(pt.egfr)}`:''}`);
+  const lb=[pt.k!=null&&`K ${pt.k}`,pt.mg!=null&&`Mg ${pt.mg}`,pt.inr!=null&&`INR ${pt.inr}`,L.anc!=null&&`ANC ${fmtN(Math.round(L.anc))}`,L.plt!=null&&`Plt ${fmtN(L.plt)}`,(L.ast!=null||L.alt!=null)&&`AST/ALT ${L.ast??'–'}/${L.alt??'–'}`,L.tbil!=null&&`T.bil ${L.tbil}`,L.alb!=null&&`Alb ${L.alb}`].filter(Boolean);
+  if(lb.length) ptl.push('Lab: '+lb.join(' · '));
+  ptl.push(`ประวัติแพ้ยา: ${$('allergy').value.trim()||'ไม่มี/ไม่ทราบ'}${pt.preg?' · ตั้งครรภ์/ให้นมบุตร':''}`);
+  const probs=[];
+  rows.forEach((r,i)=>{ const e=evs[i]; if(!noteAll&&!['flag','warn'].includes(e.status)) return;
+    const d=e.drug, mm=e.master, nm=d?d.name:mm?mm[1]:r.raw.slice(0,50), u=d?unitTxt(d):'mg';
+    const req=e.status==='flag'?'ขอพิจารณาปรับ':e.status==='warn'?'ขอ confirm':e.status==='ok'?'เหมาะสม':'ไม่มีกฎในฐาน';
+    const dose=e.D!=null&&r.F!=null?`${fmtN(e.D)} ${u}/ครั้ง × ${freqLabel(r.F)} = ${fmtN(e.T)} ${u}/วัน`:e.D!=null?`${fmtN(e.D)} ${u}/ครั้ง`:'';
+    const why=e.items.filter(m=>noteAll?m.lvl!=='info':(m.lvl==='flag'||m.lvl==='warn')).map(m=>m.txt);
+    const rec=e.sugg&&(e.sugg.rx||e.sugg.txt)?`${e.sugg.where?e.sugg.where.replace(/\s+/g,' ')+': ':''}${e.sugg.rx||e.sugg.txt}`:'';
+    probs.push({nm,req,lvl:e.status,raw:r.raw,dose,why,rec,src:d&&d.src?d.src:''}); });
+  const ask=probs.some(p=>p.lvl==='flag')?'จึงเรียนมาเพื่อโปรดพิจารณาปรับขนาด/ทบทวนคำสั่งใช้ยาตามข้อเสนอข้างต้น':probs.some(p=>p.lvl==='warn')?'จึงเรียนมาเพื่อโปรด confirm คำสั่งใช้ยาดังกล่าว':'ทุกรายการผ่านเกณฑ์ในฐานกฎ';
+  const LN='━'.repeat(34);
+  const T=[LN,'ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)',`${ward?'หอผู้ป่วย '+ward+' · ':''}วันที่ ${dt}`,LN,'','■ ข้อมูลผู้ป่วย',...ptl.map(x=>'  • '+x),'',`■ ปัญหาที่พบ (${probs.length} รายการ)`];
+  probs.forEach((p,i)=>{ T.push('',`${i+1}) ${p.nm} — ${p.req}`); T.push(`   คำสั่งยา   : ${p.raw}`); if(p.dose) T.push(`   ขนาดที่สั่ง : ${p.dose}`);
+    p.why.forEach((w,j)=>T.push(`   ${j?'          ':'เหตุผล     '}: ${w}`)); if(p.rec) T.push(`   ข้อเสนอ    : ${p.rec}`); if(p.src) T.push(`   อ้างอิง     : ${p.src}`); });
+  if(!probs.length) T.push('  ทุกรายการผ่านเกณฑ์ในฐานกฎ');
+  T.push('',ask,'',`ลงชื่อ ${who}`,`เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+tel:''}`,LN);
+  $('note').value=T.join('\n');
+  const C={flag:'#b91c1c',warn:'#b45309',ok:'#15803d',none:'#475569'};
+  noteHtml=`<div style="font-family:Sarabun,Tahoma,sans-serif;font-size:15px;line-height:1.55;color:#111">
+<div style="font-size:18px;font-weight:700;border-bottom:2px solid #1d4ed8;padding-bottom:4px">ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)</div>
+<div style="color:#475569">${ward?'หอผู้ป่วย '+esc(ward)+' · ':''}วันที่ ${dt}</div>
+<div style="font-weight:700;margin-top:10px">ข้อมูลผู้ป่วย</div><ul style="margin:2px 0 6px 18px;padding:0">${ptl.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+<div style="font-weight:700">ปัญหาที่พบ (${probs.length} รายการ)</div>
+${probs.map((p,i)=>`<div style="border-left:4px solid ${C[p.lvl]};padding:4px 10px;margin:8px 0;background:#f8fafc"><div><b>${i+1}) ${esc(p.nm)}</b> — <b style="color:${C[p.lvl]}">${esc(p.req)}</b></div>
+<table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
+<p style="margin:10px 0">${esc(ask)}</p><div style="text-align:right">ลงชื่อ ${esc(who)}<br><span style="font-size:13px;color:#475569">เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+esc(tel):''}</span></div></div>`;
 }
-
+function copyRich(html,text,okEl){ const done=m=>{ if(okEl){ okEl.textContent=m; setTimeout(()=>okEl.textContent='',2200);} };
+  try{ if(window.ClipboardItem&&navigator.clipboard.write&&html){ navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([text],{type:'text/plain'})})]).then(()=>done('คัดลอกแล้ว'),()=>navigator.clipboard.writeText(text).then(()=>done('คัดลอกแล้ว (ข้อความ)'),()=>done('คัดลอกไม่ได้ — เลือกข้อความแล้วกด Ctrl+C'))); return; }
+    navigator.clipboard.writeText(text).then(()=>done('คัดลอกแล้ว'),()=>done('คัดลอกไม่ได้ — กด Ctrl+C')); }catch(e){ done('คัดลอกไม่ได้ — กด Ctrl+C'); } }
+function printHtml(html,landscape){ let pa=document.getElementById('printArea'); if(!pa){pa=document.createElement('div');pa.id='printArea';document.body.appendChild(pa);} pa.innerHTML=html;
+  if(landscape){ const st=document.createElement('style'); st.id='pgL'; st.textContent='@page{size:A4 landscape;margin:10mm}'; document.head.appendChild(st); const rm=()=>{const s=document.getElementById('pgL'); if(s) s.remove();}; window.addEventListener('afterprint',rm,{once:true}); setTimeout(rm,4000); }
+  window.print(); }
 /* events: rows */
 $('rows').addEventListener('change',ev=>{const t=ev.target,i=+t.dataset.i,k=t.dataset.k; if(k==null||isNaN(i))return; const r=rows[i];
   if(k==='F') r.F=t.value===''?null:+t.value;
@@ -148,8 +176,9 @@ $('sexM').onclick=()=>setSex('M'); $('sexF').onclick=()=>setSex('F');
 /* note */
 function setNote(all){noteAll=all;$('nProb').setAttribute('aria-pressed',!all);$('nAll').setAttribute('aria-pressed',all);renderRows();}
 $('nProb').onclick=()=>setNote(false); $('nAll').onclick=()=>setNote(true);
-$('copyNote').onclick=()=>{const v=$('note').value; const done=()=>{$('toast').textContent='คัดลอกแล้ว';setTimeout(()=>$('toast').textContent='',1800)};
-  try{navigator.clipboard.writeText(v).then(done,()=>{$('note').select();$('toast').textContent='เลือกข้อความแล้ว กด Ctrl+C';});}catch(e){$('note').select();}};
+$('copyNote').onclick=()=>copyRich(noteHtml,$('note').value,$('toast'));
+$('printNote').onclick=()=>{ if(noteHtml) printHtml(noteHtml); };
+[['cnName','name'],['cnTitle','title'],['cnTel','tel'],['cnWard','ward']].forEach(([id,k])=>{ const el=$(id); const v=cnPref(k); if(v&&k!=='ward') el.value=v; el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ if(k!=='ward') cnPref(k,el.value); renderRows(); }); });
 
 /* tabs */
 const TABS=['screen','had','liq','dex','opi','pk','tl','dtl','wf','cmt','adr','ref','kb'];
@@ -283,7 +312,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.9.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.9.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

@@ -600,31 +600,37 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
 
     <section id="p-rca" hidden>
       <div class="panel sec" style="margin:0 0 14px">
-        <h2>RCA — วิเคราะห์สาเหตุรากเหตุการณ์ด้านยา (PE · TE · Pre-DE · DE · AE · แพ้ยาซ้ำ)</h2>
-        <p class="hint" style="margin-top:0">ห้ามใส่ชื่อ/HN ผู้ป่วยหรือชื่อผู้เกี่ยวข้องที่ระบุตัวได้ (no blame) · ข้อมูลเก็บในเครื่องนี้ บันทึกเป็นไฟล์เพื่อเปิดภายหลังได้</p>
-        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm pri" id="rPrint">พิมพ์แบบฟอร์ม RCA (HA)</button><button type="button" class="btn sm" id="rCopy">คัดลอกข้อความ</button><button type="button" class="btn sm" id="rCpImg">คัดลอกรูปก้างปลา</button><button type="button" class="btn sm" id="rSaveF">บันทึกเป็นไฟล์</button><button type="button" class="btn sm" id="rOpen">เปิดไฟล์</button><input type="file" id="rFile" accept=".json" hidden><button type="button" class="btn sm" id="rNew">เริ่มใหม่</button><span class="toast" id="rMsg"></span></div>
+        <h2>RCA — วิเคราะห์สาเหตุรากเหตุการณ์ด้านยา</h2>
+        <p class="hint" style="margin-top:0">ห้ามใส่ชื่อ/HN/AN ผู้ป่วย หรือชื่อผู้เกี่ยวข้อง (just culture — ใช้ตำแหน่ง) · ข้อมูลเก็บในเครื่องนี้ บันทึกเป็นไฟล์เพื่อเปิดภายหลังได้</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm pri" id="rPrint">พิมพ์แบบฟอร์ม RCA</button><button type="button" class="btn sm" id="rCopy">คัดลอกข้อความ</button><button type="button" class="btn sm" id="rCpSw">คัดลอกรูปด่านป้องกัน</button><button type="button" class="btn sm" id="rCpImg">คัดลอกรูปก้างปลา</button><button type="button" class="btn sm" id="rSaveF">บันทึกเป็นไฟล์</button><button type="button" class="btn sm" id="rOpen">เปิดไฟล์</button><input type="file" id="rFile" accept=".json" hidden><button type="button" class="btn sm" id="rNew">เริ่มใหม่</button><span class="toast" id="rMsg"></span></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
         <h2>1. ข้อมูลเหตุการณ์</h2>
+        <div class="f" style="margin-bottom:8px"><span>ชนิดเหตุการณ์ (เลือกได้หลายข้อ)</span><div id="rTypes" style="line-height:2.1"></div></div>
         <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-          <label class="f">ชนิดเหตุการณ์<select id="rType"></select></label><label class="f">ระดับความรุนแรง (NCC MERP)<select id="rSev"></select></label>
-          <label class="f">วันที่เกิด<input id="rDate" placeholder="dd/mm/2569"></label><label class="f">หน่วยงาน/หอผู้ป่วย<input id="rWard"></label>
-          <label class="f" style="grid-column:1/-1">ยาที่เกี่ยวข้อง<input id="rDrug" placeholder="เช่น สั่ง Cefixime 2x2 ใน CrCl 5 / จ่าย Losartan แทน Lorazepam"></label>
+          <label class="f">ระดับความรุนแรง (NCC MERP)<select id="rSev"></select></label>
+          <label class="f">ป้องกันได้หรือไม่<select id="rPrev"><option value="">—</option><option>Preventable</option><option>Non-preventable</option><option>ยังสรุปไม่ได้</option></select></label>
+          <label class="f">ความสัมพันธ์ยากับอาการ<select id="rCaus"><option value="">—</option><option>Certain</option><option>Probable</option><option>Possible</option><option>Unlikely</option><option>ไม่เกี่ยวข้อง (ไม่ใช่ ADR)</option></select></label>
+          <label class="f">วันที่เกิด<input id="rDate" placeholder="dd/mm/2569 เวลา"></label><label class="f">หน่วยงาน/หอผู้ป่วย<input id="rWard"></label>
+          <label class="f" style="grid-column:1/-1">ยาที่เกี่ยวข้อง<input id="rDrug" placeholder="เช่น Tazocin 4.5 g IV ในผู้ป่วยแพ้ Amoxicillin แบบ Anaphylaxis"></label>
           <label class="f" style="grid-column:1/-1">สิ่งที่เกิดขึ้น (What happened)<textarea id="rWhat" rows="3"></textarea></label>
           <label class="f" style="grid-column:1/-1">สิ่งที่ควรจะเป็น (What should have happened)<textarea id="rShould" rows="2"></textarea></label>
           <label class="f" style="grid-column:1/-1">ผลกระทบต่อผู้ป่วย<textarea id="rImpact" rows="2"></textarea></label>
         </div>
       </div>
       <div class="panel sec" style="margin:0 0 14px"><h2>2. ลำดับเหตุการณ์ (Timeline)</h2><div id="rSeq" style="overflow-x:auto"></div></div>
-      <div class="panel sec" style="margin:0 0 14px"><h2>3. วิเคราะห์ 5 Whys</h2><p class="hint" style="margin-top:0">ถาม "ทำไม" ต่อเนื่องจนถึงสาเหตุเชิงระบบ (มักไม่เกิน 5 ชั้น) — หลีกเลี่ยงการหยุดที่ "คนทำผิด"</p><div id="rWhy" style="overflow-x:auto"></div></div>
-      <div class="panel sec" style="margin:0 0 14px"><h2>4. ผังก้างปลา (Fishbone / Ishikawa)</h2><div id="rHint" style="margin-bottom:8px;line-height:2"></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>3. ด่านป้องกัน (Swiss cheese)</h2><p class="hint" style="margin-top:0">แต่ละด่าน: หลุด / บางส่วน / กั้นได้ — รูปแสดงว่าอันตรายผ่านถึงผู้ป่วยหรือถูกกั้นที่ด่านใด</p><div id="rDef" style="overflow-x:auto"></div><div id="rSwiss" style="margin-top:10px"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>4. วิเคราะห์ 5 Whys</h2><p class="hint" style="margin-top:0">แยกเป็นสายตามวิชาชีพ/ด่าน (เช่น แพทย์ · เภสัชกร · พยาบาล) ถาม "ทำไม" ต่อจนถึงสาเหตุเชิงระบบ — ไม่หยุดที่ "คนทำผิด"</p><div id="rWhy" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>5. ผังก้างปลา (ปัจจัยร่วม)</h2><div id="rHint" style="margin-bottom:8px;line-height:2"></div>
         <div class="grid2" id="rFb" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div><div id="rFish" style="margin-top:10px;overflow-x:auto"></div></div>
-      <div class="panel sec" style="margin:0 0 14px"><h2>5. สาเหตุราก (Root cause)</h2>
-        <div class="grid2"><label class="f" style="grid-column:1/-1">สาเหตุราก<textarea id="rRoot" rows="3"></textarea></label><label class="f" style="grid-column:1/-1">ปัจจัยร่วม (Contributing factors)<textarea id="rContrib" rows="2"></textarea></label></div></div>
-      <div class="panel sec" style="margin:0 0 14px"><h2>6. มาตรการแก้ไขและป้องกัน (Action plan)</h2><div id="rAct" style="overflow-x:auto"></div><p id="rStr" class="hint" style="margin:8px 0 0"></p>
+      <div class="panel sec" style="margin:0 0 14px"><h2>6. สาเหตุราก (Root cause)</h2><div id="rRcs" style="overflow-x:auto"></div>
+        <div class="grid2" style="margin-top:8px"><label class="f" style="grid-column:1/-1">สรุปแก่นของปัญหา<textarea id="rRoot" rows="2"></textarea></label><label class="f" style="grid-column:1/-1">ปัจจัยที่ทำให้ผลรุนแรงขึ้น / ปัจจัยร่วม<textarea id="rContrib" rows="2"></textarea></label><label class="f" style="grid-column:1/-1">ข้อสังเกตทางคลินิก (นำเข้า PTC/ทีมทบทวน)<textarea id="rObs" rows="3"></textarea></label></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>7. แผนปฏิบัติการ (Action plan)</h2><div id="rAct" style="overflow-x:auto"></div><p id="rStr" class="hint" style="margin:8px 0 0"></p>
         <details style="margin-top:8px"><summary class="hint">ระดับความแข็งแรงของมาตรการ (Hierarchy of actions)</summary><ul id="rStrRef" style="font-size:13px"></ul></details></div>
-      <div class="panel sec" style="margin:0"><h2>7. บทเรียนและทีม</h2>
-        <div class="grid2"><label class="f" style="grid-column:1/-1">บทเรียนที่ได้รับ (Lessons learned)<textarea id="rLesson" rows="2"></textarea></label><label class="f">ทีม RCA (ตำแหน่ง)<input id="rTeam" placeholder="เช่น เภสัชกร 2, พยาบาล 1, แพทย์ 1"></label><label class="f">ผู้จัดทำ<input id="rBy"></label></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>8. ตัวชี้วัดติดตาม</h2><div id="rKpi" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>9. ข้อมูลที่ต้องตรวจสอบก่อนสรุป</h2><div id="rPend" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0"><h2>10. บทเรียนและทีม</h2>
+        <div class="grid2"><label class="f" style="grid-column:1/-1">บทเรียนที่ได้รับ (Lessons learned)<textarea id="rLesson" rows="2"></textarea></label><label class="f">ทีม RCA (ตำแหน่ง)<input id="rTeam" placeholder="เช่น อายุรแพทย์, เภสัชกร IPD, พยาบาล, IT"></label><label class="f">ผู้จัดทำ<input id="rBy"></label></div></div>
     </section>
 
     <section id="p-ref" hidden>

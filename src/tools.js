@@ -70,7 +70,65 @@ const REF=[
  <h3>Macrolide</h3><p>แพ้ข้ามมีรายงานน้อย แต่ถ้าแพ้รุนแรง เปลี่ยนกลุ่มยาปลอดภัยกว่า · ถ้าจำเป็นทดสอบ/desensitization</p>
  <h3>Azole</h3><p>โครงสร้างร่วมที่มีรายงาน: imidazole (miconazole/ketoconazole) · triazole (fluconazole/itraconazole) · Cl (clotrimazole/itraconazole) · F (fluconazole/voriconazole) · propan-2-ol (fluconazole/ketoconazole กับ metronidazole/tinidazole/ornidazole)</p>
  <h3>Sulfonamide / PPI (Thai HP)</h3><ul><li>แพ้ sulfa รุนแรง (anaphylaxis, SJS/TEN, DRESS, AGEP) → ไม่ใช้ non-antimicrobial sulfonamide เว้นแต่จำเป็นและไม่มียาอื่น (test dose) · ไม่รุนแรง → ใช้ non-antimicrobial ได้ แต่ counseling + test dose</li><li>แพ้ PPI รุนแรง → หลีกเลี่ยงทั้งกลุ่ม · ไม่รุนแรง → หลีกเลี่ยงทั้งกลุ่ม หรือถ้าจำเป็นเลือกตัวอื่นและเฝ้าระวัง</li></ul>
- <h3>ยากันชัก · Antihistamine · Statin</h3><ul><li>แพ้ aromatic (phenytoin, phenobarbital, lamotrigine, carbamazepine) → ใช้ non-aromatic (valproate, levetiracetam, topiramate, gabapentin, pregabalin)</li><li>Antihistamine: แพ้ข้ามสูงในสายแม่-เมแทบอไลต์ hydroxyzine → cetirizine → levocetirizine · loratadine → desloratadine · terfenadine → fexofenadine · triprolidine → acrivastine</li><li>Statin: type I (lova, simva, prava) vs type II (atorva, rosuva, fluva, pitava) — ข้อมูลแพ้ข้ามน้อย</li></ul>`}
+ <h3>ยากันชัก · Antihistamine · Statin</h3><ul><li>แพ้ aromatic (phenytoin, phenobarbital, lamotrigine, carbamazepine) → ใช้ non-aromatic (valproate, levetiracetam, topiramate, gabapentin, pregabalin)</li><li>Antihistamine: แพ้ข้ามสูงในสายแม่-เมแทบอไลต์ hydroxyzine → cetirizine → levocetirizine · loratadine → desloratadine · terfenadine → fexofenadine · triprolidine → acrivastine</li><li>Statin: type I (lova, simva, prava) vs type II (atorva, rosuva, fluva, pitava) — ข้อมูลแพ้ข้ามน้อย</li></ul>`},
+ {id:'pol69',t:'มาตรการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน 2569 (ยาเดิม · ยากลับบ้าน · ยารีเฟอร์)',src:'สรุปมาตรการการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน รพ.มหาสารคาม 2569',h:`
+ <ol><li><b>MR</b> แรกรับ ระหว่างนอน และกลับบ้าน</li>
+ <li><b>งดจ่ายยาพ่น/insulin ราคาแพงในผู้ป่วยรับใหม่ที่มียาเดิม*</b> — กลุ่ม 1 ยาพ่นปาก (Flixotide, Seretide, Symbicort, Spiriva, Spiolto, Anoro, Trelegy) · กลุ่ม 2 ยาพ่นจมูก (Avamys, Mar-plus, Nasonex, Budesonide) · กลุ่ม 3 insulin (Ryzodec, Degludec, Xultophy)
+  <ul><li><b>แพทย์:</b> ผู้ป่วยนำยามา → เขียน "ใช้ยาเดิมของผู้ป่วย" ในออเดอร์แรกรับ/ใบ MR · ไม่ได้นำมา: กลุ่ม 2 พิจารณาใช้ยาอื่น · กลุ่ม 1 และ 3: ≤48 ชม. พิจารณาใช้ยาอื่นแทน / >48 ชม. นำมาไม่ได้ สั่งยาและแจ้งพยาบาลเบิกจากห้องยา</li>
+  <li><b>พยาบาล:</b> กลุ่ม 1–2 เก็บไว้กับผู้ป่วยให้บริหารเอง (แจ้ง/Notify เภสัชกรถ้าเปลี่ยนขนาด) · กลุ่ม 3 เก็บในลิ้นชัก/ตู้เย็นวอร์ด พยาบาลบริหารตามออเดอร์ · ไม่ได้นำมา แจ้งญาตินำมาโดยเร็ว</li>
+  <li><b>เภสัชกร:</b> มีประวัติยาเดิมและยาเหลือ → สติ๊กเกอร์จำนวน 0 + "ใช้ยาเดิมของผู้ป่วย" · ไม่มีประวัติรับยาที่ รพ.มค / ยังนำมาไม่ได้ → consult แพทย์ · insulin อายุ 6 สัปดาห์หลังเปิดใช้ (อุณหภูมิห้อง)</li></ul></li>
+ <li><b>ค่ายากลับบ้าน/ยารีเฟอร์</b><ul><li>3.1 ค่ายากลับบ้านไม่เกิน <b>1,500 บาท</b> ถ้าเกินให้ตัดวันนัดเหลือ <b>2 สัปดาห์</b> — ยกเว้น (1) เภสัช consult แล้วแพทย์ยืนยันเหตุผลจำเป็น (เลื่อนนัดไม่ได้) (2) ยาฉีดรีเฟอร์กลับไปนอนฉีดต่อ รพช. (3) ยาจับเหล็กชนิดรับประทาน (4) ผู้ป่วยที่มาให้เลือด/Filgrastim ระหว่างยาเคมีบำบัด</li>
+  <li>3.2 ยาเดิมผู้ป่วย: เภสัชตรวจสอบประวัติก่อน ถ้ายาเดิมเหลือไม่จ่าย</li>
+  <li>3.3 ยารีเฟอร์กลับไปนอนต่อที่ รพช.: จ่ายเฉพาะยาที่ไม่มีในบัญชี รพ.ชุมชน (ยาฉีด antibiotic จ่ายครบคอร์สตามคำสั่งแพทย์)</li></ul></li>
+ <li><b>การคืนยา:</b> สื่อสารการคืนยาที่ไม่ได้ใช้ เก็บรักษายาให้คงสภาพตามมาตรฐาน · รับคืนยาเม็ดเปลือย/ยาแผง</li>
+ <li><b>วงรอบยา:</b> คีย์ จ่าย ให้ยาตามวงรอบเดิม · พยาบาลลง last dose (มื้อสุดท้ายก่อนมานอน รพ.) ในใบ MR แรกรับ</li>
+ <li><b>DUE ระหว่างนอน รพ.:</b> ASP round · switch ยา · กำหนดระยะเวลาให้ยา</li>
+ <li><b>จำกัดปริมาณการจ่ายยากลับบ้าน</b> (ดูหัวข้อ "จำกัดปริมาณยากลับบ้าน")</li>
+ <li><b>NED1:</b> ชำระเงินทุกสิทธิ์ ยกเว้นเบิกได้จ่ายตรง (ดูหัวข้อ NED1)</li></ol>
+ <p class="hint">ในโปรแกรม: แท็บ MR ยากลับบ้านเตือนจำนวนเกินมาตรการ · ช่อง "ยาเหลือ" ใช้หักยาเดิม (3.2) · แท็บตรวจใบสั่งยาเตือนยาเดิม* กลุ่ม 2–3</p>`},
+ {id:'dcmax',t:'จำกัดปริมาณการสั่งใช้ยาคนไข้กลับบ้าน (สูงสุดต่อครั้ง)',src:'มาตรการการจำกัดปริมาณการสั่งใช้ยาคนไข้กลับบ้าน 33 รายการ (อ่านได้ 30 รายการจากภาพ)',h:`
+ <table class="ctbl"><tr><th>รายการ</th><th>สูงสุด/ครั้ง</th></tr>${DC_MAX.map(x=>`<tr><td>${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</table>
+ <p class="hint">ตารางต้นฉบับ 33 รายการ แต่ภาพที่ได้รับเห็น 30 รายการ — รอเพิ่ม 3 รายการที่เหลือ</p>`},
+ {id:'ned1',t:'NED1 ฟรีเฉพาะสิทธิ์เบิกได้จ่ายตรง (ปรับปรุง 2569)',src:'รายการยา NED 1 ฟรีเฉพาะคนไข้เบิกได้ จ่ายตรง ปรับปรุง 2569',h:`
+ <p>สิทธิ์อื่นชำระเงิน · ยกเว้นเบิกได้จ่ายตรง</p><table class="ctbl"><tr><th>ยา</th><th>ราคา/หน่วย</th></tr>
+ <tr><td>Acetylcysteine powder (NAC) 200 mg ซอง</td><td>1.5</td></tr><tr><td>Brimonidine eye drop 0.1% (Alphagan-P)</td><td>341</td></tr><tr><td>Dienogest 2 mg (กล่อง)</td><td>811</td></tr>
+ <tr><td>Dinoprostone vaginal tab 3 mg (PEGE2)</td><td>727</td></tr><tr><td>Diosmin+Hesperidin (Daflon) 1000 mg</td><td>6.5</td></tr><tr><td>Estradiol 2 mg+Norgestrel 0.5 mg (Cyclo-progynova)</td><td>ยาขาด</td></tr>
+ <tr><td>Nepafenac 0.1% eye drop 5 ml (Nevanac)</td><td>165</td></tr><tr><td>Paracetamol rectal suppo 325 mg</td><td>13</td></tr><tr><td>Selenium sulfide shampoo 2.5% 120 ml</td><td>91</td></tr>
+ <tr><td>Testosterone gel 50 mg/5 ml</td><td>75</td></tr><tr><td>Aescin (Reparil) tab</td><td>7.5</td></tr><tr><td>Ketorolac 30 mg/1 ml amp</td><td>120 · จ่ายตรงฟรี P/O 24 hr</td></tr>
+ <tr><td>Parecoxib 40 mg inj (Dynastat)</td><td>234 · จ่ายตรงฟรี P/O 24 hr</td></tr><tr><td>Desloratadine 5 mg</td><td>4.25</td></tr></table>`},
+ {id:'j2',t:'บัญชี จ(2) · ยามุ่งเป้า (Targeted therapy) · บัญชียาหลักใหม่',src:'รายการยาในบัญชี จ(2) ที่ สปสช.สนับสนุน · งานบริบาลผู้ป่วยเคมีบำบัด รพ.มค · ระบบบัญชียาหลักแห่งชาติ',h:`
+ <h3>ยามุ่งเป้า</h3><ul><li><b>TKI</b> (Imatinib 100/400, Nilotinib 200, Dasatinib — จ(2) · Ruxolitinib — NED): จ่ายเฉพาะผู้ป่วยนอก สั่งโดย Hematologist (ตรวจเอกสารขออนุมัติ) · <b>ห้ามจ่ายใน IPD</b> หาก admit ให้ใช้ยาเดิมผู้ป่วย</li>
+ <li><b>Bortezomib (NED):</b> UC/ประกันสังคม แพทย์สั่งจากแผนก OPD คิดเงินรวม 4 ครั้งใน 1 cycle (เภสัช OPD ตรวจ dose, safety factor, counseling cycle 1, ใบรับประกันผลิต) · สิทธิ์จ่ายตรง: แพทย์สั่งจาก OPD ห้องยาคิดเงินรวม 4 ครั้งใน 1 cycle ยกรูปแบบ Oral คีย์คิดเงินตามจำนวนที่สั่งทั้งหมดเป็น One day โดยผู้ป่วย admit อายุรกรรมรวม</li></ul>
+ <h3>บัญชี จ(2) (36 รายการ)</h3><p>Adalimumab · Antithymocyte globulin · Bevacizumab · Bortezomib · Botulinum toxin A 100/500 IU · Ceftazidime/avibactam · Dasatinib 50/70 · Deferasirox GPO 250 · Erlotinib · Imatinib 100/400 · Imiglucerase · IVIG 5% 50/100 ml · Infliximab · Lacosamide sterile sol · Linezolid 600 tab · Liposomal amphotericin B · Micafungin (50 mg) · Nilotinib · Octreotide LAR 20/30 · Posaconazole tab · Ribavirin · Rituximab 100/500 · Sofosbuvir+Velpatasvir · Thyrotropin alpha · Tocilizumab (80 mg/4 ml) · Trastuzumab 150/440 · Voriconazole inj/tab 200/50</p>
+ <h3>บัญชียาหลักแห่งชาติ (ใหม่)</h3><ul><li><b>ยาพื้นฐาน (basic list)</b> ≈ บัญชี ก และ ข เดิม — เลือกใช้ก่อน</li><li><b>ยาทางเลือก (supplemental list)</b> ≈ บัญชี ค เดิม — ลำดับรอง</li><li><b>ยาเฉพาะโรค (exclusive list)</b> ≈ บัญชี ง เดิม — โดยแพทย์ผู้ชำนาญ ติดตามความเหมาะสม</li><li>บัญชีพิเศษ จ(1) ยาโครงการภาครัฐ · จ(2) กำกับโดยกองทุน 3 กองทุน</li></ul>`},
+ {id:'pgx',t:'การส่งตรวจยีนแพ้ยา HLA-B (Allopurinol · Carbamazepine · Abacavir)',src:'การส่งตรวจยีนแพ้ยา รพ.มหาสารคาม (งานติดตามอาการไม่พึงประสงค์จากยา)',h:`
+ <p><b>เกณฑ์ส่งตรวจ:</b> ไม่เคยตรวจยีน · ผู้ป่วยรายใหม่ ยังไม่เริ่มยาหรือใช้มาไม่เกิน 2–3 เดือน · ไม่เคยมีประวัติแพ้ยานั้น (สิทธิ์ สปสช.: HLA-B*15:02 ก่อน carbamazepine ทุกข้อบ่งใช้ ตั้งแต่ 2561 · HLA-B*58:01 ก่อน allopurinol ในเกาต์รายใหม่ ตั้งแต่ 2564)</p>
+ <p><b>IPD:</b> แพทย์พิจารณาส่งตรวจ → พยาบาลแจ้งโปรแกรม Notify แพ้ยา "แจ้งเภสัชกรให้คำแนะนำการตรวจยีนแพ้ยา" → เภสัชกรให้ข้อมูล สอบถามความยินยอม ให้ลงนาม เก็บเอกสารเข้าระบบ · <b>OPD:</b> พยาบาลส่งพบเภสัชกร → ลงนาม → เจาะเลือด → นัดฟังผล 2 สัปดาห์</p>
+ <table class="ctbl"><tr><th>ยีน / ยา</th><th>Negative</th><th>Positive</th><th>ระหว่างรอผล</th></tr>
+ <tr><td>HLA-B*58:01 / Allopurinol</td><td>เริ่ม ≤50 mg/day ค่อยปรับ · เฝ้าระวัง ADR 3 เดือน</td><td>หลีกเลี่ยง allopurinol → Benzbromarone (eGFR &gt;20) หรือ Febuxostat</td><td>Colchicine / NSAIDs / Steroid ตามไต</td></tr>
+ <tr><td>HLA-B*15:02 / Carbamazepine</td><td>เริ่มได้ · เฝ้าระวัง 3 เดือน</td><td>ห้ามใช้ · เลี่ยง aromatic (oxcarbazepine, eslicarbazepine, lacosamide, lamotrigine, phenytoin, phenobarbital, zonisamide)</td><td>Epilepsy: levetiracetam/valproate · Neuropathic: gabapentin/pregabalin</td></tr>
+ <tr><td>HLA-B*57:01 / Abacavir</td><td>เริ่มได้ · เฝ้าระวัง 3 เดือน</td><td>ห้ามใช้ (hypersensitivity)</td><td>เร่งด่วน: สูตรที่ไม่มี abacavir · CD4 ดี/ไม่มี OI รอผลได้</td></tr></table>
+ <p><b>หลังทราบผล:</b> ให้คำปรึกษา · ลงข้อมูลในระบบ · มอบบัตรเภสัชพันธุศาสตร์ + บัตรเฝ้าระวังผื่นแพ้ยารุนแรง · ติดตาม ADR 3 เดือน · <b>สงสัยแพ้:</b> หยุดยาทันที รายงานแพทย์ (สงสัย SJS/TEN ประเมินเร่งด่วน admit)</p>`},
+ {id:'vac',t:'วัคซีน: ราคา/เข็ม และการใช้ (UPDATE FEB 2026)',src:'งานวิชาการเภสัชสนเทศ กลุ่มงานเภสัชกรรม รพ.มหาสารคาม · สมาคมโรคติดเชื้อฯ 2568',h:`
+ <table class="ctbl"><tr><th>วัคซีน</th><th>ราคา/เข็ม</th><th>เด็ก</th><th>ผู้ใหญ่</th></tr>
+ <tr><td>SKYCellflu (Influenza 4 สายพันธุ์)</td><td>356</td><td>≥6 เดือน IM ปีละ 1 ครั้ง · ครั้งแรก 2 เข็มห่าง 1 เดือน</td><td>IM ปีละ 1 · คนท้องอายุครรภ์ 12–20 สัปดาห์ · กิน oseltamivir อยู่ ฉีดหลังกินครบ &gt;48 ชม.</td></tr>
+ <tr><td>QDenga (Dengue)</td><td>1,639</td><td>≥4 ปี SC 2 เข็มห่าง 3 เดือน · ไม่ต้องตรวจภูมิก่อน</td><td>อายุ 4–60 ปี SC 2 เข็มห่าง 3 เดือน · <u>ห้าม</u>ภูมิต่ำ/คนท้อง · หลังป่วยไข้เลือดออก ฉีดหลังหาย ≥6 เดือน</td></tr>
+ <tr><td>ABRYSVO (RSV)</td><td>7,308</td><td>—</td><td>IM 1 ครั้ง · คนท้อง 24–36 สัปดาห์ (ป้องกันทารกถึง 6 เดือน) · อายุ ≥60 ปี หรือกลุ่มเสี่ยง</td></tr>
+ <tr><td>AREXVY (RSV)</td><td>7,211</td><td>—</td><td>IM 1 ครั้ง · อายุ ≥60 ปี/กลุ่มเสี่ยง · <u>ห้าม</u>คนท้อง</td></tr>
+ <tr><td>VARILRIX (Varicella)</td><td>919</td><td>≥1 ปี SC 2 เข็มห่าง &gt;3 เดือน (เข็มแรก 12–18 เดือน, เข็มสอง 18 เดือน–4 ปี) · อายุ &gt;13 ปี ห่าง 1 เดือนได้</td><td>วัคซีนเชื้อเป็น SC 2 เข็มห่าง 4–8 สัปดาห์ · <u>ห้าม</u>ภูมิต่ำ/คนท้อง</td></tr>
+ <tr><td>SHINGRIX (Herpes zoster)</td><td>5,199</td><td>—</td><td>IM 2 เข็มห่าง 2–6 เดือน (≥50 ปี/กลุ่มเสี่ยง ห่าง 1–2 เดือนได้)</td></tr>
+ <tr><td>Hepatitis B</td><td>111</td><td>วัคซีนจำเป็น (ฟรี) แรกเกิด, 2, 4, 6 เดือน</td><td>IM 3 เข็ม 0, 1, 6 เดือน · โรคไต double dose 4 เข็ม 0, 1, 2, 6 เดือน</td></tr>
+ <tr><td>Prevnar-20 (Pneumococcal)</td><td>2,533</td><td>IM 2, 4, 6 เดือน + กระตุ้น 12–15 เดือน (ปกติอาจ 2+1)</td><td>IM 1 ครั้ง · ห้ามถ้าแพ้วัคซีนคอตีบ</td></tr>
+ <tr><td>Infanrix Hexa (DTP+IPV+HepB+Hib)</td><td>1,538</td><td>IM ทดแทนวัคซีนจำเป็น 2, 4, 6 เดือน</td><td>—</td></tr>
+ <tr><td>dT</td><td>26</td><td>—</td><td>IM 1 เข็มทุก 10 ปี · คนท้อง 20–32 สัปดาห์</td></tr></table><p class="hint">ยี่ห้อและราคาอาจเปลี่ยนแต่ละปี</p>`},
+ {id:'notice69',t:'แจ้งเภสัช (ต.ค. 69): DUE online · ยาใหม่ปีงบ 70 · DI warfarin · แบบฟอร์ม',src:'ประกาศ/แจ้งเภสัช กลุ่มงานเภสัชกรรม รพ.มค (ต.ค. 2569) · MKH-PR-PHA (พ.ค. 2568) · MKH-FR-PHA-054',h:`
+ <ol><li><b>ใบ DUE ยา Antibiotic และ Albumin</b> เปลี่ยนจากใบสแกนเป็น <b>DUE online</b> ทั้งวอร์ด paperless และวอร์ด scan · <b>Colistin / Meropenem / Tienam / Vancomycin / Tazocin อนุมัติทุก 10 วัน</b> (เดิม 7 วัน)</li>
+ <li>เพิ่มการ<b>รับคืนยาเม็ดเปลือย/ยาแผง</b></li>
+ <li><b>ยาเตรียม</b> (ผสมน้ำกระสายยา+ผงยา เช่น Furosemide suspension): ในเวลาราชการ จพง.เภสัชตำแหน่งเบิกยาเตรียม (ช่วงลงเวรเที่ยง = จพง.ตำแหน่งคีย์ยา New order)</li>
+ <li><b>ค่าเตรียมยา TPN:</b> มีออเดอร์ TPN จพง.คีย์ code <b>ZZTPN</b> (ขึ้นเหมือนรายการยา)</li>
+ <li><b>เปิด code ยาใหม่ปีงบ 70:</b> Escitalopram 10 mg (ED, local made ราคาถูก เข้าแทน 15 mg NED — 15 mg หมดแล้วปิด code) · Empagliflozin 25 mg (มี 10 และ 25 mg ระวังความแรง · DM max 25 mg/day · HF/CKD max 10 mg/day) · Drug monograph ใน website กลุ่มงาน</li>
+ <li><b>DI warfarin (MKH-PR-PHA, พ.ค. 68):</b> DI-L1 ห้ามใช้ร่วม (สั่งวันเดียวกันโปรแกรมล็อก · สั่งคนละวันภายใน 120 วันถามก่อนให้ยาตัวที่ 2) → เภสัชโทร consult เปลี่ยนยา · DI-L2 ต้องระบุเหตุผล/ข้อบ่งใช้และติดตาม → consult แพทย์ ยืนยัน → ติดตามตามแนวทาง + แนบใบแจ้งเตือนคู่ยา / ไม่ยืนยัน → consult + note ไม่ต้องจ่ายยา · DI-L3 ติดตามอาการ · บันทึก: Pharmacist note · consult online · พิมพ์ใบแจ้งเตือนแนบยาขึ้นวอร์ด</li>
+ <li><b>MKH-FR-PHA-054</b> แจ้งผู้ป่วยมีประวัติแพ้ยา/สงสัยแพ้ยา และทดลองใช้ยาซ้ำ (Rechallenge)/ขอยกเลิกประวัติแพ้ยา: ส่วนที่ 1 ผู้คัดกรอง · ส่วนที่ 2 แพทย์ · ส่วนที่ 3 ผู้ป่วย/ญาติลงนาม (และพยาน)</li></ol>`}
 ];
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';

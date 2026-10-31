@@ -9,6 +9,13 @@
 
 ---
 
+## v0.18.0 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
+- policy70.js — มาตรการ/ประกาศใหม่ (ไฟล์ที่ส่งมา 31 ต.ค. 69):
+  - คัดกรอง: TKI (Imatinib/Nilotinib/Dasatinib/Ruxolitinib) ห้ามจ่ายใน IPD · Bortezomib สิทธิ์/การคีย์ · บัญชี จ(2) ตรวจการอนุมัติ · NED1 ฟรีเฉพาะเบิกได้จ่ายตรง · Empagliflozin 10/25 mg (DM max 25, HF/CKD max 10) · Escitalopram 15 → 10 mg · ยาเดิม* กลุ่ม 2 (ยาพ่นจมูก) และกลุ่ม 3 (insulin ราคาแพง) · ยีนแพ้ยา HLA-B (allopurinol/carbamazepine/abacavir) · Albumin DUE online
+  - DUE ATB: ใบ DUE online · Colistin/Meropenem/Tienam/Vancomycin/Tazocin อนุมัติทุก 10 วัน (เดิม 7)
+  - MR: เตือนเกินจำนวนสูงสุดยากลับบ้าน (30/33 รายการ) ทั้งยากินและยาฉีด · มาตรการ 3.1–3.3 ในวิธีใช้/หัวตาราง
+- คู่มือย่อ: มาตรการค่าใช้จ่ายยา IPD 2569 · จำกัดปริมาณยากลับบ้าน · NED1 · จ(2)/ยามุ่งเป้า/บัญชียาหลักใหม่ · ส่งตรวจยีนแพ้ยา HLA-B · วัคซีน · แจ้งเภสัช ต.ค. 69 (DUE, ยาใหม่, DI warfarin L1–L3, MKH-FR-PHA-054)
+
 ## v0.17.2 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
 - ปุ่ม 📋 คัดลอก / 🖨 พิมพ์ ท้ายทุกหัวข้อ ทุกแท็บ (HAD, ยาน้ำเด็ก, Dextrose, Opioid, Vanco/Colistin, Timeline, แผนภาพ Timeline, Warfarin, เคมีบำบัด, CRRT, ADR, RCA, คู่มือย่อ, ใบปรึกษาแพทย์) รูปแบบเดียวกับแท็บ MR
 

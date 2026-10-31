@@ -475,6 +475,8 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
               </ol>
               หรือกดปุ่ม 📷 อ่านจากรูป / ลากไฟล์รูปมาวางในช่อง · ตัวอักษรบนจอเล็ก ให้ซูม HIS (<kbd>Ctrl</kbd>+ลูกกลิ้งเมาส์) ก่อนแคป · Windows รุ่นเก่าใช้ปุ่ม <kbd>PrtSc</kbd> (แคปทั้งจอ)</li>
           </ul>
+          <b>มาตรการ รพ. 2569 ที่เกี่ยวข้อง</b> <span class="hint">(รายละเอียด: แท็บคู่มือย่อ)</span>
+          <ul style="margin:4px 0 8px;padding-left:20px"><li>ค่ายากลับบ้านไม่เกิน 1,500 บาท ถ้าเกินตัดวันนัดเหลือ 2 สัปดาห์ (ยกเว้นแพทย์ยืนยันเหตุผลจำเป็น, ยาฉีดรีเฟอร์ไปฉีดต่อ รพช., ยาจับเหล็กชนิดกิน, ผู้ป่วยให้เลือด/Filgrastim ระหว่างเคมีบำบัด)</li><li>ยาเดิมผู้ป่วยเหลือ → ไม่จ่าย (ใส่ช่อง "ยาเหลือ") · ยาพ่น/insulin ราคาแพงที่มียาเดิม → ใช้ยาเดิมผู้ป่วย</li><li>ยารีเฟอร์ไปนอนต่อ รพช. → จ่ายเฉพาะยาที่ไม่มีในบัญชี รพ.ชุมชน (ยาฉีด antibiotic จ่ายครบคอร์ส)</li><li>จำกัดปริมาณยากลับบ้าน 33 รายการ — โปรแกรมเตือนเมื่อเกิน</li></ul>
           <b>ข้อควรระวัง</b>
           <ul style="margin:4px 0 0;padding-left:20px">
             <li>ชื่อการค้า รพ.อื่นที่ไม่มีในบัญชียา จะจับคู่ไม่ได้ (ขึ้นเป็น 2 แถว) — เภสัชกรดูเองแล้วเปลี่ยนสถานะ</li>
@@ -1854,13 +1856,13 @@ function evaluate(row,pt,rows){
       else add('warn',`DUE Colistin — ยืนยันว่า Empiric หรือ Documented · Empiric = Pre-authorized (${PRE}) · Documented (มีผลเพาะเชื้อ) = ${POST}${xtra}`);
       return; }
     if(u.t==='pre') add('warn',`DUE Pre-authorized (ID): ${u.name} — ${PRE}${xtra}`);
-    else add('info',`DUE Post-authorized: ${u.name} — ${POST}`); };
+    else add('info',`DUE Post-authorized: ${u.name} — ${POST}${xtra}`); };
   const alChk=(nm)=>{ const al=(pt.allergy||'').toLowerCase().trim(); if(!al) return; const gen=(nm||'').toLowerCase().split(/[\s(\/]/)[0]; const mmn=mm?mm[1]+' '+mm[2]:'';
     const xs=typeof xaCheck==='function'?xaCheck(pt.allergy,(nm||'')+' '+row.raw+' '+mmn):[];
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
     xs.forEach(x=>add(x.lvl==='ok'?'info':x.lvl,`ประวัติแพ้ ${x.a} → ${x.d}: ${x.txt}`));
     if(!xs.length&&d&&d.fam==='quinolone'&&/quinolone|floxacin/.test(al)&&!al.includes(gen)) add('flag','ประวัติแพ้ยากลุ่ม quinolone'); };
-  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); ['acChk','tbAdrChk','opiChk','apChk'].forEach(f=>{ if(typeof window[f]==='function'&&window[f](row,rows||[],pt,add)) res.pol=true; }); };
+  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); ['acChk','tbAdrChk','opiChk','apChk','fyChk'].forEach(f=>{ if(typeof window[f]==='function'&&window[f](row,rows||[],pt,add)) res.pol=true; }); };
   if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo||res.fpatch||res.pol)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
     const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น|Fentanyl patch|ยาต้านการแข็ง|DI |Dabigatran|Enoxaparin|Warfarin|ยาวัณโรค|Rifampicin|Opioid|Morphine|Pethidine|Oxycodone|Tramadol|ใช้ antipsychotic|Clozapine|[A-Z][a-z]+ \d)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด|Fentanyl patch)/.test(i.txt))?'ok':'none'; return res;}
   mflags(); dueChk();
@@ -2540,6 +2542,52 @@ function apChk(row,rows,pt,add){
   return true;
 }
 
+/* ===== policy70.js — มาตรการ/ประกาศ รพ.มค. ปีงบ 2569–2570 (ส่งมา 31 ต.ค. 69) =====
+ 1) สรุปมาตรการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน 2569 (ยาเดิม* กลุ่ม 1–3, ยากลับบ้าน ≤1,500 บาท, จำกัดปริมาณ 33 รายการ, NED1)
+ 2) แจ้งเภสัช: DUE online · Colistin/Meropenem/Tienam/Vancomycin/Tazocin อนุมัติทุก 10 วัน
+ 3) เปิด code ยาใหม่ปีงบ 70: Escitalopram 10 mg, Empagliflozin 25 mg
+ 4) ยามุ่งเป้า (Targeted therapy) · บัญชี จ(2) · การส่งตรวจยีนแพ้ยา HLA-B
+*/
+const SRC_P69='สรุปมาตรการการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน รพ.มหาสารคาม 2569';
+// ยาเดิม* (ยาพ่น/insulin ราคาแพง) — กลุ่ม 1 ยาพ่นปาก (มีใน policy.js แล้ว) · กลุ่ม 2 ยาพ่นจมูก · กลุ่ม 3 insulin
+const OWN_G2=/avamys|mar-?plus|nasonex|budesonide\s*(?:nasal|ns\b|spray)|rhinocort/i, OWN_G3=/ryzodec|degludec|tresiba|xultophy/i;
+// จำกัดปริมาณการสั่งใช้ยาคนไข้กลับบ้าน (สูงสุดต่อครั้ง) — มาตรการ 33 รายการ (อ่านได้ 30 รายการจากภาพ)
+const DC_MAX=[[/acetylcyst|\bnac\b|fluimucil/i,'Acetylcysteine powder 200 mg (ซอง)',50],[/alum\s*milk/i,'Alum milk 240 ml (ขวด)',2],[/glucosamine/i,'Glucosamine powder (ซอง)',180],
+ [/avamys/i,'Avamys nasal spray 120 dose (ขวด)',2],[/nasonex/i,'Nasonex nasal spray 120 dose (ขวด)',2],[/berodual.*(inh|mdi)|(inh|mdi).*berodual/i,'Berodual inhaler (เครื่อง)',2],
+ [/salbutamol.*(mdi|inh)|ventolin.*(mdi|inh|evo)/i,'Salbutamol MDI (เครื่อง)',2],[/azithro/i,'Azithromycin 250 mg (ไม่รวม NTM)',10],[/celecoxib|celebrex/i,'Celecoxib 200 mg',60],
+ [/etoricoxib|arcoxia/i,'Etoricoxib 90 mg',30],[/domperidone/i,'Domperidone 10 mg',45],[/ondansetron|onsia/i,'Ondansetron 8 mg tab',20],[/enoxaparin|clexane/i,'Enoxaparin inj 0.4, 0.6 ml (หลอด)',30],
+ [/flunarizine/i,'Flunarizine 5 mg',15],[/hyoscine|buscopan/i,'Hyoscine 10 mg tab',10],[/meloxicam/i,'Meloxicam 7.5 mg',30],[/gasym|pancreatin/i,'Gasym (pancreatin+simethicone)',90],
+ [/simethicone|air-?x/i,'Simethicone 80 mg',60],[/multivit|\bmvt\b/i,'Multivitamin tab',200],[/vitamin\s*b\s*(?:co|complex)|\bvit\.?\s*b\s*co/i,'Vitamin B complex',200],[/nss.*irrig|irrig.*nss/i,'NSS irrigate 1000 ml (ขวด)',2],
+ [/tolperisone/i,'Tolperisone 50 mg',40],[/omeprazole/i,'Omeprazole 20 mg cap',60],[/gabapentin/i,'Gabapentin 100/300 mg',180],[/betahistin/i,'Betahistine 12 mg',180],
+ [/tramadol/i,'Tramadol 50 mg',90],[/lactulose/i,'Lactulose syrup 100 ml (ขวด)',5],[/unison/i,'Unison enema 133 ml',10],[/paracetamol|\bpara\b|tylenol/i,'Paracetamol 500 mg',20]];
+function dcMaxOf(txt){ return DC_MAX.find(x=>x[0].test(txt))||null; }
+// NED1 ฟรีเฉพาะสิทธิ์เบิกได้จ่ายตรง (สิทธิ์อื่นชำระเงิน) — ปรับปรุง 2569
+const NED1=[[/acetylcyst.*(?:powder|ซอง)|\bnac\b.*200/i,'Acetylcysteine powder 200 mg'],[/brimonidine|alphagan/i,'Brimonidine eye drop 0.1%'],[/dienogest|visanne/i,'Dienogest 2 mg'],
+ [/dinoprostone|prepidil|pege2/i,'Dinoprostone vaginal tab 3 mg'],[/daflon|diosmin/i,'Diosmin+Hesperidin (Daflon) 1000 mg'],[/cyclo-?progynova|norgestrel/i,'Estradiol+Norgestrel (Cyclo-progynova)'],
+ [/nepafenac|nevanac/i,'Nepafenac 0.1% eye drop'],[/paracetamol.*supp|suppo.*paracetamol/i,'Paracetamol rectal suppo 325 mg'],[/selenium\s*sulf/i,'Selenium sulfide shampoo 2.5%'],
+ [/testosterone\s*gel|androgel/i,'Testosterone gel 50 mg/5 ml'],[/aescin|reparil/i,'Aescin (Reparil)'],[/ketorolac/i,'Ketorolac inj 30 mg — จ่ายตรงฟรี P/O 24 hr'],
+ [/parecoxib|dynastat/i,'Parecoxib 40 mg inj — จ่ายตรงฟรี P/O 24 hr'],[/desloratadine|aerius/i,'Desloratadine 5 mg']];
+// บัญชี จ(2) ที่ สปสช.สนับสนุน (กองทุน 3 กองทุน) — ต้องลงทะเบียน/อนุมัติ
+const J2=/adalimumab|humira|antithymocyte|thymoglobulin|bevacizumab|avastin|bortezomib|velcade|botulinum|botox|avibactam|zavicefta|dasatinib|sprycel|deferasirox|erlotinib|tarceva|imatinib|glivec|imiglucerase|cerezyme|immunoglobulin|\bivig\b|infliximab|remicade|lacosamide.*(?:inj|sterile|sol)|linezolid|zyvox|liposomal\s*amphotericin|ambisome|micafungin|mycamine|nilotinib|tasigna|octreotide\s*lar|sandostatin\s*lar|posaconazole|noxafil|ribavirin|rituximab|mabthera|sofosbuvir|velpatasvir|epclusa|thyrotropin|thyrogen|tocilizumab|actemra|trastuzumab|herceptin|voriconazole|vfend/i;
+const TKI=/imatinib|glivec|nilotinib|tasigna|dasatinib|sprycel|ruxolitinib|jakavi/i;
+const HLA=[[/allopurinol|zyloric/i,'HLA-B*58:01','Allopurinol','Positive → หลีกเลี่ยง allopurinol ใช้ Benzbromarone (eGFR >20) หรือ Febuxostat · Negative → เริ่ม ≤50 mg/day แล้วค่อยปรับ เฝ้าระวัง ADR 3 เดือน · ระหว่างรอผล คุมอาการด้วย Colchicine/NSAIDs/Steroid ตามไต'],
+ [/carbamaz|tegretol/i,'HLA-B*15:02','Carbamazepine','Positive → ห้ามใช้ carbamazepine และเลี่ยงยากันชัก aromatic (oxcarbazepine, lamotrigine, phenytoin, phenobarbital) · ทางเลือก: epilepsy → levetiracetam/valproate · neuropathic pain → gabapentin/pregabalin'],
+ [/abacavir|\babc\b|kivexa|triumeq/i,'HLA-B*57:01','Abacavir','Positive → ห้ามใช้ abacavir (hypersensitivity) · เร่งด่วน: ใช้สูตรที่ไม่มี abacavir ไปก่อน · CD4 ดี/ไม่มี OI รอผลได้']];
+function fyChk(row,rows,pt,add){ const mm=masterOf(row), s=row.raw+' '+(mm?mm[1]+' '+mm[2]:''); let hit=false;
+  if(TKI.test(s)){ add('flag','ยามุ่งเป้า TKI (Imatinib/Nilotinib/Dasatinib/Ruxolitinib): จ่ายเฉพาะผู้ป่วยนอก สั่งโดย Hematologist — ห้ามจ่ายใน IPD หาก admit ให้ใช้ยาเดิมผู้ป่วย'); hit=true; }
+  if(/bortezomib|velcade/i.test(s)){ add('warn','Bortezomib (NED): UC/ประกันสังคม สั่งจากแผนก OPD คิดเงินรวม 4 ครั้งใน 1 cycle · สิทธิ์จ่ายตรง IPD: admit อายุรกรรมรวม คีย์ตามจำนวนที่สั่งทั้งหมดเป็น One day'); hit=true; }
+  if(J2.test(s)){ add('info','บัญชี จ(2) (สปสช. กองทุน 3 กองทุน) — ตรวจการลงทะเบียน/อนุมัติใช้ยาตามเงื่อนไขก่อนจ่าย'); hit=true; }
+  const n1=NED1.find(x=>x[0].test(s)); if(n1){ add('info',`NED1: ${n1[1]} — ฟรีเฉพาะสิทธิ์เบิกได้จ่ายตรง · สิทธิ์อื่นชำระเงิน (${SRC_P69} ข้อ 8)`); hit=true; }
+  if(/empagli|jardiance/i.test(s)){ const st=(s.match(/(\d+)\s*mg/i)||[])[1]; add(st==='25'?'warn':'info',`Empagliflozin มี 10 และ 25 mg — ระวังความแรง · ยืนยันข้อบ่งใช้: DM max 25 mg/day · HF หรือ CKD max 10 mg/day${st==='25'?' — คำสั่ง 25 mg: ต้องเป็นข้อบ่งใช้ DM':''}`); hit=true; }
+  if(/escitalo|lexapro/i.test(s)&&/15\s*mg/i.test(s)){ add('info','Escitalopram 15 mg (NED) — รพ.เปิด code 10 mg (ED, local made) เข้าแทน · 15 mg หมดแล้วปิด code'); hit=true; }
+  if(OWN_G2.test(s)){ add('info','ยาเดิม* กลุ่ม 2 (ยาพ่นจมูก): ผู้ป่วยนำยาเดิมมา → สติ๊กเกอร์จำนวน 0 + "ใช้ยาเดิมของผู้ป่วย" · ไม่ได้นำมา → แพทย์พิจารณาใช้ยาอื่นแทนขณะนอน รพ. ('+SRC_P69+' ข้อ 2)'); hit=true; }
+  if(OWN_G3.test(s)){ add('info','ยาเดิม* กลุ่ม 3 (insulin ราคาแพง: Ryzodec/Degludec/Xultophy): มียาเดิม → ใช้ยาเดิมผู้ป่วย (เก็บในตู้เย็นวอร์ด) สติ๊กเกอร์จำนวน 0 · ไม่ได้นำมา: ≤48 ชม.แรกแพทย์พิจารณาใช้ยาอื่นแทน · >48 ชม. นำมาไม่ได้ → แพทย์สั่งและแจ้งพยาบาลเบิกจากห้องยา · insulin ใช้ได้ 6 สัปดาห์หลังเปิด (อุณหภูมิห้อง)'); hit=true; }
+  const h=HLA.find(x=>x[0].test(s)); if(h){ add('info',`ยีนแพ้ยา ${h[1]} (${h[2]}): ผู้ป่วยรายใหม่ (ยังไม่เริ่ม/ใช้ไม่เกิน 2–3 เดือน · ไม่เคยตรวจ · ไม่เคยแพ้) → พิจารณาส่งตรวจ (สิทธิ์ สปสช.) · IPD: พยาบาล Notify แพ้ยา "แจ้งเภสัชกรให้คำแนะนำการตรวจยีนแพ้ยา" → เภสัชกรให้ข้อมูล/consent · ${h[3]}`); hit=true; }
+  if(/albumin/i.test(s)&&/inj|iv|%|ml|vial|ขวด/i.test(s)&&!/lab|g\/dl/i.test(s)){ add('info','Albumin: ใบ DUE online (ไม่ใช้ใบสแกน) ทั้งวอร์ด paperless และวอร์ด scan'); hit=true; }
+  return hit; }
+// เพิ่มรายละเอียด DUE ATB: online ทั้งหมด · 5 รายการอนุมัติทุก 10 วัน
+(function(){ if(typeof DUE==='undefined') return; DUE.forEach(u=>{ const t='ใบ DUE online (ไม่ใช้ใบสแกน)'; u.x=(/colistin|meropenem|imipenem|piperacillin|vancomycin/i.test(u.name)?'อนุมัติทุก 10 วัน (เดิม 7 วัน) · ':'')+t+(u.x?' · '+u.x:''); }); })();
+
 /* อายุ: กรอกเป็น ปี / เดือน / วัน → เก็บเป็นปีใน #age */
 function ageSync(){ const v=$('ageIn').value, u=$('ageU').value; $('age').value=v===''?'':+(u==='d'?v/365:u==='m'?v/12:+v).toFixed(5); $('age').dispatchEvent(new Event('input',{bubbles:true})); }
 function ageSyncIn(){ const a=$('age').value; if(a===''){ $('ageIn').value=''; return; } const y=+a; if(y<1/12){ $('ageU').value='d'; $('ageIn').value=Math.round(y*365); } else if(y<2&&Math.abs(y*12-Math.round(y*12))<0.01&&y<1){ $('ageU').value='m'; $('ageIn').value=Math.round(y*12); } else { $('ageU').value='y'; $('ageIn').value=+y.toFixed(2); } }
@@ -2888,7 +2936,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.17.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.18.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3520,7 +3568,65 @@ const REF=[
  <h3>Macrolide</h3><p>แพ้ข้ามมีรายงานน้อย แต่ถ้าแพ้รุนแรง เปลี่ยนกลุ่มยาปลอดภัยกว่า · ถ้าจำเป็นทดสอบ/desensitization</p>
  <h3>Azole</h3><p>โครงสร้างร่วมที่มีรายงาน: imidazole (miconazole/ketoconazole) · triazole (fluconazole/itraconazole) · Cl (clotrimazole/itraconazole) · F (fluconazole/voriconazole) · propan-2-ol (fluconazole/ketoconazole กับ metronidazole/tinidazole/ornidazole)</p>
  <h3>Sulfonamide / PPI (Thai HP)</h3><ul><li>แพ้ sulfa รุนแรง (anaphylaxis, SJS/TEN, DRESS, AGEP) → ไม่ใช้ non-antimicrobial sulfonamide เว้นแต่จำเป็นและไม่มียาอื่น (test dose) · ไม่รุนแรง → ใช้ non-antimicrobial ได้ แต่ counseling + test dose</li><li>แพ้ PPI รุนแรง → หลีกเลี่ยงทั้งกลุ่ม · ไม่รุนแรง → หลีกเลี่ยงทั้งกลุ่ม หรือถ้าจำเป็นเลือกตัวอื่นและเฝ้าระวัง</li></ul>
- <h3>ยากันชัก · Antihistamine · Statin</h3><ul><li>แพ้ aromatic (phenytoin, phenobarbital, lamotrigine, carbamazepine) → ใช้ non-aromatic (valproate, levetiracetam, topiramate, gabapentin, pregabalin)</li><li>Antihistamine: แพ้ข้ามสูงในสายแม่-เมแทบอไลต์ hydroxyzine → cetirizine → levocetirizine · loratadine → desloratadine · terfenadine → fexofenadine · triprolidine → acrivastine</li><li>Statin: type I (lova, simva, prava) vs type II (atorva, rosuva, fluva, pitava) — ข้อมูลแพ้ข้ามน้อย</li></ul>`}
+ <h3>ยากันชัก · Antihistamine · Statin</h3><ul><li>แพ้ aromatic (phenytoin, phenobarbital, lamotrigine, carbamazepine) → ใช้ non-aromatic (valproate, levetiracetam, topiramate, gabapentin, pregabalin)</li><li>Antihistamine: แพ้ข้ามสูงในสายแม่-เมแทบอไลต์ hydroxyzine → cetirizine → levocetirizine · loratadine → desloratadine · terfenadine → fexofenadine · triprolidine → acrivastine</li><li>Statin: type I (lova, simva, prava) vs type II (atorva, rosuva, fluva, pitava) — ข้อมูลแพ้ข้ามน้อย</li></ul>`},
+ {id:'pol69',t:'มาตรการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน 2569 (ยาเดิม · ยากลับบ้าน · ยารีเฟอร์)',src:'สรุปมาตรการการควบคุมค่าใช้จ่ายด้านยาผู้ป่วยใน รพ.มหาสารคาม 2569',h:`
+ <ol><li><b>MR</b> แรกรับ ระหว่างนอน และกลับบ้าน</li>
+ <li><b>งดจ่ายยาพ่น/insulin ราคาแพงในผู้ป่วยรับใหม่ที่มียาเดิม*</b> — กลุ่ม 1 ยาพ่นปาก (Flixotide, Seretide, Symbicort, Spiriva, Spiolto, Anoro, Trelegy) · กลุ่ม 2 ยาพ่นจมูก (Avamys, Mar-plus, Nasonex, Budesonide) · กลุ่ม 3 insulin (Ryzodec, Degludec, Xultophy)
+  <ul><li><b>แพทย์:</b> ผู้ป่วยนำยามา → เขียน "ใช้ยาเดิมของผู้ป่วย" ในออเดอร์แรกรับ/ใบ MR · ไม่ได้นำมา: กลุ่ม 2 พิจารณาใช้ยาอื่น · กลุ่ม 1 และ 3: ≤48 ชม. พิจารณาใช้ยาอื่นแทน / >48 ชม. นำมาไม่ได้ สั่งยาและแจ้งพยาบาลเบิกจากห้องยา</li>
+  <li><b>พยาบาล:</b> กลุ่ม 1–2 เก็บไว้กับผู้ป่วยให้บริหารเอง (แจ้ง/Notify เภสัชกรถ้าเปลี่ยนขนาด) · กลุ่ม 3 เก็บในลิ้นชัก/ตู้เย็นวอร์ด พยาบาลบริหารตามออเดอร์ · ไม่ได้นำมา แจ้งญาตินำมาโดยเร็ว</li>
+  <li><b>เภสัชกร:</b> มีประวัติยาเดิมและยาเหลือ → สติ๊กเกอร์จำนวน 0 + "ใช้ยาเดิมของผู้ป่วย" · ไม่มีประวัติรับยาที่ รพ.มค / ยังนำมาไม่ได้ → consult แพทย์ · insulin อายุ 6 สัปดาห์หลังเปิดใช้ (อุณหภูมิห้อง)</li></ul></li>
+ <li><b>ค่ายากลับบ้าน/ยารีเฟอร์</b><ul><li>3.1 ค่ายากลับบ้านไม่เกิน <b>1,500 บาท</b> ถ้าเกินให้ตัดวันนัดเหลือ <b>2 สัปดาห์</b> — ยกเว้น (1) เภสัช consult แล้วแพทย์ยืนยันเหตุผลจำเป็น (เลื่อนนัดไม่ได้) (2) ยาฉีดรีเฟอร์กลับไปนอนฉีดต่อ รพช. (3) ยาจับเหล็กชนิดรับประทาน (4) ผู้ป่วยที่มาให้เลือด/Filgrastim ระหว่างยาเคมีบำบัด</li>
+  <li>3.2 ยาเดิมผู้ป่วย: เภสัชตรวจสอบประวัติก่อน ถ้ายาเดิมเหลือไม่จ่าย</li>
+  <li>3.3 ยารีเฟอร์กลับไปนอนต่อที่ รพช.: จ่ายเฉพาะยาที่ไม่มีในบัญชี รพ.ชุมชน (ยาฉีด antibiotic จ่ายครบคอร์สตามคำสั่งแพทย์)</li></ul></li>
+ <li><b>การคืนยา:</b> สื่อสารการคืนยาที่ไม่ได้ใช้ เก็บรักษายาให้คงสภาพตามมาตรฐาน · รับคืนยาเม็ดเปลือย/ยาแผง</li>
+ <li><b>วงรอบยา:</b> คีย์ จ่าย ให้ยาตามวงรอบเดิม · พยาบาลลง last dose (มื้อสุดท้ายก่อนมานอน รพ.) ในใบ MR แรกรับ</li>
+ <li><b>DUE ระหว่างนอน รพ.:</b> ASP round · switch ยา · กำหนดระยะเวลาให้ยา</li>
+ <li><b>จำกัดปริมาณการจ่ายยากลับบ้าน</b> (ดูหัวข้อ "จำกัดปริมาณยากลับบ้าน")</li>
+ <li><b>NED1:</b> ชำระเงินทุกสิทธิ์ ยกเว้นเบิกได้จ่ายตรง (ดูหัวข้อ NED1)</li></ol>
+ <p class="hint">ในโปรแกรม: แท็บ MR ยากลับบ้านเตือนจำนวนเกินมาตรการ · ช่อง "ยาเหลือ" ใช้หักยาเดิม (3.2) · แท็บตรวจใบสั่งยาเตือนยาเดิม* กลุ่ม 2–3</p>`},
+ {id:'dcmax',t:'จำกัดปริมาณการสั่งใช้ยาคนไข้กลับบ้าน (สูงสุดต่อครั้ง)',src:'มาตรการการจำกัดปริมาณการสั่งใช้ยาคนไข้กลับบ้าน 33 รายการ (อ่านได้ 30 รายการจากภาพ)',h:`
+ <table class="ctbl"><tr><th>รายการ</th><th>สูงสุด/ครั้ง</th></tr>${DC_MAX.map(x=>`<tr><td>${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</table>
+ <p class="hint">ตารางต้นฉบับ 33 รายการ แต่ภาพที่ได้รับเห็น 30 รายการ — รอเพิ่ม 3 รายการที่เหลือ</p>`},
+ {id:'ned1',t:'NED1 ฟรีเฉพาะสิทธิ์เบิกได้จ่ายตรง (ปรับปรุง 2569)',src:'รายการยา NED 1 ฟรีเฉพาะคนไข้เบิกได้ จ่ายตรง ปรับปรุง 2569',h:`
+ <p>สิทธิ์อื่นชำระเงิน · ยกเว้นเบิกได้จ่ายตรง</p><table class="ctbl"><tr><th>ยา</th><th>ราคา/หน่วย</th></tr>
+ <tr><td>Acetylcysteine powder (NAC) 200 mg ซอง</td><td>1.5</td></tr><tr><td>Brimonidine eye drop 0.1% (Alphagan-P)</td><td>341</td></tr><tr><td>Dienogest 2 mg (กล่อง)</td><td>811</td></tr>
+ <tr><td>Dinoprostone vaginal tab 3 mg (PEGE2)</td><td>727</td></tr><tr><td>Diosmin+Hesperidin (Daflon) 1000 mg</td><td>6.5</td></tr><tr><td>Estradiol 2 mg+Norgestrel 0.5 mg (Cyclo-progynova)</td><td>ยาขาด</td></tr>
+ <tr><td>Nepafenac 0.1% eye drop 5 ml (Nevanac)</td><td>165</td></tr><tr><td>Paracetamol rectal suppo 325 mg</td><td>13</td></tr><tr><td>Selenium sulfide shampoo 2.5% 120 ml</td><td>91</td></tr>
+ <tr><td>Testosterone gel 50 mg/5 ml</td><td>75</td></tr><tr><td>Aescin (Reparil) tab</td><td>7.5</td></tr><tr><td>Ketorolac 30 mg/1 ml amp</td><td>120 · จ่ายตรงฟรี P/O 24 hr</td></tr>
+ <tr><td>Parecoxib 40 mg inj (Dynastat)</td><td>234 · จ่ายตรงฟรี P/O 24 hr</td></tr><tr><td>Desloratadine 5 mg</td><td>4.25</td></tr></table>`},
+ {id:'j2',t:'บัญชี จ(2) · ยามุ่งเป้า (Targeted therapy) · บัญชียาหลักใหม่',src:'รายการยาในบัญชี จ(2) ที่ สปสช.สนับสนุน · งานบริบาลผู้ป่วยเคมีบำบัด รพ.มค · ระบบบัญชียาหลักแห่งชาติ',h:`
+ <h3>ยามุ่งเป้า</h3><ul><li><b>TKI</b> (Imatinib 100/400, Nilotinib 200, Dasatinib — จ(2) · Ruxolitinib — NED): จ่ายเฉพาะผู้ป่วยนอก สั่งโดย Hematologist (ตรวจเอกสารขออนุมัติ) · <b>ห้ามจ่ายใน IPD</b> หาก admit ให้ใช้ยาเดิมผู้ป่วย</li>
+ <li><b>Bortezomib (NED):</b> UC/ประกันสังคม แพทย์สั่งจากแผนก OPD คิดเงินรวม 4 ครั้งใน 1 cycle (เภสัช OPD ตรวจ dose, safety factor, counseling cycle 1, ใบรับประกันผลิต) · สิทธิ์จ่ายตรง: แพทย์สั่งจาก OPD ห้องยาคิดเงินรวม 4 ครั้งใน 1 cycle ยกรูปแบบ Oral คีย์คิดเงินตามจำนวนที่สั่งทั้งหมดเป็น One day โดยผู้ป่วย admit อายุรกรรมรวม</li></ul>
+ <h3>บัญชี จ(2) (36 รายการ)</h3><p>Adalimumab · Antithymocyte globulin · Bevacizumab · Bortezomib · Botulinum toxin A 100/500 IU · Ceftazidime/avibactam · Dasatinib 50/70 · Deferasirox GPO 250 · Erlotinib · Imatinib 100/400 · Imiglucerase · IVIG 5% 50/100 ml · Infliximab · Lacosamide sterile sol · Linezolid 600 tab · Liposomal amphotericin B · Micafungin (50 mg) · Nilotinib · Octreotide LAR 20/30 · Posaconazole tab · Ribavirin · Rituximab 100/500 · Sofosbuvir+Velpatasvir · Thyrotropin alpha · Tocilizumab (80 mg/4 ml) · Trastuzumab 150/440 · Voriconazole inj/tab 200/50</p>
+ <h3>บัญชียาหลักแห่งชาติ (ใหม่)</h3><ul><li><b>ยาพื้นฐาน (basic list)</b> ≈ บัญชี ก และ ข เดิม — เลือกใช้ก่อน</li><li><b>ยาทางเลือก (supplemental list)</b> ≈ บัญชี ค เดิม — ลำดับรอง</li><li><b>ยาเฉพาะโรค (exclusive list)</b> ≈ บัญชี ง เดิม — โดยแพทย์ผู้ชำนาญ ติดตามความเหมาะสม</li><li>บัญชีพิเศษ จ(1) ยาโครงการภาครัฐ · จ(2) กำกับโดยกองทุน 3 กองทุน</li></ul>`},
+ {id:'pgx',t:'การส่งตรวจยีนแพ้ยา HLA-B (Allopurinol · Carbamazepine · Abacavir)',src:'การส่งตรวจยีนแพ้ยา รพ.มหาสารคาม (งานติดตามอาการไม่พึงประสงค์จากยา)',h:`
+ <p><b>เกณฑ์ส่งตรวจ:</b> ไม่เคยตรวจยีน · ผู้ป่วยรายใหม่ ยังไม่เริ่มยาหรือใช้มาไม่เกิน 2–3 เดือน · ไม่เคยมีประวัติแพ้ยานั้น (สิทธิ์ สปสช.: HLA-B*15:02 ก่อน carbamazepine ทุกข้อบ่งใช้ ตั้งแต่ 2561 · HLA-B*58:01 ก่อน allopurinol ในเกาต์รายใหม่ ตั้งแต่ 2564)</p>
+ <p><b>IPD:</b> แพทย์พิจารณาส่งตรวจ → พยาบาลแจ้งโปรแกรม Notify แพ้ยา "แจ้งเภสัชกรให้คำแนะนำการตรวจยีนแพ้ยา" → เภสัชกรให้ข้อมูล สอบถามความยินยอม ให้ลงนาม เก็บเอกสารเข้าระบบ · <b>OPD:</b> พยาบาลส่งพบเภสัชกร → ลงนาม → เจาะเลือด → นัดฟังผล 2 สัปดาห์</p>
+ <table class="ctbl"><tr><th>ยีน / ยา</th><th>Negative</th><th>Positive</th><th>ระหว่างรอผล</th></tr>
+ <tr><td>HLA-B*58:01 / Allopurinol</td><td>เริ่ม ≤50 mg/day ค่อยปรับ · เฝ้าระวัง ADR 3 เดือน</td><td>หลีกเลี่ยง allopurinol → Benzbromarone (eGFR &gt;20) หรือ Febuxostat</td><td>Colchicine / NSAIDs / Steroid ตามไต</td></tr>
+ <tr><td>HLA-B*15:02 / Carbamazepine</td><td>เริ่มได้ · เฝ้าระวัง 3 เดือน</td><td>ห้ามใช้ · เลี่ยง aromatic (oxcarbazepine, eslicarbazepine, lacosamide, lamotrigine, phenytoin, phenobarbital, zonisamide)</td><td>Epilepsy: levetiracetam/valproate · Neuropathic: gabapentin/pregabalin</td></tr>
+ <tr><td>HLA-B*57:01 / Abacavir</td><td>เริ่มได้ · เฝ้าระวัง 3 เดือน</td><td>ห้ามใช้ (hypersensitivity)</td><td>เร่งด่วน: สูตรที่ไม่มี abacavir · CD4 ดี/ไม่มี OI รอผลได้</td></tr></table>
+ <p><b>หลังทราบผล:</b> ให้คำปรึกษา · ลงข้อมูลในระบบ · มอบบัตรเภสัชพันธุศาสตร์ + บัตรเฝ้าระวังผื่นแพ้ยารุนแรง · ติดตาม ADR 3 เดือน · <b>สงสัยแพ้:</b> หยุดยาทันที รายงานแพทย์ (สงสัย SJS/TEN ประเมินเร่งด่วน admit)</p>`},
+ {id:'vac',t:'วัคซีน: ราคา/เข็ม และการใช้ (UPDATE FEB 2026)',src:'งานวิชาการเภสัชสนเทศ กลุ่มงานเภสัชกรรม รพ.มหาสารคาม · สมาคมโรคติดเชื้อฯ 2568',h:`
+ <table class="ctbl"><tr><th>วัคซีน</th><th>ราคา/เข็ม</th><th>เด็ก</th><th>ผู้ใหญ่</th></tr>
+ <tr><td>SKYCellflu (Influenza 4 สายพันธุ์)</td><td>356</td><td>≥6 เดือน IM ปีละ 1 ครั้ง · ครั้งแรก 2 เข็มห่าง 1 เดือน</td><td>IM ปีละ 1 · คนท้องอายุครรภ์ 12–20 สัปดาห์ · กิน oseltamivir อยู่ ฉีดหลังกินครบ &gt;48 ชม.</td></tr>
+ <tr><td>QDenga (Dengue)</td><td>1,639</td><td>≥4 ปี SC 2 เข็มห่าง 3 เดือน · ไม่ต้องตรวจภูมิก่อน</td><td>อายุ 4–60 ปี SC 2 เข็มห่าง 3 เดือน · <u>ห้าม</u>ภูมิต่ำ/คนท้อง · หลังป่วยไข้เลือดออก ฉีดหลังหาย ≥6 เดือน</td></tr>
+ <tr><td>ABRYSVO (RSV)</td><td>7,308</td><td>—</td><td>IM 1 ครั้ง · คนท้อง 24–36 สัปดาห์ (ป้องกันทารกถึง 6 เดือน) · อายุ ≥60 ปี หรือกลุ่มเสี่ยง</td></tr>
+ <tr><td>AREXVY (RSV)</td><td>7,211</td><td>—</td><td>IM 1 ครั้ง · อายุ ≥60 ปี/กลุ่มเสี่ยง · <u>ห้าม</u>คนท้อง</td></tr>
+ <tr><td>VARILRIX (Varicella)</td><td>919</td><td>≥1 ปี SC 2 เข็มห่าง &gt;3 เดือน (เข็มแรก 12–18 เดือน, เข็มสอง 18 เดือน–4 ปี) · อายุ &gt;13 ปี ห่าง 1 เดือนได้</td><td>วัคซีนเชื้อเป็น SC 2 เข็มห่าง 4–8 สัปดาห์ · <u>ห้าม</u>ภูมิต่ำ/คนท้อง</td></tr>
+ <tr><td>SHINGRIX (Herpes zoster)</td><td>5,199</td><td>—</td><td>IM 2 เข็มห่าง 2–6 เดือน (≥50 ปี/กลุ่มเสี่ยง ห่าง 1–2 เดือนได้)</td></tr>
+ <tr><td>Hepatitis B</td><td>111</td><td>วัคซีนจำเป็น (ฟรี) แรกเกิด, 2, 4, 6 เดือน</td><td>IM 3 เข็ม 0, 1, 6 เดือน · โรคไต double dose 4 เข็ม 0, 1, 2, 6 เดือน</td></tr>
+ <tr><td>Prevnar-20 (Pneumococcal)</td><td>2,533</td><td>IM 2, 4, 6 เดือน + กระตุ้น 12–15 เดือน (ปกติอาจ 2+1)</td><td>IM 1 ครั้ง · ห้ามถ้าแพ้วัคซีนคอตีบ</td></tr>
+ <tr><td>Infanrix Hexa (DTP+IPV+HepB+Hib)</td><td>1,538</td><td>IM ทดแทนวัคซีนจำเป็น 2, 4, 6 เดือน</td><td>—</td></tr>
+ <tr><td>dT</td><td>26</td><td>—</td><td>IM 1 เข็มทุก 10 ปี · คนท้อง 20–32 สัปดาห์</td></tr></table><p class="hint">ยี่ห้อและราคาอาจเปลี่ยนแต่ละปี</p>`},
+ {id:'notice69',t:'แจ้งเภสัช (ต.ค. 69): DUE online · ยาใหม่ปีงบ 70 · DI warfarin · แบบฟอร์ม',src:'ประกาศ/แจ้งเภสัช กลุ่มงานเภสัชกรรม รพ.มค (ต.ค. 2569) · MKH-PR-PHA (พ.ค. 2568) · MKH-FR-PHA-054',h:`
+ <ol><li><b>ใบ DUE ยา Antibiotic และ Albumin</b> เปลี่ยนจากใบสแกนเป็น <b>DUE online</b> ทั้งวอร์ด paperless และวอร์ด scan · <b>Colistin / Meropenem / Tienam / Vancomycin / Tazocin อนุมัติทุก 10 วัน</b> (เดิม 7 วัน)</li>
+ <li>เพิ่มการ<b>รับคืนยาเม็ดเปลือย/ยาแผง</b></li>
+ <li><b>ยาเตรียม</b> (ผสมน้ำกระสายยา+ผงยา เช่น Furosemide suspension): ในเวลาราชการ จพง.เภสัชตำแหน่งเบิกยาเตรียม (ช่วงลงเวรเที่ยง = จพง.ตำแหน่งคีย์ยา New order)</li>
+ <li><b>ค่าเตรียมยา TPN:</b> มีออเดอร์ TPN จพง.คีย์ code <b>ZZTPN</b> (ขึ้นเหมือนรายการยา)</li>
+ <li><b>เปิด code ยาใหม่ปีงบ 70:</b> Escitalopram 10 mg (ED, local made ราคาถูก เข้าแทน 15 mg NED — 15 mg หมดแล้วปิด code) · Empagliflozin 25 mg (มี 10 และ 25 mg ระวังความแรง · DM max 25 mg/day · HF/CKD max 10 mg/day) · Drug monograph ใน website กลุ่มงาน</li>
+ <li><b>DI warfarin (MKH-PR-PHA, พ.ค. 68):</b> DI-L1 ห้ามใช้ร่วม (สั่งวันเดียวกันโปรแกรมล็อก · สั่งคนละวันภายใน 120 วันถามก่อนให้ยาตัวที่ 2) → เภสัชโทร consult เปลี่ยนยา · DI-L2 ต้องระบุเหตุผล/ข้อบ่งใช้และติดตาม → consult แพทย์ ยืนยัน → ติดตามตามแนวทาง + แนบใบแจ้งเตือนคู่ยา / ไม่ยืนยัน → consult + note ไม่ต้องจ่ายยา · DI-L3 ติดตามอาการ · บันทึก: Pharmacist note · consult online · พิมพ์ใบแจ้งเตือนแนบยาขึ้นวอร์ด</li>
+ <li><b>MKH-FR-PHA-054</b> แจ้งผู้ป่วยมีประวัติแพ้ยา/สงสัยแพ้ยา และทดลองใช้ยาซ้ำ (Rechallenge)/ขอยกเลิกประวัติแพ้ยา: ส่วนที่ 1 ผู้คัดกรอง · ส่วนที่ 2 แพทย์ · ส่วนที่ 3 ผู้ป่วย/ญาติลงนาม (และพยาน)</li></ol>`}
 ];
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
@@ -3906,6 +4012,7 @@ function mrPlan(row){ const c=row.c[0]; if(!c) return null; const r=c.r, raw=r.r
   else if(cEnd) notes.push(`ครบคอร์ส ${mrFs(cEnd)}`);
   const oq=mrQtyOrdered(raw); if(oq!=null&&need!=null&&!tp&&Math.abs(oq-need)>0.5) notes.push(`จำนวนในคำสั่ง ${oq} ≠ ที่คำนวณ ${fmtN(need)}`);
   if(leftTo&&left>0) notes.push(`ยาเหลือพอถึง ${mrFs(leftTo)}`);
+  { const mm=masterOf(r), dm=typeof dcMaxOf==='function'?dcMaxOf(raw+' '+(mm?mm[1]:'')):null; if(dm&&give!=null&&!/ขวด|เครื่อง|หลอด/.test(dm[1])&&give>dm[2]) notes.push(`⚠ เกินจำนวนสูงสุดที่สั่งได้ต่อครั้ง: ${dm[1]} ไม่เกิน ${dm[2]} (มาตรการจำกัดปริมาณยากลับบ้าน) — จ่าย ${give}`); else if(dm) notes.push(`มาตรการจำกัดปริมาณ: ${dm[1]} ไม่เกิน ${dm[2]}/ครั้ง`); }
   return {P,autoStart,autoDur,s,e,need,left,give,packs,notes,cEnd,tp,oq,phs,tm}; }
 function mrDayUnits(phs,s,d,tm){ const ph=phs.find(x=>d>=x.a&&(!x.b||d<=x.b)); if(!ph) return 0; if(ph.H){ if(ph.per==null) return null; const t0=new Date(ph.a); if(ph===phs[0]&&tm) t0.setHours(tm[0],tm[1]); else t0.setHours(8,0); return mrDosesOn(ph,t0,d)*ph.per; } return mrUnitsOn(ph.r,d); }
 function mrSched(phs,s,e,tm){ let need=0, ok=true; const packs=phs.map((x,i)=>({i:i+1,a:x.a>s?x.a:s,b:x.b&&x.b<e?x.b:e,q:0,u:null,seg:x.seg,H:x.H,dates:[]}));
@@ -3919,7 +4026,7 @@ function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].incl
   if(!rows.length) return mrInjTbl(inj)+mrCal(all);
   const W=mrWin();
   return `<h2 style="margin-top:14px">แผนจ่ายยา — ${W.days?`${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)`:'ระบุจำนวนวัน หรือวันนัด'}</h2>
-  <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน</p>
+  <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน · มาตรการ 2569: ยาเดิมเหลือไม่จ่าย (3.2) · ค่ายากลับบ้าน &gt;1,500 บาท ตัดวันนัดเหลือ 2 สัปดาห์ (3.1) · จำกัดปริมาณ 33 รายการ</p>
   <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา / วิธีใช้</th><th>เริ่มกิน</th><th>ระยะคอร์ส</th><th>ช่วงที่จ่ายรอบนี้</th><th>ต้องใช้</th><th>ยาเหลือ</th><th>จ่าย</th><th>หมายเหตุ</th></tr></thead><tbody>
   ${rows.map(r=>{ const p=mrPlan(r), inp=(k,v,ph,w)=>`<input data-pk="${esc(r.key)}" data-pf="${k}" value="${esc(v??'')}" placeholder="${esc(ph||'')}" style="width:${w}px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,#fde68a 25%,var(--surface))">`;
     return `<tr><td><b>${esc(r.name)}</b><div class="hint">${esc(mrSig(r.c[0].r))}</div></td>
@@ -3934,19 +4041,19 @@ function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].incl
 /* ---------- ยาฉีด refer/กลับบ้าน: ใช้ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ (tlCalc) ---------- */
 function mrAsof(){ const W=mrWin(), t=($('mrTime')||{}).value||''; const m=t.match(/(\d{1,2})[:.](\d{2})/); const d=new Date(W.st); if(m) d.setHours(+m[1],+m[2]); else { const n=new Date(); d.setHours(n.getHours(),n.getMinutes()); } return d; }
 function mrTl(row){ const P=MR.plan[row.key]||(MR.plan[row.key]={}); if(!P.tl){ const r0={order:row.c[0].r.raw,name:'',dose:'',units:1,ulab:'vial',tau:24,sd:'',st:'08:00',mode:'total',n:'',ud:'',ut:''}; try{ tlFromOrder(r0,{querySelector:()=>null}); }catch(e){} if(!r0.sd) r0.sd=tlFmt(mrWin().st,false); P.tl=r0; } return P.tl; }
-function mrInjCalc(row){ const tl=mrTl(row), c=tlCalc(tl,mrAsof()); return {tl,c}; }
+function mrInjCalc(row){ const tl=mrTl(row), c=tlCalc(tl,mrAsof()); if(!c.err&&typeof dcMaxOf==='function'){ const dm=dcMaxOf(row.c[0].r.raw); if(dm&&c.units>dm[2]) c.over=dm; } return {tl,c}; }
 function mrInjTbl(inj){ if(!inj.length) return ''; const asof=mrAsof();
   const I=(row,k,w,ph,type)=>`<input data-tk="${esc(row.key)}" data-tf="${k}" value="${esc(mrTl(row)[k]??'')}" placeholder="${ph||''}" ${type?`type="${type}" step="any"`:''} style="width:${w}px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,#bfdbfe 30%,var(--surface))">`;
   const S=(row)=>{ const v=mrTl(row).mode; return `<select data-tk="${esc(row.key)}" data-tf="mode" style="padding:4px">${[['total','ครบ N วัน นับจากวันเริ่ม'],['more','ต่ออีก N วัน นับจาก D/C'],['doses','ครบ N ครั้ง (รวมที่ให้แล้ว)'],['until','ฉีดถึงวันเวลา (รวม dose นั้น)']].map(([k,n])=>`<option value="${k}"${k===v?' selected':''}>${n}</option>`).join('')}</select>`; };
   return `<h2 style="margin-top:14px">ยาฉีด refer / กลับบ้าน — คำนวณจำนวนครั้งที่เหลือ (ณ D/C ${tlFmt(asof)})</h2>
-  <p class="hint" style="margin:0 0 6px">ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ · อ่านวันเริ่ม/ความถี่/จำนวนวันจากคำสั่งให้ก่อน (เช่น "start 25/10/2569 8.00 ครบ 14 วัน") แก้ช่องสีฟ้าได้ · เวลา D/C ตั้งที่ช่องด้านบน</p>
+  <p class="hint" style="margin:0 0 6px">ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ · อ่านวันเริ่ม/ความถี่/จำนวนวันจากคำสั่งให้ก่อน (เช่น "start 25/10/2569 8.00 ครบ 14 วัน") แก้ช่องสีฟ้าได้ · เวลา D/C ตั้งที่ช่องด้านบน · มาตรการ 2569 ข้อ 3.3: ยารีเฟอร์กลับไปนอนต่อ รพช. จ่ายเฉพาะยาที่ไม่มีในบัญชี รพ.ชุมชน (ยาฉีด antibiotic จ่ายครบคอร์สตามคำสั่ง)</p>
   <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา / คำสั่ง</th><th>dose แรก (วัน เวลา)</th><th>ทุก (ชม.)</th><th>ระยะเวลา</th><th>N / ถึง</th><th>จ่ายต่อครั้ง</th><th>ผล</th></tr></thead><tbody>
   ${inj.map(row=>{ const {tl,c}=mrInjCalc(row);
     return `<tr><td><b>${esc(row.name)}</b><div class="hint">${esc(mrSig(row.c[0].r))}</div></td>
      <td>${I(row,'sd',100,'25/10/2569')} ${I(row,'st',56,'08:00')}</td><td>${I(row,'tau',50,'24','number')}</td><td>${S(row)}</td>
      <td>${tl.mode==='until'?`${I(row,'ud',100,'วันที่')} ${I(row,'ut',56,'เวลา')}`:I(row,'n',56,'N','number')}</td>
      <td>${I(row,'units',50,'1','number')} ${I(row,'ulab',56,'vial')}</td>
-     <td>${c.err?'':`<button type="button" class="btn sm cpbtn" data-cpinj="${esc(row.key)}" title="คัดลอกผลยาตัวนี้" style="float:right;padding:1px 7px">📋</button>`}${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
+     <td>${c.err?'':`<button type="button" class="btn sm cpbtn" data-cpinj="${esc(row.key)}" title="คัดลอกผลยาตัวนี้" style="float:right;padding:1px 7px">📋</button>`}${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}${c.over?`<div style="color:#b45309">⚠ เกินจำนวนสูงสุด ${c.over[1]} ไม่เกิน ${c.over[2]}/ครั้ง</div>`:''}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
 function mrInjLine(row){ const {tl,c}=mrInjCalc(row); if(c.err) return ` → ฉีด: ${c.err}`; return c.rem?` → ฉีดต่อ ${c.rem} ครั้ง${tl.units?` = ${fmtN(c.units)} ${tl.ulab||''}`:''} (q${fmtN(c.tau)}h ${tlFmt(c.first)} – ${tlFmt(c.last)}) · ทั้งคอร์ส ${c.total} ครั้ง ให้แล้ว ${c.given}`:` → ฉีดครบคอร์สแล้ว (${c.total} ครั้ง) ไม่ต้องจ่าย`; }
 
 /* ---------- ปฏิทินยา: แถว = ยา · คอลัมน์ = วันที่ · ช่อง = จำนวนเม็ด/ครั้งฉีดในวันนั้น ---------- */

@@ -68,6 +68,7 @@ function mrPlan(row){ const c=row.c[0]; if(!c) return null; const r=c.r, raw=r.r
   else if(cEnd) notes.push(`ครบคอร์ส ${mrFs(cEnd)}`);
   const oq=mrQtyOrdered(raw); if(oq!=null&&need!=null&&!tp&&Math.abs(oq-need)>0.5) notes.push(`จำนวนในคำสั่ง ${oq} ≠ ที่คำนวณ ${fmtN(need)}`);
   if(leftTo&&left>0) notes.push(`ยาเหลือพอถึง ${mrFs(leftTo)}`);
+  { const mm=masterOf(r), dm=typeof dcMaxOf==='function'?dcMaxOf(raw+' '+(mm?mm[1]:'')):null; if(dm&&give!=null&&!/ขวด|เครื่อง|หลอด/.test(dm[1])&&give>dm[2]) notes.push(`⚠ เกินจำนวนสูงสุดที่สั่งได้ต่อครั้ง: ${dm[1]} ไม่เกิน ${dm[2]} (มาตรการจำกัดปริมาณยากลับบ้าน) — จ่าย ${give}`); else if(dm) notes.push(`มาตรการจำกัดปริมาณ: ${dm[1]} ไม่เกิน ${dm[2]}/ครั้ง`); }
   return {P,autoStart,autoDur,s,e,need,left,give,packs,notes,cEnd,tp,oq,phs,tm}; }
 function mrDayUnits(phs,s,d,tm){ const ph=phs.find(x=>d>=x.a&&(!x.b||d<=x.b)); if(!ph) return 0; if(ph.H){ if(ph.per==null) return null; const t0=new Date(ph.a); if(ph===phs[0]&&tm) t0.setHours(tm[0],tm[1]); else t0.setHours(8,0); return mrDosesOn(ph,t0,d)*ph.per; } return mrUnitsOn(ph.r,d); }
 function mrSched(phs,s,e,tm){ let need=0, ok=true; const packs=phs.map((x,i)=>({i:i+1,a:x.a>s?x.a:s,b:x.b&&x.b<e?x.b:e,q:0,u:null,seg:x.seg,H:x.H,dates:[]}));
@@ -81,7 +82,7 @@ function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].incl
   if(!rows.length) return mrInjTbl(inj)+mrCal(all);
   const W=mrWin();
   return `<h2 style="margin-top:14px">แผนจ่ายยา — ${W.days?`${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)`:'ระบุจำนวนวัน หรือวันนัด'}</h2>
-  <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน</p>
+  <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน · มาตรการ 2569: ยาเดิมเหลือไม่จ่าย (3.2) · ค่ายากลับบ้าน &gt;1,500 บาท ตัดวันนัดเหลือ 2 สัปดาห์ (3.1) · จำกัดปริมาณ 33 รายการ</p>
   <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา / วิธีใช้</th><th>เริ่มกิน</th><th>ระยะคอร์ส</th><th>ช่วงที่จ่ายรอบนี้</th><th>ต้องใช้</th><th>ยาเหลือ</th><th>จ่าย</th><th>หมายเหตุ</th></tr></thead><tbody>
   ${rows.map(r=>{ const p=mrPlan(r), inp=(k,v,ph,w)=>`<input data-pk="${esc(r.key)}" data-pf="${k}" value="${esc(v??'')}" placeholder="${esc(ph||'')}" style="width:${w}px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,#fde68a 25%,var(--surface))">`;
     return `<tr><td><b>${esc(r.name)}</b><div class="hint">${esc(mrSig(r.c[0].r))}</div></td>
@@ -96,19 +97,19 @@ function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].incl
 /* ---------- ยาฉีด refer/กลับบ้าน: ใช้ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ (tlCalc) ---------- */
 function mrAsof(){ const W=mrWin(), t=($('mrTime')||{}).value||''; const m=t.match(/(\d{1,2})[:.](\d{2})/); const d=new Date(W.st); if(m) d.setHours(+m[1],+m[2]); else { const n=new Date(); d.setHours(n.getHours(),n.getMinutes()); } return d; }
 function mrTl(row){ const P=MR.plan[row.key]||(MR.plan[row.key]={}); if(!P.tl){ const r0={order:row.c[0].r.raw,name:'',dose:'',units:1,ulab:'vial',tau:24,sd:'',st:'08:00',mode:'total',n:'',ud:'',ut:''}; try{ tlFromOrder(r0,{querySelector:()=>null}); }catch(e){} if(!r0.sd) r0.sd=tlFmt(mrWin().st,false); P.tl=r0; } return P.tl; }
-function mrInjCalc(row){ const tl=mrTl(row), c=tlCalc(tl,mrAsof()); return {tl,c}; }
+function mrInjCalc(row){ const tl=mrTl(row), c=tlCalc(tl,mrAsof()); if(!c.err&&typeof dcMaxOf==='function'){ const dm=dcMaxOf(row.c[0].r.raw); if(dm&&c.units>dm[2]) c.over=dm; } return {tl,c}; }
 function mrInjTbl(inj){ if(!inj.length) return ''; const asof=mrAsof();
   const I=(row,k,w,ph,type)=>`<input data-tk="${esc(row.key)}" data-tf="${k}" value="${esc(mrTl(row)[k]??'')}" placeholder="${ph||''}" ${type?`type="${type}" step="any"`:''} style="width:${w}px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb,#bfdbfe 30%,var(--surface))">`;
   const S=(row)=>{ const v=mrTl(row).mode; return `<select data-tk="${esc(row.key)}" data-tf="mode" style="padding:4px">${[['total','ครบ N วัน นับจากวันเริ่ม'],['more','ต่ออีก N วัน นับจาก D/C'],['doses','ครบ N ครั้ง (รวมที่ให้แล้ว)'],['until','ฉีดถึงวันเวลา (รวม dose นั้น)']].map(([k,n])=>`<option value="${k}"${k===v?' selected':''}>${n}</option>`).join('')}</select>`; };
   return `<h2 style="margin-top:14px">ยาฉีด refer / กลับบ้าน — คำนวณจำนวนครั้งที่เหลือ (ณ D/C ${tlFmt(asof)})</h2>
-  <p class="hint" style="margin:0 0 6px">ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ · อ่านวันเริ่ม/ความถี่/จำนวนวันจากคำสั่งให้ก่อน (เช่น "start 25/10/2569 8.00 ครบ 14 วัน") แก้ช่องสีฟ้าได้ · เวลา D/C ตั้งที่ช่องด้านบน</p>
+  <p class="hint" style="margin:0 0 6px">ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ · อ่านวันเริ่ม/ความถี่/จำนวนวันจากคำสั่งให้ก่อน (เช่น "start 25/10/2569 8.00 ครบ 14 วัน") แก้ช่องสีฟ้าได้ · เวลา D/C ตั้งที่ช่องด้านบน · มาตรการ 2569 ข้อ 3.3: ยารีเฟอร์กลับไปนอนต่อ รพช. จ่ายเฉพาะยาที่ไม่มีในบัญชี รพ.ชุมชน (ยาฉีด antibiotic จ่ายครบคอร์สตามคำสั่ง)</p>
   <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา / คำสั่ง</th><th>dose แรก (วัน เวลา)</th><th>ทุก (ชม.)</th><th>ระยะเวลา</th><th>N / ถึง</th><th>จ่ายต่อครั้ง</th><th>ผล</th></tr></thead><tbody>
   ${inj.map(row=>{ const {tl,c}=mrInjCalc(row);
     return `<tr><td><b>${esc(row.name)}</b><div class="hint">${esc(mrSig(row.c[0].r))}</div></td>
      <td>${I(row,'sd',100,'25/10/2569')} ${I(row,'st',56,'08:00')}</td><td>${I(row,'tau',50,'24','number')}</td><td>${S(row)}</td>
      <td>${tl.mode==='until'?`${I(row,'ud',100,'วันที่')} ${I(row,'ut',56,'เวลา')}`:I(row,'n',56,'N','number')}</td>
      <td>${I(row,'units',50,'1','number')} ${I(row,'ulab',56,'vial')}</td>
-     <td>${c.err?'':`<button type="button" class="btn sm cpbtn" data-cpinj="${esc(row.key)}" title="คัดลอกผลยาตัวนี้" style="float:right;padding:1px 7px">📋</button>`}${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
+     <td>${c.err?'':`<button type="button" class="btn sm cpbtn" data-cpinj="${esc(row.key)}" title="คัดลอกผลยาตัวนี้" style="float:right;padding:1px 7px">📋</button>`}${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}${c.over?`<div style="color:#b45309">⚠ เกินจำนวนสูงสุด ${c.over[1]} ไม่เกิน ${c.over[2]}/ครั้ง</div>`:''}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
 function mrInjLine(row){ const {tl,c}=mrInjCalc(row); if(c.err) return ` → ฉีด: ${c.err}`; return c.rem?` → ฉีดต่อ ${c.rem} ครั้ง${tl.units?` = ${fmtN(c.units)} ${tl.ulab||''}`:''} (q${fmtN(c.tau)}h ${tlFmt(c.first)} – ${tlFmt(c.last)}) · ทั้งคอร์ส ${c.total} ครั้ง ให้แล้ว ${c.given}`:` → ฉีดครบคอร์สแล้ว (${c.total} ครั้ง) ไม่ต้องจ่าย`; }
 
 /* ---------- ปฏิทินยา: แถว = ยา · คอลัมน์ = วันที่ · ช่อง = จำนวนเม็ด/ครั้งฉีดในวันนั้น ---------- */

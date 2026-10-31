@@ -315,13 +315,13 @@ function evaluate(row,pt,rows){
       else add('warn',`DUE Colistin — ยืนยันว่า Empiric หรือ Documented · Empiric = Pre-authorized (${PRE}) · Documented (มีผลเพาะเชื้อ) = ${POST}${xtra}`);
       return; }
     if(u.t==='pre') add('warn',`DUE Pre-authorized (ID): ${u.name} — ${PRE}${xtra}`);
-    else add('info',`DUE Post-authorized: ${u.name} — ${POST}`); };
+    else add('info',`DUE Post-authorized: ${u.name} — ${POST}${xtra}`); };
   const alChk=(nm)=>{ const al=(pt.allergy||'').toLowerCase().trim(); if(!al) return; const gen=(nm||'').toLowerCase().split(/[\s(\/]/)[0]; const mmn=mm?mm[1]+' '+mm[2]:'';
     const xs=typeof xaCheck==='function'?xaCheck(pt.allergy,(nm||'')+' '+row.raw+' '+mmn):[];
     if(gen&&gen.length>3&&al.includes(gen)&&!xs.some(x=>x.lvl==='flag')) add('flag',`ประวัติแพ้ยา: ${gen}`);
     xs.forEach(x=>add(x.lvl==='ok'?'info':x.lvl,`ประวัติแพ้ ${x.a} → ${x.d}: ${x.txt}`));
     if(!xs.length&&d&&d.fam==='quinolone'&&/quinolone|floxacin/.test(al)&&!al.includes(gen)) add('flag','ประวัติแพ้ยากลุ่ม quinolone'); };
-  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); ['acChk','tbAdrChk','opiChk','apChk'].forEach(f=>{ if(typeof window[f]==='function'&&window[f](row,rows||[],pt,add)) res.pol=true; }); };
+  const extChk=()=>{ if(typeof arvChk==='function') res.arv=arvChk(row,rows||[],pt,add); if(typeof chemoChk==='function') res.chemo=chemoChk(row,pt,add); if(typeof inhalerChk==='function') res.inh=inhalerChk(row,rows||[],pt,add); if(typeof fentPatchChk==='function') res.fpatch=fentPatchChk(row,rows||[],pt,add); ['acChk','tbAdrChk','opiChk','apChk','fyChk'].forEach(f=>{ if(typeof window[f]==='function'&&window[f](row,rows||[],pt,add)) res.pol=true; }); };
   if(!d){ extChk(); mflags(); dueChk(); alChk(mm?mm[1]:row.raw); add(mm&&(mm[5].includes('C')||res.arv||res.chemo||res.fpatch||res.pol)?'info':'warn',mm?`ยังไม่มีกฎในฐาน (${mm[6]||mm[4]}) — เภสัชกรตรวจเอง`:'ไม่พบยานี้ในบัญชียา รพ. และฐานกฎ — ตรวจชื่อยา');
     const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':(lv===2&&((mm&&mm[5].includes('C')&&!res.chemo)||items.some(i=>i.lvl==='warn'&&/^(ประวัติแพ้|DUE|ARV|เคมีบำบัด|ยาพ่น|Fentanyl patch|ยาต้านการแข็ง|DI |Dabigatran|Enoxaparin|Warfarin|ยาวัณโรค|Rifampicin|Opioid|Morphine|Pethidine|Oxycodone|Tramadol|ใช้ antipsychotic|Clozapine|[A-Z][a-z]+ \d)/.test(i.txt))))?'warn':items.some(i=>i.lvl==='ok'&&/^(ARV|เคมีบำบัด|Fentanyl patch)/.test(i.txt))?'ok':'none'; return res;}
   mflags(); dueChk();

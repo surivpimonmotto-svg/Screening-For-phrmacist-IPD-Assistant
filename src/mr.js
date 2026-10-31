@@ -8,14 +8,14 @@ const MR_ST=[['same','เดิม','คีย์ตามเดิม'],['chg',
 const MR_COL={same:'#16a34a',chg:'#d97706',new:'#2563eb',stop:'#64748b',own:'#7c3aed',eq:'#0d9488',ask:'#dc2626'};
 const MR_CLS=[['ACEI',/pril\b/i],['ARB',/sartan/i],['Statin',/statin/i],['NSAIDs',/ibuprofen|naproxen|diclofenac|meloxicam|piroxicam|celecoxib|etoricoxib|indomethacin|mefenamic/i],['PPI',/prazole/i],['Benzodiazepine',/azepam|azolam|chlordiazepoxide/i],['CCB (dihydropyridine)',/dipine/i],['Beta-blocker',/olol\b|ilol\b/i],['Sulfonylurea',/glipizide|glibenclamide|gliclazide|glimepiride/i],['Anticoagulant',/warfarin|apixaban|rivaroxaban|dabigatran|edoxaban|enoxaparin|heparin/i],['P2Y12 inhibitor',/clopidogrel|ticagrelor|prasugrel/i],['Loop diuretic',/furosemide|bumetanide/i],['Opioid',/morphine|tramadol|codeine|oxycodone|fentanyl|methadone/i],['Antipsychotic',/haloperidol|risperidone|quetiapine|olanzapine|clozapine|aripiprazole/i]];
 const MR_HOLD=/warfarin|apixaban|rivaroxaban|dabigatran|metformin|insulin|glipizide|gliclazide|aspirin|clopidogrel|amlodipine|losartan|enalapril|furosemide|spironolactone|levothyroxine|quetiapine|risperidone|haloperidol|olanzapine|clozapine|valproate|phenytoin|levetiracetam|carbamazepine|prednisolone|statin|digoxin/i;
-let MR={rows:[],ov:{}};
+let MR={rows:[],ov:{},plan:{}};
 const mrSrc={a1:'รพ.มค',a2:'รพ.อื่น',b:'ระหว่างนอน รพ.',c:'กลับบ้าน'};
 function mrName(r,e){ if(e&&e.drug) return e.drug.name; const m=masterOf(r), w=((m?m[1]:r.raw).match(/[A-Za-z][A-Za-z\-]+/)||[r.raw.split(/\s+/)[0]])[0]; return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase(); }
 function mrKey(r){ if(r.drugId) return 'kb:'+r.drugId; const m=masterOf(r); const t=((m?(m[2]||m[1]):r.raw)||'').toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!/^(tab|tabs|cap|caps|inj|sol|syr|susp|mg|mcg|gm|ml|sr|er|mr|xr|cr|film|coated|the)$/.test(w));
   return 'nm:'+(t[0]||r.raw.toLowerCase().slice(0,12)); }
 function mrDaily(r){ if(r.weekly&&r.weekly.mgWeek!=null) return r.weekly.mgWeek/7; const st=r.strength;
   const per=r.doseUnit==='unit'?(st&&r.doseVal!==''?+r.doseVal*st:null):(r.doseVal!==''&&r.doseVal!=null?+r.doseVal:null); return per!=null&&r.F?per*r.F:null; }
-function mrParse(txt){ return joinLines((txt||'').split(/\n/)).map(parseLine).filter(r=>r&&(r.drugId||r.master||/\d+(?:\.\d+)?\s*(mg|mcg|g|ml|iu|units?|tab|cap|เม็ด)\b|\d\s*[x×*]\s*\d/i.test(r.raw))); }
+function mrParse(txt){ return joinLines((txt||'').split(/\n/)).map(l=>{ const r=parseLine(mrClean(l)); if(r) r.raw=l.replace(/\s+/g,' ').trim(); return r; }).filter(r=>r&&(r.drugId||r.master||/\d+(?:\.\d+)?\s*(mg|mcg|g|ml|iu|units?|tab|cap|เม็ด)\b|\d\s*[x×*]\s*\d/i.test(r.raw))); }
 function mrSig(r){ return rcaScrub(r.raw).replace(/\s+/g,' ').trim(); }
 function mrRun(){ const pt=getPt(), lists={a1:mrParse($('mrA1').value),a2:mrParse($('mrA2').value),b:mrParse($('mrB').value),c:mrParse($('mrC').value)};
   const evC=lists.c.map(r=>evaluate(r,pt,lists.c)); const map=new Map();
@@ -55,19 +55,21 @@ function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.i
      <td>${cell(r.b)}</td><td>${cell(r.c)}</td>
      <td>${r.st==='none'?'<span class="hint">ไม่ต่อ (ไม่ต้องคีย์)</span>':`<select data-mi="${i}" style="font-weight:700;color:${MR_COL[r.st]}">${opt(r.st)}</select>`}</td>
      <td>${r.auto?`<div>${esc(r.auto)}</div>`:''}${r.notes.map(n=>`<div style="color:${/^ซ้ำ|^คัดกรอง|ระวัง/.test(n)?'#b45309':'inherit'}">• ${esc(n)}</div>`).join('')}</td></tr>`).join('')}</tbody></table></div>
+   ${mrPlanTbl()}
    <h2 style="margin-top:14px">ใบส่งคีย์ให้เจ้าพนักงาน</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm" id="mrCp" type="button">คัดลอกใบส่งคีย์</button><button class="btn sm pri" id="mrPr" type="button">พิมพ์ใบส่งคีย์</button><span class="toast" id="mrMsg"></span></div><pre id="mrSheet" style="white-space:pre-wrap;font-family:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0"></pre>`;
   out.querySelectorAll('[data-mi]').forEach(s=>s.onchange=()=>{ const r=MR.rows[+s.dataset.mi]; r.st=s.value; MR.ov[r.key]=s.value; mrRender(); });
+  out.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.pk]||(MR.plan[el.dataset.pk]={}); P[el.dataset.pf]=el.value; const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
   const t=mrSheet(); $('mrSheet').textContent=t;
   $('mrCp').onclick=()=>copyRich(txtHtml(t),t,$('mrMsg'));
   $('mrPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ใบส่งคีย์ยากลับบ้าน (Medication reconciliation)</div>${txtHtml(t)}</div>`); }
-function mrSheet(){ const R=MR.rows, L=['ใบส่งคีย์ยากลับบ้าน — ผ่านการ reconcile โดยเภสัชกร',`วันที่ ${tlFmt(new Date())}`,''];
+function mrSheet(){ const R=MR.rows, W=mrWin(), L=['ใบส่งคีย์ยากลับบ้าน — ผ่านการ reconcile โดยเภสัชกร',`วันที่ ${tlFmt(new Date())}`,W.days?`จ่ายยา ${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)${W.un?` · นัด ${mrFs(W.un)}`:''}`:'',''];
   const sig=x=>x?mrSig(x.r):'';
   const grp=(st,title,f)=>{ const g=R.filter(r=>r.st===st); if(!g.length) return; L.push(`■ ${title} (${g.length})`); g.forEach(r=>L.push('  '+f(r))); L.push(''); };
   grp('ask','รอยืนยันกับแพทย์ — ห้ามคีย์',r=>`? ${r.name}: ${r.auto||''}`);
-  grp('chg','คีย์ตามคำสั่งใหม่ (มีการเปลี่ยนแปลง)',r=>`Δ ${sig(r.c[0])}   [เดิม: ${sig(r.a1[0]||r.a2[0])}]`);
-  grp('new','คีย์ใหม่',r=>`+ ${sig(r.c[0])}`);
-  grp('same','คีย์ตามเดิม',r=>`= ${sig(r.c[0])}`);
-  grp('eq','คีย์ยา รพ.มค แทนยา รพ.อื่น',r=>`≈ ${sig(r.c[0])}   [แทน: ${sig(r.a2[0])}] — แจ้งผู้ป่วยไม่ให้กินซ้ำ`);
+  grp('chg','คีย์ตามคำสั่งใหม่ (มีการเปลี่ยนแปลง)',r=>`Δ ${sig(r.c[0])}   [เดิม: ${sig(r.a1[0]||r.a2[0])}]`+mrPlanLine(r));
+  grp('new','คีย์ใหม่',r=>`+ ${sig(r.c[0])}`+mrPlanLine(r));
+  grp('same','คีย์ตามเดิม',r=>`= ${sig(r.c[0])}`+mrPlanLine(r));
+  grp('eq','คีย์ยา รพ.มค แทนยา รพ.อื่น',r=>`≈ ${sig(r.c[0])}   [แทน: ${sig(r.a2[0])}] — แจ้งผู้ป่วยไม่ให้กินซ้ำ`+mrPlanLine(r));
   grp('stop','หยุดยา — ไม่คีย์ และยกเลิกรายการเดิมในระบบ',r=>`✕ ${sig(r.a1[0]||r.a2[0])}`);
   grp('own','ใช้ยาเดิมของผู้ป่วยต่อ — ไม่จ่าย',r=>`◇ ${sig(r.a2[0]||r.a1[0])}`);
   const w=R.filter(r=>r.notes.some(n=>/^ซ้ำ|^คัดกรอง/.test(n))); if(w.length){ L.push('■ ข้อสังเกตเภสัชกร'); w.forEach(r=>r.notes.filter(n=>/^ซ้ำ|^คัดกรอง/.test(n)).forEach(n=>L.push(`  • ${r.name}: ${n}`))); L.push(''); }
@@ -88,8 +90,9 @@ ATORVASTATIN 40 MG TAB 1x1 hs
 CEFIXIME 100 MG CAP 2x2 pc
 OMEPRAZOLE 20 MG CAP 1x1 ac เช้า`};
 (function(){ if(!$('mrOut')) return;
-  $('mrRun').onclick=()=>{ MR.ov={}; mrRun(); };
-  $('mrEx').onclick=()=>{ $('mrA1').value=MR_EX.a1; $('mrA2').value=MR_EX.a2; $('mrB').value=MR_EX.b; $('mrC').value=MR_EX.c; MR.ov={}; mrRun(); };
-  $('mrClr').onclick=()=>{ ['mrA1','mrA2','mrB','mrC'].forEach(id=>$(id).value=''); MR={rows:[],ov:{}}; mrRender(); };
+  $('mrStart').value=tlFmt(new Date(),false); ['mrStart','mrDays','mrUntil'].forEach(id=>$(id).addEventListener('change',()=>{ if(MR.rows.length) mrRender(); $('mrWinTxt').textContent=(w=>w.days?`= ${mrFs(w.st)} ถึง ${mrFs(w.end)} (${w.days} วัน)`:'')(mrWin()); }));
+  $('mrRun').onclick=()=>{ MR.ov={}; MR.plan={}; mrRun(); };
+  $('mrEx').onclick=()=>{ $('mrA1').value=MR_EX.a1; $('mrA2').value=MR_EX.a2; $('mrB').value=MR_EX.b; $('mrC').value=MR_EX.c; MR.ov={}; MR.plan={}; mrRun(); };
+  $('mrClr').onclick=()=>{ ['mrA1','mrA2','mrB','mrC'].forEach(id=>$(id).value=''); MR={rows:[],ov:{},plan:{}}; mrRender(); };
   $('mrFromScr').onclick=()=>{ if(!rows.length){ cpMsg($('mrMsg0'),'หน้าคัดกรองยังไม่มีรายการยา'); return; } $('mrC').value=rows.map(r=>r.raw).join('\n'); cpMsg($('mrMsg0'),`ดึง ${rows.length} รายการจากหน้าคัดกรองมาเป็นยากลับบ้าน`); };
   mrRender(); })();

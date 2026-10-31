@@ -414,7 +414,8 @@ function evaluate(row,pt,rows){
       const sug=evs.filter(e=>e.b).map(e=>(vs.length>1?`[${e.v.name}] `:'')+e.b.txt+(e.b.rx?` → สั่ง ${e.b.rx}`:'')).join(' | ');
       res.sugg={where,txt:sug,rx:first.b?first.b.rx:null};
       if(okIdx===0){ add('ok',`${where}: ขนาดเหมาะสม (${first.b.txt})`,'renal');
-        if(ATB_IDS.includes(d.id)&&!row.prn){ const md=minDaily(first.b.txt); if(md){ const need=md.kg?(pt.dw?md.v*pt.dw:null):md.v;
+        if(ATB_IDS.includes(d.id)&&!row.prn&&(row.weekly||/prophyla|ป้องกัน|\bpcp\b|\bpjp\b/i.test(row.raw))) add('info','สูตรรายสัปดาห์/ป้องกันการติดเชื้อ (prophylaxis) — ไม่ตรวจขนาดต่ำสุดสำหรับการรักษา ยืนยันข้อบ่งใช้','low');
+        else if(ATB_IDS.includes(d.id)&&!row.prn){ const md=minDaily(first.b.txt); if(md){ const need=md.kg?(pt.dw?md.v*pt.dw:null):md.v;
           if(need&&T<need*0.75) add('warn',`dose อาจต่ำเกินไป: ${fmtN(T)} ${unitTxt(d)}/วัน < ขนาดต่ำสุดที่แนะนำ ${fmtN(need)}/วัน (${first.b.txt}${first.b.rx?` → สั่ง ${first.b.rx}`:''})`,'low'); } } }
       else if(okIdx>0) add('warn',`${where}: ตรงกับขนาดสำหรับ "${evs[okIdx].v.name}" — ยืนยันข้อบ่งใช้ (ถ้าเป็น ${vs[0].name}: ${first.b.txt})`,'renal');
       else{

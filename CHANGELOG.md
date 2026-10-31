@@ -9,6 +9,12 @@
 
 ---
 
+## v0.18.1 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
+- Warfarin: **แบบส่งต่อติดตาม INR คู่ยา DI (MKH-FR-PHA-059)** — เลือกยาที่ใช้ร่วม (จับแบบฟอร์ม Short/Long term จากทะเบียน DI) · วันเริ่ม/วันหยุด (หรือ "5 วัน") · INR · Target
+  - Short term: Day 3/6/9/12 หลังเริ่ม (ตัดวันหลังหยุดยาออก) + Day 5 หลังหยุด · Long term: Day 7 หลังเริ่ม + 1–3 เดือนหลังหยุด (แสดงช่วงวันที่) · Amiodarone มี Management ลดขนาด warfarin
+  - พิมพ์แบบฟอร์ม (เว้นชื่อ/HN ให้เขียน) · คัดลอกตารางวันนัด · ดึงคู่ยาจากหน้าคัดกรอง
+- MR: แก้คลิกปุ่มหลังแก้ช่องกรอกแล้วไม่ทำงาน (render ใหม่ทับปุ่ม)
+
 ## v0.18.0 — 31 ต.ค. 69 — Motto (ผ่าน Claude)
 - policy70.js — มาตรการ/ประกาศใหม่ (ไฟล์ที่ส่งมา 31 ต.ค. 69):
   - คัดกรอง: TKI (Imatinib/Nilotinib/Dasatinib/Ruxolitinib) ห้ามจ่ายใน IPD · Bortezomib สิทธิ์/การคีย์ · บัญชี จ(2) ตรวจการอนุมัติ · NED1 ฟรีเฉพาะเบิกได้จ่ายตรง · Empagliflozin 10/25 mg (DM max 25, HF/CKD max 10) · Escitalopram 15 → 10 mg · ยาเดิม* กลุ่ม 2 (ยาพ่นจมูก) และกลุ่ม 3 (insulin ราคาแพง) · ยีนแพ้ยา HLA-B (allopurinol/carbamazepine/abacavir) · Albumin DUE online

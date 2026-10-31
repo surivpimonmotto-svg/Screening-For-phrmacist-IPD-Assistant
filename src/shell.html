@@ -765,6 +765,20 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <div class="labbox" style="margin-top:12px;padding:10px"><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap"><label class="f" style="min-width:220px">ปรับขนาดยาต่อสัปดาห์ (% จากสูตรเดิม)<input id="wPct" type="number" step="any" inputmode="decimal" list="wPctL" placeholder="เช่น 10 หรือ -10"></label><datalist id="wPctL"><option value="-20"><option value="-15"><option value="-10"><option value="-5"><option value="5"><option value="10"><option value="15"><option value="20"></datalist><div id="wPctB" style="display:flex;gap:4px;flex-wrap:wrap"></div></div><div id="wAdj" style="margin-top:8px;overflow-x:auto"></div></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="wOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>แบบส่งต่อติดตาม INR — คู่ยา DI กับ Warfarin (MKH-FR-PHA-059)</h2>
+          <p class="hint" style="margin:0 0 8px">Short term (quinolone, azole, macrolide, co-trimoxazole, metronidazole, COX-II): INR ทุก 3 วันหลังเริ่ม (Day 3/6/9/12 เฉพาะวันที่ยังใช้ร่วม) + Day 5 หลังหยุด · Long term (amiodarone, fluoxetine, valproate, phenytoin ฯลฯ): Day 7 หลังเริ่ม + 1–3 เดือนหลังหยุด · ชื่อ/HN เขียนบนกระดาษ</p>
+          <div class="grid2">
+            <label class="f">ยาที่ใช้ร่วมกับ warfarin<input id="wdDrug" list="wdDrugL" placeholder="เช่น Azithromycin"><datalist id="wdDrugL"></datalist></label>
+            <label class="f">แบบฟอร์ม<select id="wdForm"><option value="auto">อัตโนมัติตามทะเบียน DI</option><option value="short">Short term</option><option value="long">Long term</option></select></label>
+            <label class="f">เริ่มใช้ยาร่วมกัน วันที่<input id="wdStart" placeholder="16/7/69"></label>
+            <label class="f">หยุดยา วันที่ (หรือ "5 วัน")<input id="wdStop" placeholder="21/7/69 หรือ 5 วัน"></label>
+            <label class="f">INR วันเริ่ม<input id="wdInr" placeholder="2.0"></label>
+            <label class="f">Target INR<input id="wdTgt" value="2.0-3.0"></label>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:8px"><button type="button" class="btn sm" id="wdFromScr">ดึงคู่ยาจากหน้าคัดกรอง</button><span class="hint" id="wdFormTxt"></span><span class="toast" id="wdMsg0"></span></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="wdOut"></div>
       </div>
     </section>
 

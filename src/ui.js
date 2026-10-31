@@ -45,6 +45,12 @@ function renderCalc(pt){
   const la=labAlerts(pt.lab||{},pt);
   if(la.length) parts.push(`<div class="labal">${la.map(([l,t])=>`<div class="band ${l==='flag'?'f':l==='warn'?'w':''}">${esc(t)}</div>`).join('')}</div>`);
   const ls=$('labSum'); if(ls){ const L=pt.lab||{}; ls.textContent=[L.anc!=null?'ANC '+fmtN(Math.round(L.anc)):'',L.plt!=null?'Plt '+fmtN(L.plt):'',L.cacorr!=null?'cCa '+(Math.round(L.cacorr*10)/10):''].filter(Boolean).join(' · '); }
+  const gs=(id,txt,c)=>{const el=$('gs-'+id); if(el){el.textContent=txt||''; el.className='gs'+(c?' '+c:'');}}; const Lb=pt.lab||{};
+  gs('renal',pt.dial?pt.dial:pt.crcl!=null?`CrCl ${r1(pt.crcl)}`:'',pt.dial||(pt.crcl!=null&&pt.crcl<30)?'f':pt.crcl!=null&&pt.crcl<60?'w':'');
+  gs('coag',[pt.inr!=null?`INR ${pt.inr}`:'',Lb.plt!=null?`Plt ${fmtN(Math.round(Lb.plt/1000))}k`:''].filter(Boolean).join(' · '),(pt.inr>3||(Lb.plt!=null&&Lb.plt<50000))?'f':(pt.inr>2||(Lb.plt!=null&&Lb.plt<100000))?'w':'');
+  { const mx=Math.max(Lb.ast||0,Lb.alt||0); gs('liver',mx?`AST/ALT ${Lb.ast??'–'}/${Lb.alt??'–'}`:Lb.tbil!=null?`T.bil ${Lb.tbil}`:'',mx>200?'f':mx>120||(Lb.tbil>3)?'w':''); }
+  gs('lyte',[pt.k!=null?`K ${pt.k}`:'',Lb.na!=null?`Na ${Lb.na}`:''].filter(Boolean).join(' · '),(pt.k!=null&&(pt.k<3||pt.k>=6))||(Lb.na!=null&&(Lb.na<125||Lb.na>155))?'f':(pt.k!=null&&(pt.k<3.5||pt.k>5))||(Lb.na!=null&&(Lb.na<135||Lb.na>145))?'w':'');
+  gs('cbc',Lb.anc!=null?`ANC ${fmtN(Math.round(Lb.anc))}`:'',Lb.anc!=null&&Lb.anc<500?'f':Lb.anc!=null&&Lb.anc<1500?'w':'');
   $('calc').innerHTML=parts.join('');
 }
 
@@ -340,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.10.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.10.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -598,7 +604,8 @@ $('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change
 
 /* ---------- กล่องผล Lab ---------- */
 (function(){ const g=$('labGrid'); if(!g) return;
-  g.innerHTML=LAB_EXTRA.map(([k,n,un])=>`<label class="f">${n}${un?` <small>(${un})</small>`:''}<input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`).join('');
+  const GRP={bun:'renal',plt:'coag',ast:'liver',alt:'liver',tbil:'liver',dbil:'liver',alb:'liver',na:'lyte',ca:'lyte',phos:'lyte',hco3:'lyte'};
+  LAB_EXTRA.forEach(([k,n,un])=>{ const host=$('lg-'+(GRP[k]||'cbc'))||g; host.insertAdjacentHTML('beforeend',`<label class="f"><span>${n}${un?` <small>(${un})</small>`:''}</span><input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`); });
   LAB_EXTRA.forEach(([k])=>$('L_'+k).addEventListener('input',()=>{renderRows(); if(!$('p-cmt').hidden) renderCmt();}));
   $('labParse').onclick=()=>{ const v=labParse($('labPaste').value); let n=0;
     LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; n++; } });

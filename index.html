@@ -266,6 +266,14 @@ textarea.paste{border-color:var(--accent)}
 .lbsvg .mR:hover,.lbsvg .mD:hover{fill:var(--accent-soft)} .lbsvg .lbr{fill:#fcd34d} .lbsvg .lbd{fill:#f87171} .lbsvg .lbd.lbr{fill:#ef4444}
 .lbsvg text{fill:var(--ink);pointer-events:none;font-weight:600}
 
+
+/* กลุ่มข้อมูลผู้ป่วย */
+fieldset.grp{border:1.5px solid color-mix(in srgb,var(--gc) 45%,var(--line));border-radius:12px;padding:8px 10px 10px;margin:0;background:linear-gradient(180deg,color-mix(in srgb,var(--gc) 12%,var(--surface)),var(--surface) 70%);box-shadow:0 2px 8px color-mix(in srgb,var(--gc) 12%,transparent)}
+fieldset.grp legend{padding:2px 10px;border-radius:999px;font-weight:700;font-size:.9rem;color:#fff;background:linear-gradient(90deg,var(--gc),color-mix(in srgb,var(--gc) 60%,#fff));box-shadow:0 2px 6px color-mix(in srgb,var(--gc) 35%,transparent)}
+fieldset.grp legend .gi{margin-right:4px} fieldset.grp legend .gs{font-weight:600;font-size:.8rem;margin-left:6px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.25)}
+fieldset.grp legend .gs:empty{display:none} fieldset.grp legend .gs.w{background:#f59e0b;color:#2a1600} fieldset.grp legend .gs.f{background:#ef4444;color:#fff}
+fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} fieldset.grp label.f small{display:inline;font-size:.72rem;opacity:.7;white-space:nowrap} fieldset.grp input,fieldset.grp select{height:36px;padding:4px 8px;font-size:.95rem}
+.g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 /* v0.10 — สีสถานะสดใส */
 .tag.ok,.pill.ok{background:#22c55e!important;color:#052e16!important;border-color:#16a34a!important}
 .tag.warn,.pill.warn{background:#f59e0b!important;color:#2a1600!important;border-color:#d97706!important}
@@ -313,28 +321,34 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
       </details>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
-      <div class="grid2">
+      <fieldset class="grp g-gen"><legend><span class="gi">👤</span>ข้อมูลทั่วไป</legend><div class="grid2">
         <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>
         <label class="f">น้ำหนัก (kg)<input id="bw" type="number" inputmode="decimal" min="0" step="0.1"></label>
         <label class="f">ส่วนสูง (cm)<input id="ht" type="number" inputmode="decimal" min="0" step="1"></label>
+        <label class="f">น้ำหนักที่ใช้คำนวณ<select id="wbasis"><option value="auto">อัตโนมัติ</option><option value="abw">ABW เสมอ</option><option value="ibw">IBW</option><option value="adj">AdjBW (อ้วน)</option></select></label>
+        <label class="f" style="grid-column:1/-1">แพ้ยา<input id="allergy" type="text" placeholder="เช่น penicillin"></label>
+      </div><div class="checks"><label><input type="checkbox" id="preg"> ตั้งครรภ์/ให้นมบุตร</label><label><input type="checkbox" id="tb"> case TB</label></div></fieldset>
+      <fieldset class="grp g-renal"><legend><span class="gi">🫘</span>ไต <span class="gs" id="gs-renal"></span></legend><div class="grid2" id="lg-renal">
         <label class="f">SCr (mg/dL)<input id="scr" type="number" inputmode="decimal" min="0" step="0.01"></label>
         <label class="f">CrCl จากหน้าจอ HIS<input id="crclIn" type="number" inputmode="decimal" min="0" step="0.1" placeholder="ถ้ามี"></label>
         <label class="f">eGFR จากหน้าจอ HIS<input id="egfrIn" type="number" inputmode="decimal" min="0" step="0.1" placeholder="ถ้ามี"></label>
         <label class="f">การบำบัดทดแทนไต<select id="mode"><option value="">ไม่มี</option><option value="HD">HD</option><option value="CAPD">CAPD</option><option value="CRRT">CRRT</option></select></label>
-        <label class="f">น้ำหนักที่ใช้คำนวณ<select id="wbasis"><option value="auto">อัตโนมัติ</option><option value="abw">ABW เสมอ</option><option value="ibw">IBW</option><option value="adj">AdjBW (อ้วน)</option></select></label>
+      </div><p class="hint" style="margin:4px 0 0">ใส่ CrCl/eGFR จาก HIS โปรแกรมใช้ค่านั้นทันที ไม่ต้องมีส่วนสูง/SCr</p></fieldset>
+      <fieldset class="grp g-coag"><legend><span class="gi">🩸</span>การแข็งตัวของเลือด <span class="gs" id="gs-coag"></span></legend><div class="grid2" id="lg-coag">
         <label class="f">INR<input id="inr" type="number" inputmode="decimal" step="0.1"></label>
+      </div></fieldset>
+      <fieldset class="grp g-liver"><legend><span class="gi">🟠</span>ตับ <span class="gs" id="gs-liver"></span></legend><div class="grid2" id="lg-liver"></div></fieldset>
+      <fieldset class="grp g-lyte"><legend><span class="gi">⚡</span>Electrolyte <span class="gs" id="gs-lyte"></span></legend><div class="grid2" id="lg-lyte">
         <label class="f">K (mEq/L)<input id="k" type="number" inputmode="decimal" step="0.1"></label>
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
-        <label class="f">แพ้ยา<input id="allergy" type="text" placeholder="เช่น penicillin"></label>
-      </div>
-      <details class="labbox"><summary>ผล Lab (ANC · Plt · LFT · Albumin/Ca) <span id="labSum" class="hint"></span></summary>
+      </div></fieldset>
+      <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
+      <details class="labbox"><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
         <textarea id="labPaste" rows="3" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="ghost">อ่านค่า Lab</button><button type="button" id="labClear" class="ghost">ล้าง</button><span id="labMsg" class="hint"></span></div>
-        <div class="grid2" id="labGrid"></div>
-        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่า Cr/K/Mg/INR/CrCl/eGFR จะเติมลงช่องด้านบนให้</p>
+        <div id="labGrid" hidden></div>
+        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
       </details>
-      <p class="hint" style="margin:0">กรอกเท่าที่มี — ถ้าใส่ CrCl/eGFR จาก HIS โปรแกรมใช้ค่านั้นทันที ไม่ต้องมีส่วนสูง/SCr</p>
-      <div class="checks"><label><input type="checkbox" id="preg"> ตั้งครรภ์/ให้นมบุตร</label><label><input type="checkbox" id="tb"> case TB</label></div>
     </div>
     <div class="calc" id="calc"></div>
   </aside>
@@ -2420,6 +2434,12 @@ function renderCalc(pt){
   const la=labAlerts(pt.lab||{},pt);
   if(la.length) parts.push(`<div class="labal">${la.map(([l,t])=>`<div class="band ${l==='flag'?'f':l==='warn'?'w':''}">${esc(t)}</div>`).join('')}</div>`);
   const ls=$('labSum'); if(ls){ const L=pt.lab||{}; ls.textContent=[L.anc!=null?'ANC '+fmtN(Math.round(L.anc)):'',L.plt!=null?'Plt '+fmtN(L.plt):'',L.cacorr!=null?'cCa '+(Math.round(L.cacorr*10)/10):''].filter(Boolean).join(' · '); }
+  const gs=(id,txt,c)=>{const el=$('gs-'+id); if(el){el.textContent=txt||''; el.className='gs'+(c?' '+c:'');}}; const Lb=pt.lab||{};
+  gs('renal',pt.dial?pt.dial:pt.crcl!=null?`CrCl ${r1(pt.crcl)}`:'',pt.dial||(pt.crcl!=null&&pt.crcl<30)?'f':pt.crcl!=null&&pt.crcl<60?'w':'');
+  gs('coag',[pt.inr!=null?`INR ${pt.inr}`:'',Lb.plt!=null?`Plt ${fmtN(Math.round(Lb.plt/1000))}k`:''].filter(Boolean).join(' · '),(pt.inr>3||(Lb.plt!=null&&Lb.plt<50000))?'f':(pt.inr>2||(Lb.plt!=null&&Lb.plt<100000))?'w':'');
+  { const mx=Math.max(Lb.ast||0,Lb.alt||0); gs('liver',mx?`AST/ALT ${Lb.ast??'–'}/${Lb.alt??'–'}`:Lb.tbil!=null?`T.bil ${Lb.tbil}`:'',mx>200?'f':mx>120||(Lb.tbil>3)?'w':''); }
+  gs('lyte',[pt.k!=null?`K ${pt.k}`:'',Lb.na!=null?`Na ${Lb.na}`:''].filter(Boolean).join(' · '),(pt.k!=null&&(pt.k<3||pt.k>=6))||(Lb.na!=null&&(Lb.na<125||Lb.na>155))?'f':(pt.k!=null&&(pt.k<3.5||pt.k>5))||(Lb.na!=null&&(Lb.na<135||Lb.na>145))?'w':'');
+  gs('cbc',Lb.anc!=null?`ANC ${fmtN(Math.round(Lb.anc))}`:'',Lb.anc!=null&&Lb.anc<500?'f':Lb.anc!=null&&Lb.anc<1500?'w':'');
   $('calc').innerHTML=parts.join('');
 }
 
@@ -2715,7 +2735,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.10.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.10.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -2973,7 +2993,8 @@ $('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change
 
 /* ---------- กล่องผล Lab ---------- */
 (function(){ const g=$('labGrid'); if(!g) return;
-  g.innerHTML=LAB_EXTRA.map(([k,n,un])=>`<label class="f">${n}${un?` <small>(${un})</small>`:''}<input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`).join('');
+  const GRP={bun:'renal',plt:'coag',ast:'liver',alt:'liver',tbil:'liver',dbil:'liver',alb:'liver',na:'lyte',ca:'lyte',phos:'lyte',hco3:'lyte'};
+  LAB_EXTRA.forEach(([k,n,un])=>{ const host=$('lg-'+(GRP[k]||'cbc'))||g; host.insertAdjacentHTML('beforeend',`<label class="f"><span>${n}${un?` <small>(${un})</small>`:''}</span><input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`); });
   LAB_EXTRA.forEach(([k])=>$('L_'+k).addEventListener('input',()=>{renderRows(); if(!$('p-cmt').hidden) renderCmt();}));
   $('labParse').onclick=()=>{ const v=labParse($('labPaste').value); let n=0;
     LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; n++; } });

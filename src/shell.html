@@ -669,7 +669,10 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <div class="had" style="grid-template-columns:minmax(0,1fr)">
         <div class="panel sec" style="margin:0">
           <h2>Warfarin — ขนาดต่อสัปดาห์ และจำนวนเม็ดที่ต้องจ่าย</h2>
-          <label class="f" style="margin-bottom:10px">วางคำสั่งยา (ไม่บังคับ)<input id="wOrder" placeholder="เช่น WARFARIN 3 MG TAB 0.5 tab จ พ ศ 1*1 อาทิตย์ จ่ายยา 2 สัปดาห์"></label>
+          <details class="labbox" open style="margin-bottom:10px"><summary>วางคำสั่งยา Warfarin <span class="hint">— copy จาก HIS / ใบสั่งยา วางได้หลายบรรทัด (ยาอื่นปนมาได้ ระบบเลือกเฉพาะ Warfarin)</span></summary>
+            <textarea id="wOrder" rows="4" placeholder="เช่น&#10;WARFARIN 3 MG TAB 30 เม็ด&#10;  รับประทานครั้งละ 1 เม็ด วันละ 1 ครั้ง ก่อนนอน ยกเว้นวันศุกร์ ครึ่งเม็ด&#10;มี 2 รายการ = บรรทัดแรกเป็นสูตรเดิม บรรทัดหลังเป็นสูตรใหม่ (หรือเขียนคำว่า เดิม / ใหม่ นำหน้า)"></textarea>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 0"><button type="button" id="wParse" class="btn sm pri">อ่านคำสั่ง → คำนวณ mg/week</button><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="auto" checked>อัตโนมัติ</label><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="old">ใส่แถวเดิม</label><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="new">ใส่แถวใหม่</label><button type="button" id="wClr" class="btn sm">ล้างตาราง</button><span id="wMsg" class="hint"></span></div>
+          </details>
           <div style="overflow-x:auto"><table id="wTbl" style="border-collapse:collapse;width:100%;font-size:14px"></table></div>
           <div class="grid2" style="margin-top:10px">
             <label class="f">เริ่มกินยาสูตรใหม่ วันที่<input id="wStart" placeholder="dd/mm/2569"></label>

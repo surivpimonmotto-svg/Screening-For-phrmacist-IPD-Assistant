@@ -346,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.13.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.13.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -634,10 +634,26 @@ function renderWf(){
     $('wCalPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ปฏิทินการกินยา Warfarin (วาร์ฟาริน) ${cur.s} mg</div><p style="margin:4px 0">${esc(pat)} · ${fmtN(mgw(cur))} mg/สัปดาห์ · เริ่มกินวันที่ 1 = ${tlFmt(cal.s0,false)}</p><p style="margin:4px 0">● = 1 เม็ด · ◐ = ครึ่งเม็ด · ช่องสีเทา = หยุดยา · กินเวลาเดิมทุกวัน · ลืมกินให้กินทันทีที่นึกได้ในวันเดียวกัน ห้ามกินเพิ่มเป็น 2 เท่า</p>${cal.html}<p style="margin-top:8px">วันนัดเจาะ INR ............................ · ผู้จ่ายยา ............................</p></div>`); }
   if($('wUse3')) $('wUse3').onclick=()=>{const c=wfTo3(cur.u.map(x=>(x||0)*cur.s)); if(n.any&&o.any===false){WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s;} else if(n.any){WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s;} $('w_new_s').value=String(WF_HOSP); WD.forEach((d,i)=>$('w_new_'+d).value=c.u[i]); renderWf();};
 }
-$('wOrder').addEventListener('input',()=>{const L=$('wOrder').value; if(!L.trim()) return renderWf(); const r=parseLine(L); if(!r||!r.weekly) return renderWf();
-  const s=r.weekly.mgU||r.strength; if(s&&[...$('w_new_s').options].some(o=>+o.value===s)) $('w_new_s').value=String(s);
-  WD.forEach(d=>$('w_new_'+d).value=''); r.weekly.segs.filter(x=>!x.noDays&&x.units!=null).forEach(x=>x.days.forEach(d=>$('w_new_'+d).value=x.units)); (r.weekly.off||[]).forEach(d=>$('w_new_'+d).value=0);
-  const dp=dispOf(L); if(dp) $('wWeeks').value=+(dp.days/7).toFixed(2); renderWf();});
+// วางคำสั่งยา Warfarin (หลายบรรทัด) → เติมตารางเดิม/ใหม่
+function wfRowOf(r,L){ if(!r) return null; const s=(r.weekly&&r.weekly.mgU)||r.strength||(()=>{const m=L.match(/warfarin[^\n]*?(\d+(?:\.\d+)?)\s*mg/i);return m?+m[1]:null;})(); const u=Array(7).fill(null);
+  if(r.weekly){ r.weekly.segs.filter(x=>!x.noDays&&x.units!=null).forEach(x=>x.days.forEach(d=>u[WD.indexOf(d)]=x.units*(x.tpd||1))); (r.weekly.off||[]).forEach(d=>u[WD.indexOf(d)]=0); }
+  else { let un=r.doseUnit==='unit'?+r.doseVal:(s&&r.doseVal?+r.doseVal/s:null); if(un==null||isNaN(un)||!r.F) return null; const per=un*r.F; if(Math.abs(r.F-1)>0.01&&r.F<1) return null; u.fill(per); }
+  return {s,u,disp:dispOf(L)}; }
+function wfSet(k,x){ if(x.s&&[...$(`w_${k}_s`).options].some(o=>+o.value===x.s)) $(`w_${k}_s`).value=String(x.s); WD.forEach((d,i)=>$(`w_${k}_${d}`).value=x.u[i]==null?'':x.u[i]); }
+function wfParse(){ const raw=$('wOrder').value; if(!raw.trim()) return;
+  const lines=joinLines(raw.split(/\n/)); const hits=[];
+  lines.forEach(L=>{ if(!/warfarin|orfarin|มาร์ฟาริน|วาร์ฟาริน/i.test(L)) return; const r=parseLine(L); const x=wfRowOf(r,L); if(x) hits.push({...x,L,tag:/เดิม|\bold\b|ก่อนปรับ/i.test(L)?'old':/ใหม่|\bnew\b|ปรับเป็น/i.test(L)?'new':null}); });
+  if(!hits.length){ $('wMsg').textContent='ไม่พบคำสั่ง Warfarin ที่อ่านได้ — ตรวจรูปแบบคำสั่ง หรือกรอกเองในตาราง'; return; }
+  const to=(document.querySelector('input[name="wTo"]:checked')||{}).value||'auto'; const done=[];
+  if(to!=='auto'){ wfSet(to,hits[hits.length-1]); done.push(to==='old'?'เดิม':'ใหม่'); }
+  else if(hits.length===1){ const k=hits[0].tag||'new'; wfSet(k,hits[0]); done.push(k==='old'?'เดิม':'ใหม่'); }
+  else { const o=hits.find(h=>h.tag==='old')||hits[0], n=hits.find(h=>h.tag==='new')||hits[hits.length-1]; wfSet('old',o); wfSet('new',n); done.push('เดิม','ใหม่'); }
+  const dp=hits[hits.length-1].disp; if(dp) $('wWeeks').value=+(dp.days/7).toFixed(2);
+  const miss=hits.some(h=>h.u.some(v=>v==null));
+  $('wMsg').textContent=`อ่านได้ ${hits.length} รายการ → แถว${done.join(' + ')}${hits.length>2?' (มีมากกว่า 2 รายการ ใช้รายการแรก/สุดท้าย)':''}${miss?' · บางวันไม่ได้ระบุ (ช่องว่าง)':''} — ตรวจตัวเลขในตารางก่อนใช้`;
+  $('wOrder').value=''; renderWf(); }
+$('wParse').onclick=wfParse; $('wOrder').addEventListener('paste',()=>setTimeout(wfParse,0));
+$('wClr').onclick=()=>{ ['old','new'].forEach(k=>{ WD.forEach(d=>$(`w_${k}_${d}`).value=''); $(`w_${k}_s`).value=String(WF_HOSP); }); $('wWeeks').value=''; $('wMsg').textContent=''; $('wAdj')&&($('wPct').value=''); renderWf(); };
 ['wStart','wWeeks','wUntil','wTgt'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wPct').addEventListener('change',renderWf); $('wPctB').innerHTML=WF_PCTS.map(v=>`<button type="button" class="btn sm" data-wp="${v}">${v>0?'+':''}${v}%</button>`).join(''); $('wPctB').querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{ $('wPct').value=b.dataset.wp; renderWf(); }); $('wPct').addEventListener('input',renderWf); $('wTgt').addEventListener('change',renderWf);
 ['old','new'].forEach(k=>{$(`w_${k}_s`).addEventListener('change',renderWf); WD.forEach(d=>$(`w_${k}_${d}`).addEventListener('input',renderWf));});
 $('t-wf').addEventListener('click',renderWf); $('inr').addEventListener('input',()=>{if(!$('p-wf').hidden)renderWf();});

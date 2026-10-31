@@ -678,6 +678,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">INR ล่าสุด / เป้าหมาย<select id="wTgt"><option value="2">เป้าหมาย 2.0-3.0</option><option value="2.5">เป้าหมาย 2.5-3.5</option></select></label>
           </div>
           <p class="hint" style="margin:8px 0 0">กรอกจำนวนเม็ดต่อวัน (0.5 = ครึ่งเม็ด) · INR ใช้ค่าจากแผงข้อมูลผู้ป่วย</p>
+          <div class="labbox" style="margin-top:12px;padding:10px"><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap"><label class="f" style="min-width:220px">ปรับขนาดยาต่อสัปดาห์ (% จากสูตรเดิม)<input id="wPct" type="number" step="any" inputmode="decimal" list="wPctL" placeholder="เช่น 10 หรือ -10"></label><datalist id="wPctL"><option value="-20"><option value="-15"><option value="-10"><option value="-5"><option value="5"><option value="10"><option value="15"><option value="20"></datalist><div id="wPctB" style="display:flex;gap:4px;flex-wrap:wrap"></div></div><div id="wAdj" style="margin-top:8px;overflow-x:auto"></div></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="wOut"></div>
       </div>

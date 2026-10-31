@@ -678,6 +678,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">INR ล่าสุด / เป้าหมาย<select id="wTgt"><option value="2">เป้าหมาย 2.0-3.0</option><option value="2.5">เป้าหมาย 2.5-3.5</option></select></label>
           </div>
           <p class="hint" style="margin:8px 0 0">กรอกจำนวนเม็ดต่อวัน (0.5 = ครึ่งเม็ด) · INR ใช้ค่าจากแผงข้อมูลผู้ป่วย</p>
+          <div class="labbox" style="margin-top:12px;padding:10px"><div style="display:flex;gap:8px;align-items:end;flex-wrap:wrap"><label class="f" style="min-width:220px">ปรับขนาดยาต่อสัปดาห์ (% จากสูตรเดิม)<input id="wPct" type="number" step="any" inputmode="decimal" list="wPctL" placeholder="เช่น 10 หรือ -10"></label><datalist id="wPctL"><option value="-20"><option value="-15"><option value="-10"><option value="-5"><option value="5"><option value="10"><option value="15"><option value="20"></datalist><div id="wPctB" style="display:flex;gap:4px;flex-wrap:wrap"></div></div><div id="wAdj" style="margin-top:8px;overflow-x:auto"></div></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="wOut"></div>
       </div>
@@ -2802,7 +2803,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.12.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.13.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3009,9 +3010,41 @@ const WD=['Mo','Tu','We','Th','Fr','Sa','Su'];
 $('wTbl').innerHTML=`<thead><tr><th style="text-align:left">สูตร</th><th>ความแรง</th>${WD.map(d=>`<th>${DAY_TH[d]}</th>`).join('')}</tr></thead><tbody>${['old','new'].map(k=>`<tr><td>${k==='old'?'เดิม':'ใหม่'}</td><td><select id="w_${k}_s"><option value="3" selected>3 mg (รพ.มค)</option><option value="5">5 mg (รพ.อื่น)</option><option value="2">2 mg (รพ.อื่น)</option><option value="1">1 mg (รพ.อื่น)</option></select></td>${WD.map(d=>`<td><input id="w_${k}_${d}" type="number" step="0.25" inputmode="decimal" style="width:100%;min-width:44px;padding:8px 2px;text-align:center;border:1px solid var(--line);border-radius:6px;background:var(--surface)"></td>`).join('')}</tr>`).join('')}</tbody>`;
 const WF_ADJ={2:[[1.5,'เพิ่มขนาดยาต่อสัปดาห์ 10-20%'],[2.0,'เพิ่มขนาดยาต่อสัปดาห์ 5-10%'],[3.05,'คงขนาดยาเดิม'],[4.0,'ลดขนาดยาต่อสัปดาห์ 5-10%'],[5.0,'หยุดยา 1 วัน และลดขนาดยาต่อสัปดาห์ 10%'],[Infinity,'INR >5: ปรับตามตารางที่ 2 (หยุดยา ± vitamin K1)']],
  2.5:[[1.6,'เพิ่มขนาดยาต่อสัปดาห์ 10-20%'],[2.5,'เพิ่มขนาดยาต่อสัปดาห์ 5-10%'],[3.6,'คงขนาดยาเดิม'],[4.5,'ลดขนาดยาต่อสัปดาห์ 5-10%'],[5.0,'หยุดยา 1 วัน และลดขนาดยาต่อสัปดาห์ 10%'],[Infinity,'INR >5: ปรับตามตารางที่ 2 (หยุดยา ± vitamin K1)']]};
+
+/* ---------- Warfarin: ปรับขนาด % ต่อสัปดาห์ → เสนอสูตรใหม่ · ปฏิทินกินยา (วันที่ 1 = วันเริ่มกิน) ---------- */
+const WF_PCTS=[-20,-15,-10,-5,5,10,15,20];
+// กระจายจำนวนครึ่งเม็ดให้เท่ากันที่สุดใน 7 วัน (มีขนาดต่างกันไม่เกิน 2 แบบ) — วันที่ได้มากกว่าเว้นระยะห่างเท่า ๆ กัน เริ่มวันจันทร์
+function wfSpread(halves){ const b=Math.floor(halves/7), e=halves-b*7, u=Array(7).fill(b/2); const pos=new Set(); for(let i=0;i<e;i++) pos.add(Math.floor(i*7/e)); pos.forEach(i=>u[i]+=0.5); return u; }
+const wfDayTxt=x=>x==null||x===0?'หยุด':`${Math.floor(x)>0?Math.floor(x):''}${Math.abs(x-Math.floor(x)-0.5)<1e-9?'½':Math.abs(x-Math.floor(x)-0.25)<1e-9?'¼':Math.abs(x-Math.floor(x)-0.75)<1e-9?'¾':''}`||'0';
+function wfPatTxt(u){ const g={}; u.forEach((x,i)=>{ const k=wfDayTxt(x||0); (g[k]=g[k]||[]).push(DAY_TH[WD[i]]); }); const ks=Object.keys(g); if(ks.length===1) return `${ks[0]==='หยุด'?'หยุด':ks[0]+' เม็ด'} ทุกวัน`;
+  const main=ks.sort((a,b)=>g[b].length-g[a].length)[0]; return ks.filter(k=>k!==main).map(k=>`${g[k].join(' ')} ${k==='หยุด'?'หยุดยา':k+' เม็ด'}`).join(' · ')+` · วันอื่น ${main==='หยุด'?'หยุดยา':main+' เม็ด'}`; }
+function wfPills(x){ if(!x) return '<span style="color:var(--muted)">หยุด</span>'; let h=''; const f=Math.floor(x), r=x-f;
+  for(let i=0;i<f;i++) h+='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#f59e0b" stroke="#b45309"/></svg>';
+  if(r>1e-9) h+=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#b45309"/><path d="M8,1 A7,7 0 0,0 8,15 Z" fill="#f59e0b"/></svg>`; return h; }
+function wfAdjRender(){ const box=$('wAdj'); if(!box) return;
+  { const pt=getPt(); let rec=[]; if(pt.inr!=null){ const t=+$('wTgt').value, row=WF_ADJ[t].find(r=>pt.inr<r[0]), m=row[1].match(/(เพิ่ม|ลด)ขนาดยาต่อสัปดาห์ (\d+)(?:-(\d+))?%/); if(m){ const a=+m[2], b=+(m[3]||m[2]), sg=m[1]==='เพิ่ม'?1:-1; rec=WF_PCTS.filter(v=>Math.sign(v)===sg&&Math.abs(v)>=a&&Math.abs(v)<=b); } }
+    $('wPctB').querySelectorAll('[data-wp]').forEach(b=>{ const on=rec.includes(+b.dataset.wp); b.style.outline=on?'2px solid var(--accent)':''; b.title=on?`ตามตารางปรับยา (INR ${pt.inr})`:''; }); } const o=wfRead('old'), n=wfRead('new'), base=o.any?o:n.any?n:null;
+  if(!base){ box.innerHTML='<span class="hint">กรอกสูตรเดิมก่อน แล้วเลือก % ที่ต้องการปรับ</span>'; return; }
+  const W=base.u.reduce((a,x)=>a+(x||0)*base.s,0), pct=+$('wPct').value, s=+$('w_new_s').value||WF_HOSP;
+  if(!pct||!(W>0)){ box.innerHTML=`<span class="hint">สูตร${o.any?'เดิม':'ปัจจุบัน'} ${fmtN(W)} mg/สัปดาห์ — เลือก % ที่ต้องการปรับ</span>`; return; }
+  const T=W*(1+pct/100), H=Math.round(T/(s/2)); const opts=[H-2,H-1,H,H+1,H+2].filter(h=>h>0).map(h=>{ const u=wfSpread(h), w=u.reduce((a,x)=>a+x*s,0); return {u,w,ch:(w-W)*100/W}; }).filter(x=>Math.sign(x.ch)===Math.sign(pct)&&Math.abs(x.ch)>0.01).sort((a,b)=>Math.abs(a.w-T)-Math.abs(b.w-T)).slice(0,3).sort((a,b)=>a.w-b.w);
+  box.innerHTML=`<div style="margin-bottom:6px">${o.any?'สูตรเดิม':'สูตรปัจจุบัน'} <b>${fmtN(W)}</b> mg/สัปดาห์ ${pct>0?'เพิ่ม':'ลด'} ${Math.abs(pct)}% → เป้าหมาย <b>${fmtN(T)}</b> mg/สัปดาห์ (เม็ด ${s} mg)</div>
+   <table class="ctbl" style="width:100%;text-align:center"><thead><tr><th style="text-align:left">ทางเลือก</th>${WD.map(d=>`<th>${DAY_TH[d]}</th>`).join('')}<th>mg/สัปดาห์</th><th>เปลี่ยน</th><th></th></tr></thead><tbody>${opts.map((x,i)=>`<tr${Math.abs(x.w-T)===Math.min(...opts.map(y=>Math.abs(y.w-T)))?' style="font-weight:700"':''}><td style="text-align:left;font-weight:400">${esc(wfPatTxt(x.u))}</td>${x.u.map(v=>`<td>${wfDayTxt(v)}</td>`).join('')}<td>${fmtN(x.w)}</td><td style="color:${Math.abs(x.ch)>20?'var(--flag)':'inherit'}">${x.ch>=0?'+':''}${fmtN(Math.round(x.ch*10)/10)}%</td><td><button type="button" class="btn sm" data-wopt="${i}">ใช้เป็นสูตรใหม่</button></td></tr>`).join('')}</tbody></table>
+   <p class="hint" style="margin:6px 0 0">กระจายขนาดให้ใกล้เคียงกันทุกวัน (ต่างกันไม่เกินครึ่งเม็ด) · ตัวหนา = ใกล้เป้าหมายที่สุด · ตรวจสอบกับแพทย์ก่อนใช้</p>`;
+  box.querySelectorAll('[data-wopt]').forEach(b=>b.onclick=()=>{ const x=opts[+b.dataset.wopt]; if(!o.any&&n.any){ WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s; } WD.forEach((d,i)=>$('w_new_'+d).value=x.u[i]); renderWf(); }); }
+function wfCal(cur,st,days){ const s0=st||(()=>{const d=new Date(); d.setHours(0,0,0,0); return d;})(), N=Math.max(7,Math.min(days||28,120));
+  const lead=(s0.getDay()+6)%7, cells=[]; for(let i=0;i<lead;i++) cells.push(null);
+  for(let i=0;i<N;i++){ const d=new Date(s0.getTime()+i*864e5); cells.push({n:i+1,d,u:cur.u[(d.getDay()+6)%7]||0}); } while(cells.length%7) cells.push(null);
+  const rows=[]; for(let i=0;i<cells.length;i+=7) rows.push(cells.slice(i,i+7));
+  const head=`<tr>${WD.map(d=>`<th style="padding:4px;border:1px solid var(--line);background:var(--bg2,transparent)">${DAY_TH[d]}</th>`).join('')}</tr>`;
+  const html=`<table class="wfcal" style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px">${head}${rows.map(r=>`<tr>${r.map(c=>c?`<td style="border:1px solid var(--line);padding:4px;vertical-align:top;height:62px${c.n===1?';outline:2px solid var(--accent);outline-offset:-2px':''}${c.u===0?';background:color-mix(in srgb,var(--muted) 12%,transparent)':''}"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>${c.d.getDate()}/${c.d.getMonth()+1}</span><b style="color:var(--accent)">วันที่ ${c.n}</b></div><div style="text-align:center;margin-top:4px">${wfPills(c.u)}</div><div style="text-align:center;font-weight:700">${c.u?wfDayTxt(c.u)+' เม็ด':''}</div></td>`:'<td style="border:1px solid var(--line)"></td>').join('')}</tr>`).join('')}</table>`;
+  const list=cells.filter(Boolean).map(c=>`วันที่ ${c.n} (${DAY_TH[WD[(c.d.getDay()+6)%7]]} ${tlFmt(c.d,false)}) — ${c.u?`${wfDayTxt(c.u)} เม็ด (${fmtN(c.u*cur.s)} mg)`:'หยุดยา'}`);
+  return {html,list,s0,N,auto:!st}; }
+
 function wfRead(k){const s=+$(`w_${k}_s`).value; const u=WD.map(d=>$(`w_${k}_${d}`).value===''?null:+$(`w_${k}_${d}`).value); return {s,u,any:u.some(x=>x!=null)};}
 function renderWf(){
   const o=wfRead('old'), n=wfRead('new'), pt=getPt(), msgs=[], kv=[], li=(l,m)=>`<li><span class="tag ${l}">${LVL_TXT[l]}</span><span>${esc(m)}</span></li>`;
+  wfAdjRender();
   if(!n.any&&!o.any){$('wOut').innerHTML='<div class="empty">กรอกจำนวนเม็ดในแต่ละวัน หรือวางคำสั่งยา</div>';return}
   const mgw=r=>r.u.reduce((a,x)=>a+(x||0)*r.s,0), tw=r=>r.u.reduce((a,x)=>a+(x||0),0);
   const cur=n.any?n:o;
@@ -3041,17 +3074,28 @@ function renderWf(){
       <tr style="color:var(--muted)">${cur.u.map(x=>`<td>${fmtN((x||0)*cur.s)} mg</td>`).join('')}</tr><tr style="font-weight:600">${c.u.map(x=>`<td>${fmtN(x)} เม็ด</td>`).join('')}</tr></table>
       <dl class="kv"><dt>รวม</dt><dd>${fmtN(c.W3)} mg/สัปดาห์ (${fmtN(c.u.reduce((a,x)=>a+x,0))} เม็ด)</dd>${tot3!=null?`<dt>จ่าย (${days} วัน)</dt><dd><b>${Math.ceil(tot3-1e-9)} เม็ด ${WF_HOSP} mg</b></dd>`:''}</dl>
       <button class="btn sm" id="wUse3" type="button" style="margin-top:8px">ใช้เป็นสูตรใหม่ (${WF_HOSP} mg)</button>`; }
+  const cal=cur.any?wfCal(cur,st,days):null; let wfCalBox='';
+  if(cal){ const pat=wfPatTxt(cur.u.map(x=>x||0)), first=cal.list.slice(0,7);
+    wfCalBox=`<h2 style="margin-top:16px">${n.any?'สูตรใหม่':'สูตร'} — วันที่ 1 = ${DAY_TH[WD[(cal.s0.getDay()+6)%7]]} ${tlFmt(cal.s0,false)}</h2>
+     ${cal.auto?'<p class="hint" style="margin:0 0 6px">ยังไม่กรอกวันเริ่มกินยาสูตรใหม่ — ใช้วันนี้เป็นวันที่ 1</p>':''}
+     <div style="margin-bottom:6px">${esc(pat)} (เม็ด ${cur.s} mg · ${fmtN(mgw(cur))} mg/สัปดาห์)</div>
+     <ol style="margin:0 0 10px;padding-left:0;list-style:none;columns:2;font-size:14px">${first.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
+     <h2 style="margin-top:6px">ปฏิทินกินยา Warfarin (${cal.N} วัน)</h2><div id="wCal">${cal.html}</div>
+     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" id="wCalCp" type="button">คัดลอกตารางวันกินยา</button><button class="btn sm pri" id="wCalPr" type="button">พิมพ์ปฏิทินให้ผู้ป่วย</button><span class="toast" id="wCalMsg"></span></div>`; }
   if(pt.inr!=null){const t=+$('wTgt').value, row=WF_ADJ[t].find(r=>pt.inr<r[0]); msgs.push(li(pt.inr>=(t===2?4:4.5)?'flag':pt.inr>(t===2?3:3.5)||pt.inr<t?'warn':'ok',`INR ${pt.inr} (เป้าหมาย ${t===2?'2.0-3.0':'2.5-3.5'}): ${row[1]}`));}
   else msgs.push(li('info','กรอก INR ในแผงข้อมูลผู้ป่วย เพื่อดูคำแนะนำปรับขนาดตามตาราง'));
   $('wOut').innerHTML=`<h2>ผลคำนวณ</h2>${big!=null?`<div class="big" style="margin-bottom:12px"><span class="n">${big}</span><span class="u">เม็ด ${cur.s} mg ที่ต้องจ่าย</span></div>`:''}
-   <dl class="kv" style="margin-bottom:12px">${kv.map(([a,x])=>`<dt>${a}</dt><dd>${x}</dd>`).join('')}</dl><ul class="msgs">${msgs.join('')}</ul>${conv}`;
+   <dl class="kv" style="margin-bottom:12px">${kv.map(([a,x])=>`<dt>${a}</dt><dd>${x}</dd>`).join('')}</dl><ul class="msgs">${msgs.join('')}</ul>${conv}${wfCalBox}`;
+  if(cal&&$('wCalCp')){ const pat=wfPatTxt(cur.u.map(x=>x||0)), txt=`Warfarin ${cur.s} mg — ${pat} (${fmtN(mgw(cur))} mg/สัปดาห์)\nเริ่มวันที่ 1 = ${tlFmt(cal.s0,false)}\n`+cal.list.join('\n');
+    $('wCalCp').onclick=()=>copyRich(txtHtml(txt),txt,$('wCalMsg'));
+    $('wCalPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ปฏิทินการกินยา Warfarin (วาร์ฟาริน) ${cur.s} mg</div><p style="margin:4px 0">${esc(pat)} · ${fmtN(mgw(cur))} mg/สัปดาห์ · เริ่มกินวันที่ 1 = ${tlFmt(cal.s0,false)}</p><p style="margin:4px 0">● = 1 เม็ด · ◐ = ครึ่งเม็ด · ช่องสีเทา = หยุดยา · กินเวลาเดิมทุกวัน · ลืมกินให้กินทันทีที่นึกได้ในวันเดียวกัน ห้ามกินเพิ่มเป็น 2 เท่า</p>${cal.html}<p style="margin-top:8px">วันนัดเจาะ INR ............................ · ผู้จ่ายยา ............................</p></div>`); }
   if($('wUse3')) $('wUse3').onclick=()=>{const c=wfTo3(cur.u.map(x=>(x||0)*cur.s)); if(n.any&&o.any===false){WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s;} else if(n.any){WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s;} $('w_new_s').value=String(WF_HOSP); WD.forEach((d,i)=>$('w_new_'+d).value=c.u[i]); renderWf();};
 }
 $('wOrder').addEventListener('input',()=>{const L=$('wOrder').value; if(!L.trim()) return renderWf(); const r=parseLine(L); if(!r||!r.weekly) return renderWf();
   const s=r.weekly.mgU||r.strength; if(s&&[...$('w_new_s').options].some(o=>+o.value===s)) $('w_new_s').value=String(s);
   WD.forEach(d=>$('w_new_'+d).value=''); r.weekly.segs.filter(x=>!x.noDays&&x.units!=null).forEach(x=>x.days.forEach(d=>$('w_new_'+d).value=x.units)); (r.weekly.off||[]).forEach(d=>$('w_new_'+d).value=0);
   const dp=dispOf(L); if(dp) $('wWeeks').value=+(dp.days/7).toFixed(2); renderWf();});
-['wStart','wWeeks','wUntil','wTgt'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wTgt').addEventListener('change',renderWf);
+['wStart','wWeeks','wUntil','wTgt'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wPct').addEventListener('change',renderWf); $('wPctB').innerHTML=WF_PCTS.map(v=>`<button type="button" class="btn sm" data-wp="${v}">${v>0?'+':''}${v}%</button>`).join(''); $('wPctB').querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{ $('wPct').value=b.dataset.wp; renderWf(); }); $('wPct').addEventListener('input',renderWf); $('wTgt').addEventListener('change',renderWf);
 ['old','new'].forEach(k=>{$(`w_${k}_s`).addEventListener('change',renderWf); WD.forEach(d=>$(`w_${k}_${d}`).addEventListener('input',renderWf));});
 $('t-wf').addEventListener('click',renderWf); $('inr').addEventListener('input',()=>{if(!$('p-wf').hidden)renderWf();});
 renderWf();

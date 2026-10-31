@@ -60,6 +60,7 @@ function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.i
   out.querySelectorAll('[data-mi]').forEach(s=>s.onchange=()=>{ const r=MR.rows[+s.dataset.mi]; r.st=s.value; MR.ov[r.key]=s.value; mrRender(); });
   out.querySelectorAll('[data-tk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.tk]; if(P&&P.tl){ P.tl[el.dataset.tf]=el.value; } const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
   out.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.pk]||(MR.plan[el.dataset.pk]={}); P[el.dataset.pf]=el.value; const y=window.scrollY; mrRender(); window.scrollTo(0,y); });
+  if($('mrCalPr')) $('mrCalPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ปฏิทินยากลับบ้าน / refer</div>${MR.calPrint||MR.calHtml||''}<p style="font-size:11px">แต่ละตารางแสดง 21 วัน · ผลรวมขวาสุดเป็นยอดทั้งช่วง</p></div>`,true);
   const t=mrSheet(); $('mrSheet').textContent=t;
   $('mrCp').onclick=()=>copyRich(txtHtml(t),t,$('mrMsg'));
   $('mrPr').onclick=()=>printHtml(`<div class="mk"><div class="mkt">ใบส่งคีย์ยากลับบ้าน (Medication reconciliation)</div>${txtHtml(t)}</div>`); }

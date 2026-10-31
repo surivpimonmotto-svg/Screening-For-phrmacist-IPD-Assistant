@@ -68,7 +68,7 @@ function mrPlan(row){ const c=row.c[0]; if(!c) return null; const r=c.r, raw=r.r
   else if(cEnd) notes.push(`ครบคอร์ส ${mrFs(cEnd)}`);
   const oq=mrQtyOrdered(raw); if(oq!=null&&need!=null&&!tp&&Math.abs(oq-need)>0.5) notes.push(`จำนวนในคำสั่ง ${oq} ≠ ที่คำนวณ ${fmtN(need)}`);
   if(leftTo&&left>0) notes.push(`ยาเหลือพอถึง ${mrFs(leftTo)}`);
-  return {P,autoStart,autoDur,s,e,need,left,give,packs,notes,cEnd,tp,oq}; }
+  return {P,autoStart,autoDur,s,e,need,left,give,packs,notes,cEnd,tp,oq,phs,tm}; }
 function mrDayUnits(phs,s,d,tm){ const ph=phs.find(x=>d>=x.a&&(!x.b||d<=x.b)); if(!ph) return 0; if(ph.H){ if(ph.per==null) return null; const t0=new Date(ph.a); if(ph===phs[0]&&tm) t0.setHours(tm[0],tm[1]); else t0.setHours(8,0); return mrDosesOn(ph,t0,d)*ph.per; } return mrUnitsOn(ph.r,d); }
 function mrSched(phs,s,e,tm){ let need=0, ok=true; const packs=phs.map((x,i)=>({i:i+1,a:x.a>s?x.a:s,b:x.b&&x.b<e?x.b:e,q:0,u:null,seg:x.seg,H:x.H,dates:[]}));
   for(let d=s;d<=e;d=mrAdd(d,1)){ const i=phs.findIndex(x=>d>=x.a&&(!x.b||d<=x.b)); if(i<0) continue; const u=mrDayUnits(phs,s,d,tm); if(u==null){ ok=false; break; } need+=u; packs[i].q+=u; if(phs[i].H&&u>0){ const ph=phs[i], t0=new Date(ph.a); if(ph===phs[0]&&tm) t0.setHours(tm[0],tm[1]); else t0.setHours(8,0); const H=ph.H*36e5, a=d.getTime(), b=a+864e5; for(let k=Math.max(0,Math.ceil((a-t0.getTime())/H));t0.getTime()+k*H<b;k++) packs[i].dates.push(new Date(t0.getTime()+k*H)); } }
@@ -78,7 +78,7 @@ function mrPackLines(p){ if(!p.packs) return []; if(p.tp) return [...p.packs.map
 function mrPackHtml(p){ return mrPackLines(p).map(x=>`<div>${esc(x)}</div>`).join(''); }
 function mrIsInj(r){ const m=masterOf(r); return /\b(?:iv|im|sc|ivd|iv\s*drip|ivp|inj\.?|injection|vial|amp)\b/i.test(r.raw)||!!(m&&/INJECTION/i.test(m[4]||'')); }
 function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].includes(r.st)&&r.c.length), rows=all.filter(r=>!mrIsInj(r.c[0].r)), inj=all.filter(r=>mrIsInj(r.c[0].r)); if(!all.length) return '';
-  if(!rows.length) return mrInjTbl(inj);
+  if(!rows.length) return mrInjTbl(inj)+mrCal(all);
   const W=mrWin();
   return `<h2 style="margin-top:14px">แผนจ่ายยา — ${W.days?`${mrFs(W.st)} ถึง ${mrFs(W.end)} (${W.days} วัน)`:'ระบุจำนวนวัน หรือวันนัด'}</h2>
   <p class="hint" style="margin:0 0 6px">แก้ช่องสีอ่อนได้: <b>เริ่มกิน</b> (เช่น อังคารหน้า · delay 1 สัปดาห์ · 3/11/69) · <b>ระยะคอร์ส</b> (เช่น 6 เดือน · 5 วัน) · <b>ยาเหลือ</b> (เม็ด) · <b>ต้องใช้</b> (ถ้าคำนวณไม่ได้) — ระบบอ่านจากคำสั่งให้ก่อน</p>
@@ -91,7 +91,7 @@ function mrPlanTbl(){ const all=MR.rows.filter(r=>['same','chg','new','eq'].incl
      <td>${p.need!=null?fmtN(Math.round(p.need*100)/100):'?'}<div>${inp('qty',p.P.qty,'แก้เอง',60)}</div></td>
      <td>${inp('left',p.P.left,'0',60)}</td>
      <td style="font-size:1.1em"><b>${p.give!=null?p.give:'?'}</b></td>
-     <td>${mrPackHtml(p)}${p.notes.map(n=>`<div class="hint" style="color:${/≠|ก่อน|ไม่ได้/.test(n)?'#b45309':''}">• ${esc(n)}</div>`).join('')}</td></tr>`; }).join('')}</tbody></table></div>${mrInjTbl(inj)}`; }
+     <td>${mrPackHtml(p)}${p.notes.map(n=>`<div class="hint" style="color:${/≠|ก่อน|ไม่ได้/.test(n)?'#b45309':''}">• ${esc(n)}</div>`).join('')}</td></tr>`; }).join('')}</tbody></table></div>${mrInjTbl(inj)}${mrCal(all)}`; }
 
 /* ---------- ยาฉีด refer/กลับบ้าน: ใช้ตัวคำนวณเดียวกับแท็บ Timeline/จ่ายต่อ (tlCalc) ---------- */
 function mrAsof(){ const W=mrWin(), t=($('mrTime')||{}).value||''; const m=t.match(/(\d{1,2})[:.](\d{2})/); const d=new Date(W.st); if(m) d.setHours(+m[1],+m[2]); else { const n=new Date(); d.setHours(n.getHours(),n.getMinutes()); } return d; }
@@ -110,6 +110,31 @@ function mrInjTbl(inj){ if(!inj.length) return ''; const asof=mrAsof();
      <td>${I(row,'units',50,'1','number')} ${I(row,'ulab',56,'vial')}</td>
      <td>${c.err?`<span class="hint">${esc(c.err)}</span>`:`ทั้งคอร์ส <b>${c.total}</b> ครั้ง (${tlFmt(c.s)} → ${tlFmt(c.last)})<br>ให้แล้ว <b>${c.given}</b> ครั้ง · <b style="color:var(--accent);font-size:1.1em">เหลือ ${c.rem} ครั้ง</b>${tl.units?` = <b style="color:var(--accent);font-size:1.1em">${fmtN(c.units)} ${esc(tl.ulab||'')}</b>`:''}${c.rem?`<br>dose ถัดไป ${tlFmt(c.first)} · dose สุดท้าย ${tlFmt(c.last)}`:'<br>ครบคอร์สแล้ว ไม่ต้องจ่ายต่อ'}`}</td></tr>`; }).join('')}</tbody></table></div>`; }
 function mrInjLine(row){ const {tl,c}=mrInjCalc(row); if(c.err) return ` → ฉีด: ${c.err}`; return c.rem?` → ฉีดต่อ ${c.rem} ครั้ง${tl.units?` = ${fmtN(c.units)} ${tl.ulab||''}`:''} (q${fmtN(c.tau)}h ${tlFmt(c.first)} – ${tlFmt(c.last)}) · ทั้งคอร์ส ${c.total} ครั้ง ให้แล้ว ${c.given}`:` → ฉีดครบคอร์สแล้ว (${c.total} ครั้ง) ไม่ต้องจ่าย`; }
+
+/* ---------- ปฏิทินยา: แถว = ยา · คอลัมน์ = วันที่ · ช่อง = จำนวนเม็ด/ครั้งฉีดในวันนั้น ---------- */
+function mrCalData(all){ const W=mrWin(), asof=mrAsof(), out=[];
+  all.forEach(row=>{ const r=row.c[0].r, m=new Map(), key=d=>mrD0(d).getTime();
+    if(mrIsInj(r)){ const {tl,c}=mrInjCalc(row); if(c.err) return; const H=c.tau*36e5;
+      for(let k=0;k<c.total;k++){ const t=new Date(c.s.getTime()+k*H), x=m.get(key(t))||{n:0,g:0,times:[]}; x.n++; if(k<c.given) x.g++; x.times.push(`${pad2(t.getHours())}:${pad2(t.getMinutes())}${k<c.given?' (ให้แล้ว)':''}`); m.set(key(t),x); }
+      out.push({name:row.name,inj:true,m,unit:tl.ulab||'ครั้ง',per:+tl.units||1,tot:c.rem*(+tl.units||1),totTxt:`เหลือ ${c.rem} ครั้ง`}); }
+    else { const p=mrPlan(row); if(!p||!p.e||p.e<p.s) return; let tot=0;
+      for(let d=p.s;d<=p.e;d=mrAdd(d,1)){ let u=null; if(p.tp&&p.packs){ const k=p.packs.find(x=>d>=x.a&&d<=x.b); u=k?k.u:0; } else if(p.phs) u=mrDayUnits(p.phs,p.s,d,p.tm); if(u==null) return; if(u>0){ m.set(key(d),{n:u}); tot+=u; } }
+      out.push({name:row.name,inj:false,m,unit:'เม็ด',tot,left:p.left,give:p.give}); } });
+  return {rows:out,W,asof}; }
+function mrCal(all){ const {rows,W,asof}=mrCalData(all); if(!rows.length) return '';
+  let a=null,b=null; rows.forEach(x=>x.m.forEach((v,k)=>{ if(a==null||k<a) a=k; if(b==null||k>b) b=k; })); if(a==null) return '';
+  const st=new Date(Math.min(a,W.st.getTime())), en=new Date(Math.max(b,W.end?W.end.getTime():b)); const days=[]; for(let d=mrD0(st);d<=en&&days.length<120;d=mrAdd(d,1)) days.push(d);
+  const dc=mrD0(asof).getTime(), ap=W.un?mrD0(W.un).getTime():null;
+  const mk=ds=>{ const th=ds.map(d=>{ const t=d.getTime(), we=d.getDay()===0||d.getDay()===6; return `<th style="min-width:34px;padding:2px;font-weight:600;${t===dc?'background:#dcfce7;':t===ap?'background:#fee2e2;':we?'background:color-mix(in srgb,#fde68a 35%,transparent);':''}"><div style="font-size:10px">${DAY_TH[WD[(d.getDay()+6)%7]]}</div>${d.getDate()}/${d.getMonth()+1}</th>`; }).join('');
+  const tr=rows.map(x=>`<tr><td style="position:sticky;left:0;background:var(--surface);white-space:nowrap;font-weight:700;padding:2px 6px">${esc(x.name)}${x.inj?' 💉':''}</td>${ds.map(d=>{ const v=x.m.get(d.getTime()); if(!v) return '<td style="border:1px solid var(--line)"></td>';
+      if(x.inj){ const rem=v.n-v.g; return `<td title="${esc(v.times.join(', '))}" style="border:1px solid var(--line);text-align:center;background:${rem?'#bfdbfe':'#e2e8f0'};color:#0f172a;font-weight:700">${v.n}${v.g&&rem?`<div style="font-size:9px;font-weight:400">ให้แล้ว ${v.g}</div>`:''}</td>`; }
+      return `<td style="border:1px solid var(--line);text-align:center;background:#fef3c7;color:#0f172a;font-weight:700">${wfDayTxt(v.n)}</td>`; }).join('')}<td style="white-space:nowrap;padding:2px 6px;font-weight:700">${x.inj?`${esc(x.totTxt)} = ${fmtN(x.tot)} ${esc(x.unit)}`:`${fmtN(Math.round(x.tot*100)/100)} เม็ด${x.left?` − เหลือ ${fmtN(x.left)} = จ่าย ${x.give}`:''}`}</td></tr>`).join('');
+  return `<div style="overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:6px"><table style="border-collapse:collapse;font-size:12.5px"><thead><tr><th style="position:sticky;left:0;background:var(--surface);text-align:left;padding:2px 6px">ยา</th>${th}<th style="padding:2px 6px">รวม</th></tr></thead><tbody>${tr}</tbody></table></div>`; };
+  const html=mk(days); const ch=[]; for(let i=0;i<days.length;i+=21) ch.push(mk(days.slice(i,i+21)));
+  MR.calPrint=ch.join('');
+  MR.calHtml=html;
+  return `<h2 style="margin-top:14px">ปฏิทินยา — ไล่ตรวจจำนวนรายวัน</h2><p class="hint" style="margin:0 0 6px">ตัวเลขในช่อง = จำนวนเม็ด (สีเหลือง) / จำนวนครั้งฉีด (ฟ้า = ต้องฉีดต่อ, เทา = ให้แล้ว · ชี้เมาส์ดูเวลา) · คอลัมน์เขียว = วัน D/C · แดง = วันนัด · เสาร์-อาทิตย์สีเหลืองอ่อน · ผลรวมขวาสุดต้องตรงกับช่อง "ต้องใช้/จ่าย" ด้านบน</p>
+   ${html}<div style="margin-top:6px"><button class="btn sm" type="button" id="mrCalPr">พิมพ์ปฏิทินยา (A4 แนวนอน)</button></div>`; }
 function mrPlanLine(r){ if(r.c[0]&&mrIsInj(r.c[0].r)) return mrInjLine(r); const p=mrPlan(r); if(!p||p.give==null) return ''; let t=` → จ่าย ${p.give} เม็ด`; if(p.left) t+=` (ใช้ ${fmtN(p.need)} − เหลือ ${fmtN(p.left)})`;
   if(p.e&&p.e>=p.s) t+=` · กิน ${mrFs(p.s)}–${mrFs(p.e)}`; if(p.packs) t+='\n'+mrPackLines(p).map(x=>'      '+x).join('\n');
   if(p.cEnd&&p.e&&p.cEnd>p.e) t+=` · คอร์สถึง ${mrFs(p.cEnd)}`; if(p.s>mrWin().st) t+=` · ⚠ เริ่มกิน ${mrFs(p.s)} ไม่ใช่วันแรก`; return t; }

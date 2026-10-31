@@ -222,6 +222,8 @@ textarea.paste{border-color:var(--accent)}
 #t-cmt,#p-cmt{--c1:#0f766e;--c2:#9333ea}
 #t-dtl,#p-dtl{--c1:#0891b2;--c2:#2563eb}
 #t-ref,#p-ref{--c1:#a16207;--c2:#db2777}
+#t-rca,#p-rca{--c1:#dc2626;--c2:#9333ea}
+.xchip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;margin:2px;background:var(--surface);color:var(--ink);cursor:pointer;font-size:12.5px}.xchip:hover{border-color:var(--c1);color:var(--c1)}
 .refbox{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--surface)}.refbox summary{cursor:pointer;font-weight:700;padding:10px 12px}.refbody{padding:0 14px 12px;font-size:14px;line-height:1.6}.refbody h3{font-size:14.5px;margin:12px 0 4px;color:var(--c1)}.refbody ul{margin:4px 0;padding-left:20px}
 .dtleg{font-size:13px;margin:6px 0;line-height:1.7}.dtsvg{border:1px solid var(--line);border-radius:8px;margin-top:6px}
 .labbox{border:1px dashed var(--line);border-radius:10px;padding:8px 10px;background:color-mix(in srgb,#0ea5e9 5%,var(--surface))}
@@ -376,6 +378,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
+      <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
       <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
       <button role="tab" id="t-kb" aria-selected="false">ฐานกฎยา</button>
     </div>
@@ -593,6 +596,35 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <div class="inrow cpbar" style="margin:6px 0"><button class="btn sm pri" id="dtCpImg" type="button">คัดลอกรูป</button><button class="btn sm" id="dtCpTxt" type="button">คัดลอกข้อความ</button><button class="btn sm" id="dtSvImg" type="button">บันทึกรูป PNG</button><span class="toast" id="dtCpMsg" aria-live="polite"></span></div>
         <div id="dtChart" style="overflow-x:auto"></div>
       </div>
+    </section>
+
+    <section id="p-rca" hidden>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>RCA — วิเคราะห์สาเหตุรากเหตุการณ์ด้านยา (PE · TE · Pre-DE · DE · AE · แพ้ยาซ้ำ)</h2>
+        <p class="hint" style="margin-top:0">ห้ามใส่ชื่อ/HN ผู้ป่วยหรือชื่อผู้เกี่ยวข้องที่ระบุตัวได้ (no blame) · ข้อมูลเก็บในเครื่องนี้ บันทึกเป็นไฟล์เพื่อเปิดภายหลังได้</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn sm pri" id="rPrint">พิมพ์แบบฟอร์ม RCA (HA)</button><button type="button" class="btn sm" id="rCopy">คัดลอกข้อความ</button><button type="button" class="btn sm" id="rCpImg">คัดลอกรูปก้างปลา</button><button type="button" class="btn sm" id="rSaveF">บันทึกเป็นไฟล์</button><button type="button" class="btn sm" id="rOpen">เปิดไฟล์</button><input type="file" id="rFile" accept=".json" hidden><button type="button" class="btn sm" id="rNew">เริ่มใหม่</button><span class="toast" id="rMsg"></span></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>1. ข้อมูลเหตุการณ์</h2>
+        <div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+          <label class="f">ชนิดเหตุการณ์<select id="rType"></select></label><label class="f">ระดับความรุนแรง (NCC MERP)<select id="rSev"></select></label>
+          <label class="f">วันที่เกิด<input id="rDate" placeholder="dd/mm/2569"></label><label class="f">หน่วยงาน/หอผู้ป่วย<input id="rWard"></label>
+          <label class="f" style="grid-column:1/-1">ยาที่เกี่ยวข้อง<input id="rDrug" placeholder="เช่น สั่ง Cefixime 2x2 ใน CrCl 5 / จ่าย Losartan แทน Lorazepam"></label>
+          <label class="f" style="grid-column:1/-1">สิ่งที่เกิดขึ้น (What happened)<textarea id="rWhat" rows="3"></textarea></label>
+          <label class="f" style="grid-column:1/-1">สิ่งที่ควรจะเป็น (What should have happened)<textarea id="rShould" rows="2"></textarea></label>
+          <label class="f" style="grid-column:1/-1">ผลกระทบต่อผู้ป่วย<textarea id="rImpact" rows="2"></textarea></label>
+        </div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>2. ลำดับเหตุการณ์ (Timeline)</h2><div id="rSeq" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>3. วิเคราะห์ 5 Whys</h2><p class="hint" style="margin-top:0">ถาม "ทำไม" ต่อเนื่องจนถึงสาเหตุเชิงระบบ (มักไม่เกิน 5 ชั้น) — หลีกเลี่ยงการหยุดที่ "คนทำผิด"</p><div id="rWhy" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>4. ผังก้างปลา (Fishbone / Ishikawa)</h2><div id="rHint" style="margin-bottom:8px;line-height:2"></div>
+        <div class="grid2" id="rFb" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"></div><div id="rFish" style="margin-top:10px;overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>5. สาเหตุราก (Root cause)</h2>
+        <div class="grid2"><label class="f" style="grid-column:1/-1">สาเหตุราก<textarea id="rRoot" rows="3"></textarea></label><label class="f" style="grid-column:1/-1">ปัจจัยร่วม (Contributing factors)<textarea id="rContrib" rows="2"></textarea></label></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>6. มาตรการแก้ไขและป้องกัน (Action plan)</h2><div id="rAct" style="overflow-x:auto"></div><p id="rStr" class="hint" style="margin:8px 0 0"></p>
+        <details style="margin-top:8px"><summary class="hint">ระดับความแข็งแรงของมาตรการ (Hierarchy of actions)</summary><ul id="rStrRef" style="font-size:13px"></ul></details></div>
+      <div class="panel sec" style="margin:0"><h2>7. บทเรียนและทีม</h2>
+        <div class="grid2"><label class="f" style="grid-column:1/-1">บทเรียนที่ได้รับ (Lessons learned)<textarea id="rLesson" rows="2"></textarea></label><label class="f">ทีม RCA (ตำแหน่ง)<input id="rTeam" placeholder="เช่น เภสัชกร 2, พยาบาล 1, แพทย์ 1"></label><label class="f">ผู้จัดทำ<input id="rBy"></label></div></div>
     </section>
 
     <section id="p-ref" hidden>

@@ -618,7 +618,15 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f" style="grid-column:1/-1">ผลกระทบต่อผู้ป่วย<textarea id="rImpact" rows="2"></textarea></label>
         </div>
       </div>
-      <div class="panel sec" style="margin:0 0 14px"><h2>2. ลำดับเหตุการณ์ (Timeline)</h2><div id="rSeq" style="overflow-x:auto"></div></div>
+      <div class="panel sec" style="margin:0 0 14px"><h2>2. ลำดับเหตุการณ์ (Timeline)</h2>
+        <details class="labbox" open style="margin:0 0 10px"><summary>นำเข้ารายการยา / ผลแล็บ แต่ละครั้ง <span class="hint">— ใช้ตัวอ่านเดียวกับหน้าคัดกรอง ตัดชื่อ/HN/AN ให้อัตโนมัติ</span></summary>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><label class="f" style="min-width:140px">วัน/เวลา<input id="rImD" class="ctl" placeholder="เช่น 10 ก.ย. 69"></label>
+          <label class="f" style="min-width:200px">ครั้งนี้คือ<select id="rImL" class="ctl"><option>ใบสั่งยา IPD</option><option>ยากลับบ้าน (D/C)</option><option>OPD / Re-med</option><option>MR แรกรับ</option><option>ยาที่จ่ายจริง</option><option>ผลแล็บ</option><option value="">อื่นๆ (ไม่ใส่หัว)</option></select></label></div>
+          <textarea id="rImT" rows="5" placeholder="วางรายการยา และ/หรือ ผลแล็บ ของครั้งนี้ (copy จาก HIS / ใบสั่งยา) — ระบบอ่านยา+ผลคัดกรอง และแยกค่าแล็บลงตารางด้านล่าง"></textarea>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"><button type="button" class="btn sm pri" id="rImP">อ่านแล้วเพิ่มเป็นเหตุการณ์</button><button type="button" class="btn sm" id="rImS" title="ใช้รายการยา+ค่าแล็บที่อยู่ในแท็บคัดกรองตอนนี้">ดึงจากหน้าคัดกรอง</button><span id="rImMsg" class="hint"></span></div>
+        </details>
+        <div id="rSeq" style="overflow-x:auto"></div>
+        <h3 style="margin:12px 0 6px;font-size:1rem">ผลแล็บที่เกี่ยวข้อง</h3><div id="rLab" style="overflow-x:auto"></div></div>
       <div class="panel sec" style="margin:0 0 14px"><h2>3. ด่านป้องกัน (Swiss cheese)</h2><p class="hint" style="margin-top:0">แต่ละด่าน: หลุด / บางส่วน / กั้นได้ — รูปแสดงว่าอันตรายผ่านถึงผู้ป่วยหรือถูกกั้นที่ด่านใด</p><div id="rDef" style="overflow-x:auto"></div><div id="rSwiss" style="margin-top:10px"></div></div>
       <div class="panel sec" style="margin:0 0 14px"><h2>4. วิเคราะห์ 5 Whys</h2><p class="hint" style="margin-top:0">แยกเป็นสายตามวิชาชีพ/ด่าน (เช่น แพทย์ · เภสัชกร · พยาบาล) ถาม "ทำไม" ต่อจนถึงสาเหตุเชิงระบบ — ไม่หยุดที่ "คนทำผิด"</p><div id="rWhy" style="overflow-x:auto"></div></div>
       <div class="panel sec" style="margin:0 0 14px"><h2>5. ผังก้างปลา (ปัจจัยร่วม)</h2><div id="rHint" style="margin-bottom:8px;line-height:2"></div>

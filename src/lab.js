@@ -30,6 +30,9 @@ const LAB_DEF=[
  ['ph','pH','',/\bph\b/i],
  ['lact','Lactate','mmol/L',/\blactate\b/i],
  ['inr','INR','',/\binr\b/i,'inr'],
+ ['cpk','CPK','U/L',/\bcpk\b|\bck\b(?!-?mb)|creatine\s*kinase/i],
+ ['uric','Uric acid','mg/dL',/uric\s*acid/i],
+ ['alp','ALP','U/L',/\balp\b|alkaline\s*phosphatase/i],
 ];
 const LAB_EXTRA=LAB_DEF.filter(x=>!x[4]); // ช่องใหม่ในกล่อง Lab
 

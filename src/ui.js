@@ -346,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.11.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.12.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -604,7 +604,7 @@ $('ageIn').addEventListener('input',ageSync); $('ageU').addEventListener('change
 
 /* ---------- กล่องผล Lab ---------- */
 (function(){ const g=$('labGrid'); if(!g) return;
-  const GRP={bun:'renal',plt:'coag',ast:'liver',alt:'liver',tbil:'liver',dbil:'liver',alb:'liver',na:'lyte',ca:'lyte',phos:'lyte',hco3:'lyte'};
+  const GRP={bun:'renal',uric:'renal',cpk:'liver',alp:'liver',plt:'coag',ast:'liver',alt:'liver',tbil:'liver',dbil:'liver',alb:'liver',na:'lyte',ca:'lyte',phos:'lyte',hco3:'lyte'};
   LAB_EXTRA.forEach(([k,n,un])=>{ const host=$('lg-'+(GRP[k]||'cbc'))||g; host.insertAdjacentHTML('beforeend',`<label class="f"><span>${n}${un?` <small>(${un})</small>`:''}</span><input id="L_${k}" type="number" inputmode="decimal" step="any"></label>`); });
   LAB_EXTRA.forEach(([k])=>$('L_'+k).addEventListener('input',()=>{renderRows(); if(!$('p-cmt').hidden) renderCmt();}));
   $('labParse').onclick=()=>{ const v=labParse($('labPaste').value); let n=0;

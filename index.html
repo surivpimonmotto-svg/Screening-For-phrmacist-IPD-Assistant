@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
 <style>
 [hidden]{display:none!important}
+kbd{display:inline-block;padding:0 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;font:600 12.5px/1.6 inherit;background:var(--surface)}
 /* Layout: workbench — patient strip pinned left (top on phone), order checks as a ledger on the right; every result row carries a severity stripe */
 :root{
   --bg:#eef2f1; --surface:#ffffff; --sunk:#f6f8f7; --ink:#15232a; --muted:#5a6b71; --line:#d5dedb; --line2:#e6ecea;
@@ -449,6 +450,34 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f">④ ยากลับบ้าน (D/C order)<textarea id="mrC" rows="6" placeholder="AMLODIPINE 5 MG TAB 1x1 pc เช้า&#10;CEFIXIME 100 MG CAP 2x2 pc"></textarea></label>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px"><button type="button" class="btn pri" id="mrRun">เปรียบเทียบ</button><button type="button" class="btn sm" id="mrFromScr" title="ใช้รายการยาในแท็บตรวจใบสั่งยาเป็นยากลับบ้าน">ดึงยากลับบ้านจากหน้าคัดกรอง</button><button type="button" class="btn sm" id="mrEx">ตัวอย่าง</button><button type="button" class="btn sm" id="mrClr">ล้าง</button><span class="toast" id="mrMsg0"></span></div>
+        <details class="labbox" open style="margin-top:10px"><summary><b>📖 วิธีใช้ (อ่านก่อนใช้ครั้งแรก — กดที่หัวข้อเพื่อพับเก็บ)</b></summary>
+          <div style="font-size:14px;line-height:1.6;margin-top:6px">
+          <b>ขั้นตอน</b>
+          <ol style="margin:4px 0 8px;padding-left:20px">
+            <li>กรอกค่าไต/แล็บที่แผงข้อมูลผู้ป่วยด้านซ้าย (ใช้คัดกรองยากลับบ้าน)</li>
+            <li>วางรายการยาในช่อง ①–④ ตามแหล่ง — ช่องที่ไม่มีข้อมูลเว้นว่างได้ · ถ้ายากลับบ้านวางไว้ในแท็บตรวจใบสั่งยาแล้ว กด "ดึงยากลับบ้านจากหน้าคัดกรอง"</li>
+            <li>กด <b>เปรียบเทียบ</b> → ตรวจแถวสีแดง "ยืนยันกับแพทย์" ก่อน → ได้คำตอบแล้วเปลี่ยนสถานะ (หยุด / ใช้ยาเดิมผู้ป่วย ฯลฯ)</li>
+            <li>ตรวจคำเตือน (ซ้ำซ้อน, ขนาดยาตามไต, ยาที่มักลืมสั่งกลับ)</li>
+            <li><b>คัดลอก</b> หรือ <b>พิมพ์ใบส่งคีย์</b> ให้เจ้าพนักงาน — รายการ "✕ หยุด" ต้องยกเลิกรายการเดิมในระบบด้วย</li>
+          </ol>
+          <b>วิธีนำข้อมูลเข้า</b>
+          <ul style="margin:4px 0 8px;padding-left:20px">
+            <li><b>คัดลอกข้อความ (แม่นที่สุด)</b> — ลากคลุมรายการยาในหน้าจอ HIS → <kbd>Ctrl</kbd>+<kbd>C</kbd> → คลิกในช่อง → <kbd>Ctrl</kbd>+<kbd>V</kbd></li>
+            <li><b>แคปหน้าจอ</b> (เมื่อ copy ข้อความไม่ได้):
+              <ol style="margin:2px 0;padding-left:20px">
+                <li>กด <kbd>⊞ Win</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> พร้อมกัน — ปุ่ม ⊞ Win อยู่แถวล่างซ้าย ระหว่าง Ctrl กับ Alt</li>
+                <li>หน้าจอมืดลง → คลิกค้างแล้วลากคลุม <b>เฉพาะรายการยา</b> (ไม่ติดชื่อ/HN) → ปล่อยเมาส์</li>
+                <li>คลิกในช่องของโปรแกรม → <kbd>Ctrl</kbd>+<kbd>V</kbd> → รอสักครู่ ข้อความขึ้นพร้อมกรอบสีส้ม</li>
+                <li><b>ตรวจชื่อยาและตัวเลขทุกบรรทัด</b> ก่อนกดเปรียบเทียบ (อ่านจากภาพอาจสลับ 1/l, 0/O, 5/S)</li>
+              </ol>
+              หรือกดปุ่ม 📷 อ่านจากรูป / ลากไฟล์รูปมาวางในช่อง · ตัวอักษรบนจอเล็ก ให้ซูม HIS (<kbd>Ctrl</kbd>+ลูกกลิ้งเมาส์) ก่อนแคป · Windows รุ่นเก่าใช้ปุ่ม <kbd>PrtSc</kbd> (แคปทั้งจอ)</li>
+          </ul>
+          <b>ข้อควรระวัง</b>
+          <ul style="margin:4px 0 0;padding-left:20px">
+            <li>ชื่อการค้า รพ.อื่นที่ไม่มีในบัญชียา จะจับคู่ไม่ได้ (ขึ้นเป็น 2 แถว) — เภสัชกรดูเองแล้วเปลี่ยนสถานะ</li>
+            <li>ข้อมูลไม่บันทึกลงเครื่อง รีเฟรชแล้วต้องวางใหม่ · โปรแกรมตัดชื่อ/HN/AN ให้ แต่ควรไม่วางมาตั้งแต่แรก</li>
+            <li>โปรแกรมช่วยเทียบเท่านั้น — การตัดสินใจหยุด/เปลี่ยนยาเป็นของแพทย์ ยืนยันทุกรายการที่ไม่ชัดเจนก่อนส่งคีย์</li>
+          </ul></div></details>
         <details style="margin-top:10px"><summary class="hint">ความหมายของสถานะ</summary><ul style="margin:6px 0 0;padding-left:18px"><li><b style="color:#16a34a">เดิม</b> — ยาเดิม ขนาดเดิม → คีย์ตามเดิม</li><li><b style="color:#d97706">เปลี่ยน</b> — ขนาด/ความถี่/ความแรงเปลี่ยน → คีย์ตามใหม่</li><li><b style="color:#2563eb">ใหม่</b> — เริ่มระหว่างนอน รพ. หรือตอนกลับบ้าน → คีย์ใหม่</li><li><b style="color:#64748b">หยุด</b> — แพทย์สั่งหยุด → ไม่คีย์ และยกเลิกรายการเดิมในระบบ</li><li><b style="color:#7c3aed">ใช้ยาเดิมผู้ป่วย</b> — ยา รพ.อื่นที่ผู้ป่วยมีและกินต่อ → ไม่จ่าย</li><li><b style="color:#0d9488">เทียบเท่า</b> — รพ.มค จ่ายแทนยา รพ.อื่น → แจ้งผู้ป่วยไม่กินซ้ำ</li><li><b style="color:#dc2626">ยืนยันกับแพทย์</b> — ยาเดิมหายไปโดยไม่มีคำสั่งหยุด / เทียบไม่ได้ → ห้ามคีย์จนกว่าจะยืนยัน</li></ul></details>
       </div>
       <div class="panel sec hres" style="margin:0" id="mrOut"></div>
@@ -2855,7 +2884,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.15.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.15.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

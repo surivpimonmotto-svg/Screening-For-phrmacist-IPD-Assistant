@@ -9,6 +9,9 @@
 
 ---
 
+## v0.24.1 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- แบบ DI Warfarin: เทียบกับแบบฟอร์มจริง 6 เคส (valproate, metronidazole, levofloxacin, rifampin, amiodarone, phenytoin) — วันนัดตรงทุกเคส ยกเว้น **Amiodarone หลังหยุดยา** แก้เป็นนับ +30 วัน (ช่วง 30–90 วัน) ให้ตรงกับที่ห้องยาเขียนจริง (13/7 → 12/8) · Phenytoin: ข้อความ Management "ในช่วง 2 สัปดาห์แรก" ตามแบบฟอร์ม
+
 ## v0.24.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - แท็บ ยา TB: **ขนาดยา DR-TB ตามน้ำหนัก (ตาราง 3.6 PMDT 2567 / WHO 2022)** ครบ 3 ถึง ≥70 kg ทุกรูปแบบ (dt, เม็ด, ยาน้ำ, ละลายน้ำ 10 mL) — Lfx, Mfx (standard/high), Bdq, Lzd, Cfz, Cs, E, Dlm, Z, Imp/Mpm, Am/Sm, Eto/Pto, PAS, Hh, Amx/clav, Pa · Bdq และ Dlm เลือกตามอายุ (เดือน) อัตโนมัติ · ดูเฉพาะช่วงน้ำหนักผู้ป่วย หรือทุกช่วง (ไฮไลต์ช่วงผู้ป่วย) · กรองตามกลุ่มยา A/B/C · เชิงอรรถ Lzd 16–<24 kg, Cs เด็กเล็ก
 

@@ -9,6 +9,11 @@
 
 ---
 
+## v0.19.2 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- เทียบกับไฟล์ ARV Screening IPD 2568 ครบทุกแถว: เพิ่มกฎขนาดยา **ABC** (300 q12h/600 q24h + HLA-B*5701), **RPV** 25 q24h, **ATV** 400 q24h / ATV/r 300/100 + HD, **DRV** 600 q12h หรือ 800 q24h (+RTV), **RTV** booster
+- TAF: CrCl<15 **และ HD** ห้ามใช้ตามไฟล์ IPD 2568 (ระบุว่าคู่มือไตบางฉบับให้ใน HD ได้)
+- NNRTI + DTG: แสดงสูตร High risk ตั้งครรภ์ (2NRTIs + NNRTI/PI + DTG)
+
 ## v0.19.1 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - แท็บ ARV: ช่องวางยาเต็มความกว้างแบบเดียวกับช่องอื่น + อ่านจากรูป (OCR / วางรูป Snipping Tool)
 

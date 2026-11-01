@@ -122,7 +122,7 @@ function arvChk(row,rows,pt,add){
       if(nn.length>1) add('flag',`ARV: NNRTI ซ้ำ ${nn.join(' + ')}`);
       if(pi.length>1) add('flag',`ARV: PI ซ้ำ ${pi.join(' + ')}`);
       if(nn.length&&pi.length) add('warn','ARV: NNRTI + PI ในสูตรเดียวกัน — ตรวจข้อบ่งใช้');
-      if(nn.length&&ins.length) add(nn.includes('EFV')?'info':'warn',`ARV: ${nn.join('/')} + DTG — ${nn.includes('EFV')?'ช่วงเปลี่ยนสูตร DTG ต้องเป็น 50 mg q12h':'ตรวจข้อบ่งใช้'}`);
+      if(nn.length&&ins.length) add(nn.includes('EFV')?'info':'warn',`ARV: ${nn.join('/')} + DTG — ${nn.includes('EFV')?'ช่วงเปลี่ยนสูตร DTG ต้องเป็น 50 mg q12h':'ตรวจข้อบ่งใช้'} · สูตร High risk ตั้งครรภ์: 2NRTIs + NNRTI/PI + DTG (ARV Screening IPD 2568)`);
       if(pi.length&&ins.length) add('info','ARV: PI + DTG — สูตร High DR (0-3 NRTIs + PIs + DTG) ตาม ARV Screening IPD 2568');
       if(nrti.length>2&&!pi.length) add('warn',`ARV: NRTI ${nrti.length} ตัว (${nrti.join(', ')}) — สูตรมาตรฐานใช้ 2 NRTIs ตรวจยาเม็ดรวมซ้ำ`);
       if(nrti.length<2&&!(pi.length&&ins.length)) add('warn',`ARV: NRTI ${nrti.length} ตัว — สูตรมาตรฐานต้องมี 2 NRTIs + ยาหลัก`);

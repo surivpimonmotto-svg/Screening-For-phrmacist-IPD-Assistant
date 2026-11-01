@@ -280,12 +280,12 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
-#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
-#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste::placeholder{color:#64748b;font-family:inherit}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste)::placeholder{color:#8ea0c4}}
-:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
+#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
+#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste::placeholder{color:#64748b;font-family:inherit}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste)::placeholder{color:#8ea0c4}}
+:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
 #ptBox{border:1.5px solid #8b5cf6;background:linear-gradient(180deg,color-mix(in srgb,#8b5cf6 12%,var(--surface)),var(--surface))}
 #ptBox summary{color:#7c3aed} @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #ptBox summary{color:#c4b5fd}}
 /* v0.10 — สีสถานะสดใส */
@@ -495,6 +495,10 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <div class="panel sec" style="margin:0">
           <h2>คำสั่งยา</h2>
           <div style="display:grid;gap:10px">
+            <div><div class="hint">วางคำสั่งยาจาก paperless / scan order — อ่านยา · ปริมาณยา · สารน้ำ · rate · สาย ให้อัตโนมัติ (ห้ามใส่ชื่อ-สกุล/HN)</div>
+              <textarea id="hPaste" rows="3" placeholder="เช่น Norepinephrine 4 mg/4 ml 8 mg + D5W 125 ml iv rate 15 ml/hr&#10;หรือ Levophed (4:250) 10 cc/hr central"></textarea>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"><button type="button" class="btn pri sm" id="hRead">อ่านคำสั่ง → คำนวณ</button><button type="button" class="btn sm" id="hFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn sm" id="hClr">ล้าง</button><span class="toast" id="hPMsg"></span></div>
+              <div id="hPick" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px"></div></div>
             <label class="f">ยา<select id="hDrug"></select></label>
             <div class="hint" id="hInfo"></div>
             <div class="grid2">

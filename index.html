@@ -379,7 +379,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
-      <button role="tab" id="t-arv" aria-selected="false">ARV / ทารก HIV (รอตรวจ)</button>
+      <button role="tab" id="t-arv" aria-selected="false">ARV / PEP / ทารก HIV (รอตรวจ)</button>
       <button role="tab" id="t-tbx" aria-selected="false">ยา TB</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
@@ -785,6 +785,19 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="nOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>HIV Post Exposure Prophylaxis (PEP) — สูตร · ขนาดยา · วันนัด · จำนวนยา</h2>
+          <p class="hint" style="margin:0 0 6px">ตามแบบคัดกรอง PEP / OSCC 2024 รพ.มค · ใช้น้ำหนัก อายุ CrCl จากแผงผู้ป่วย · เด็ก &lt;35 kg คำนวณ BSA ให้ · ห้ามใส่ชื่อ-สกุล/HN</p>
+          <div class="grid2">
+            <label class="f">ประเภท<select id="pType"><option value="nPEP">nPEP (ไม่ใช่จากการทำงาน)</option><option value="oPEP">oPEP (สัมผัสจากการทำงาน)</option></select></label>
+            <label class="f">สูตร (ผู้ใหญ่/≥35 kg)<select id="pepReg"><option value="1">สูตร 1: TLD 1 เม็ด q24h</option><option value="2">สูตร 2: TENO-EM + DTG</option><option value="3">สูตร 3: TDF + 3TC(150) 2 เม็ด + DTG</option><option value="4">สูตร 4: BW &lt;50 kg AZT 2 เม็ด q12h + DTG + 3TC ตาม CrCl</option><option value="5">สูตร 5: BW ≥50 kg AZT 3 เม็ด q12h + DTG + 3TC ตาม CrCl</option></select></label>
+            <label class="f">วันที่สัมผัส<input id="pExD" placeholder="dd/mm/yy"></label>
+            <label class="f">เวลาที่สัมผัส<input id="pExT" placeholder="เช่น 22:30"></label>
+            <label class="f">วันเริ่มยา<input id="pSt" placeholder="dd/mm/yy (ว่าง = วันนี้)"></label>
+            <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pTab" checked> เด็กกลืนยาเม็ดได้ (14–&lt;35 kg)</label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="pOut"></div>
       </div>
     </section>
 
@@ -3134,7 +3147,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.24.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.25.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4673,6 +4686,59 @@ function neoRender(){ const out=$('nOut'); if(!out) return; const ga=+$('nGa').v
   $('vEx').onclick=()=>{ $('vPaste').value='Acriptega (TDF300/3TC300/DTG50) 1 tab oral od pc เช้า\nCalcium carbonate 1000 mg 1x3 pc\nFerrous fumarate 200 mg 1x1 pc\nSimvastatin 20 mg 1 tab hs\nRifampicin 450 mg 1 tab od ac\nMetformin 500 mg 2x2 pc\nOmeprazole 20 mg 1x1 ac'; renderArv(); };
   ['nGa','nBw','nWk','nBd'].forEach(id=>$(id).addEventListener('input',neoRender)); ['nRisk','nVl','nDur','nBf','nWk'].forEach(id=>$(id).addEventListener('change',neoRender));
   renderArv(); neoRender(); })();
+
+/* ---------- HIV Post Exposure Prophylaxis (PEP) — แบบคัดกรอง PEP / OSCC 2024 รพ.มหาสารคาม ----------
+ เด็ก: AZT syr 180 mg/m² q12h + 3TC syr 4 mg/kg q12h + DTG dispersible ตามน้ำหนัก · เด็กกินเม็ดได้ 14–<35 kg · ผู้ใหญ่/≥35 kg สูตร 1–5
+ กินยา 28 วัน · จ่ายครั้งละ 14 วัน นัดตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ) */
+const PEP_DTGD=[[3,6,5,'½','5'],[6,10,15,'1½','5'],[10,14,20,'2','10'],[14,20,25,'2½','10'],[20,999,30,'3','15']];
+function pep3tcRenal(cr){ if(cr==null||cr>=50) return null; if(cr>=30) return ['150 mg q24h','3TC(150) 1 เม็ด q24h']; if(cr>=10) return ['100 mg q24h','3TC syrup (10 mg/ml) 10 ml q24h (เม็ด 150 แบ่งไม่ได้)']; return ['25–50 mg q24h','3TC syrup (10 mg/ml) 2.5–5 ml q24h']; }
+function pepRender(){ const out=$('pOut'); if(!out) return; const pt=getPt(), bw=+pt.bw, cr=pt.dial?0:pt.crcl, tab=$('pTab').checked, typ=$('pType').value;
+  const ex=tlDate($('pExD').value,$('pExT').value||'0:00'), st=tlDate($('pSt').value,'0:00')||(()=>{const d=new Date(); d.setHours(0,0,0,0); return d;})();
+  const L=[], li=(l,m)=>L.push(`<li><span class="tag ${l}">${LVL_TXT[l]}</span><span>${m}</span></li>`);
+  if(ex){ const h=(Date.now()-ex.getTime())/36e5; if(h>72) li('flag',`สัมผัสมาแล้ว ${Math.round(h)} ชม. (>72 ชม.) — ไม่แนะนำเริ่ม PEP · ปรึกษาแพทย์`); else li(h>36?'warn':'ok',`สัมผัสมาแล้ว ${Math.round(h)} ชม. — เริ่มยาให้เร็วที่สุด (ภายใน 72 ชม.${h<=2?' · ดีที่สุดภายใน 2 ชม.':''})`); }
+  if(!(bw>0)){ out.innerHTML='<div class="empty">กรอกน้ำหนักในแผงผู้ป่วย (และ Cr ถ้าผู้ใหญ่)</div>'; return; }
+  const rows=[]; let perDay=[]; // [ชื่อ, ต่อครั้ง, ครั้ง/วัน, หน่วยจ่าย, จำนวนต่อวัน]
+  let title='';
+  if(bw<35){ const bsa=(4*bw+7)/(bw+90), dtg=PEP_DTGD.find(x=>bw>=x[0]&&bw<x[1]);
+    if(!tab||bw<14){ title=`เด็กรับประทานยาน้ำ (BSA ${fmtN(Math.round(bsa*100)/100)} m² = (4×${fmtN(bw)}+7)/(${fmtN(bw)}+90))`;
+      const azt=180*bsa, t3=4*bw; rows.push(['AZT syrup 10 mg/ml',`${fmtN(Math.round(azt))} mg = <b>${fmtN(Math.round(azt/10*10)/10)} ml</b> q12h`,'180 mg/m² q12h']); perDay.push(['AZT syrup 10 mg/ml (ml)',Math.round(azt/10*10)/10*2]);
+      rows.push(['3TC syrup 10 mg/ml',`${fmtN(Math.round(t3*10)/10)} mg = <b>${fmtN(Math.round(t3/10*10)/10)} ml</b> q12h`,'4 mg/kg q12h']); perDay.push(['3TC syrup 10 mg/ml (ml)',Math.round(t3/10*10)/10*2]);
+      if(bw<3) rows.push(['DTG dispersible 10 mg','<span style="color:var(--flag)">ใช้ได้เมื่อ BW ≥3 kg และอายุ ≥1 เดือน — ปรึกษาแพทย์</span>','']);
+      else { rows.push(['DTG dispersible 10 mg',`<b>${dtg[2]} mg q24h</b>: ยา ${dtg[3]} เม็ด ผสมน้ำเปล่า ${dtg[4]} ml กิน ${dtg[4]} ml วันละครั้ง`,'ใช้ในเด็ก ≥1 เดือน, BW ≥3 kg']); perDay.push(['DTG dispersible 10 mg (เม็ด)',dtg[2]/10]); }
+      if(pt.age!=null&&$('age').value!==''&&+$('age').value<1/12) li('warn','อายุ <1 เดือน: DTG dispersible ยังไม่แนะนำ — ปรึกษาแพทย์'); }
+    else { title='เด็กรับประทานยาเม็ดได้ (14–<35 kg)';
+      if(bw<20){ rows.push(['AZT(100)','<b>1 เม็ด q12h</b>',''],['3TC(150)','<b>1 เม็ด q24h</b>',''],['DTG dispersible(10)','<b>2½ เม็ด q24h</b> (ผสมน้ำเปล่า 10 ml กิน 10 ml)','']); perDay.push(['AZT(100) (เม็ด)',2],['3TC(150) (เม็ด)',1],['DTG dispersible(10) (เม็ด)',2.5]); }
+      else if(bw<25){ rows.push(['AZT(100)','<b>2 เม็ด q12h</b>',''],['3TC(150)','<b>1½ เม็ด q24h</b>',''],['DTG(50)','<b>1 เม็ด q24h</b>','กลืนไม่ได้: DTG dispersible(10) 3 เม็ด = DTG(50) 1 เม็ด']); perDay.push(['AZT(100) (เม็ด)',4],['3TC(150) (เม็ด)',1.5],['DTG(50) (เม็ด)',1]); }
+      else { rows.push(['AZT(100)','<b>2 เม็ด q12h</b>',''],['3TC(150)','<b>2 เม็ด q24h</b>',''],['DTG(50)','<b>1 เม็ด q24h</b>','กลืนไม่ได้: DTG dispersible(10) 3 เม็ด = DTG(50) 1 เม็ด']); perDay.push(['AZT(100) (เม็ด)',4],['3TC(150) (เม็ด)',2],['DTG(50) (เม็ด)',1]); } } }
+  else { const ren=pep3tcRenal(cr), reg=$('pepReg').value;
+    if(cr==null&&!pt.dial) li('warn','ผู้ใหญ่: ยังไม่มี CrCl — ต้องตรวจ Cr ก่อนเลือกสูตร (CrCl <50 ห้าม TDF ใช้ AZT แทน)');
+    if(ren&&['1','2','3'].includes(reg)) li('flag',`CrCl ${fmtN(Math.round(cr))} (<50): ห้ามใช้ TDF (สูตร 1–3) → ใช้สูตร ${bw<50?'4':'5'}`);
+    const r=ren&&['1','2','3'].includes(reg)?(bw<50?'4':'5'):reg;
+    title={1:'สูตร 1 — TLD',2:'สูตร 2 — TENO-EM + DTG',3:'สูตร 3 — TDF + 3TC + DTG',4:'สูตร 4 (BW <50 kg) — AZT + DTG + 3TC ปรับตาม CrCl',5:'สูตร 5 (BW ≥50 kg) — AZT + DTG + 3TC ปรับตาม CrCl'}[r];
+    if(r==='4'&&bw>=50) li('warn','สูตร 4 สำหรับ BW <50 kg — น้ำหนักนี้ใช้สูตร 5 (AZT 3 เม็ด q12h)'); if(r==='5'&&bw<50) li('warn','สูตร 5 สำหรับ BW ≥50 kg — น้ำหนักนี้ใช้สูตร 4 (AZT 2 เม็ด q12h)');
+    if(r==='1'){ rows.push(['TLD (TDF300/3TC300/DTG50)','<b>1 เม็ด q24h</b>','']); perDay.push(['TLD (เม็ด)',1]); }
+    if(r==='2'){ rows.push(['TENO-EM (TDF300/FTC200)','<b>1 เม็ด q24h</b>',''],['DTG(50)','<b>1 เม็ด q24h</b>','']); perDay.push(['TENO-EM (เม็ด)',1],['DTG(50) (เม็ด)',1]); }
+    if(r==='3'){ rows.push(['TDF(300)','<b>1 เม็ด q24h</b>',''],['3TC(150)','<b>2 เม็ด q24h</b>',''],['DTG(50)','<b>1 เม็ด q24h</b>','']); perDay.push(['TDF(300) (เม็ด)',1],['3TC(150) (เม็ด)',2],['DTG(50) (เม็ด)',1]); }
+    if(r==='4'||r==='5'){ const n=r==='4'?2:3; rows.push(['AZT(100)',`<b>${n} เม็ด q12h</b>`,r==='4'?'BW <50 kg':'BW ≥50 kg'],['DTG(50)','<b>1 เม็ด q24h</b>','']); perDay.push(['AZT(100) (เม็ด)',n*2],['DTG(50) (เม็ด)',1]);
+      if(ren){ rows.push(['3TC',`<b>${ren[0]}</b> → ${ren[1]}`,`CrCl ${fmtN(Math.round(cr))}`]); if(/1 เม็ด/.test(ren[1])) perDay.push(['3TC(150) (เม็ด)',1]); else perDay.push(['3TC syrup 10 mg/ml (ml)',/10 ml/.test(ren[1])?10:5]); }
+      else { rows.push(['3TC(150)','<b>1 เม็ด q12h</b> (CrCl ≥50 หรือยังไม่ทราบ — ตรวจ Cr)','']); perDay.push(['3TC(150) (เม็ด)',2]); }
+      if(cr!=null&&cr<10) li('warn','CrCl <10: AZT ปรับเป็น 100 mg q8h หรือ 300 mg q24h (ARV Screening IPD 2568)'); } }
+  // วันนัด: ครบ 14 วันตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ)
+  const child=bw<35||pt.isPed, cd=child?[3]:[1,4]; let ap=mrAdd(st,14); while(!cd.includes(ap.getDay())) ap=mrAdd(ap,1);
+  const days=Math.round((ap-st)/864e5)+1, TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const disp=perDay.map(([n,q])=>`<tr><td>${esc(n)}</td><td>${fmtN(Math.round(q*100)/100)}/วัน</td><td><b>${fmtN(Math.ceil(q*days-1e-9))}</b></td><td class="hint">${fmtN(Math.ceil(q*28-1e-9))}</td></tr>`).join('');
+  li('info','หลีกเลี่ยงยาที่มีประจุ 2+ (antacid, Ca, Zn, Fe, วิตามินรวม) ภายใน 6 ชม. ของ DTG');
+  li('info',`ระยะเวลากินยารวม 28 วัน · จ่ายครั้งละประมาณ 14 วัน ให้มารับยาที่เหลือในวันนัดครั้งถัดไป · ถ้าวันนัดตรงวันหยุด เลื่อนเป็นวันคลินิกถัดไปและจ่ายยาเพิ่มให้พอ`);
+  if(typ==='oPEP') li('info','oPEP (สัมผัสจากการทำงาน): บันทึกรายงานอุบัติเหตุ · ตรวจ anti-HIV, HBsAg/anti-HBs, anti-HCV ของผู้สัมผัสและแหล่งสัมผัส');
+  if(typ==='nPEP') li('info','nPEP: พิจารณาตรวจ/ป้องกัน STI · ยาคุมฉุกเฉิน · วัคซีนตับอักเสบบี · ส่งต่อ OSCC กรณีถูกล่วงละเมิด');
+  out.innerHTML=`<h2>${esc(title)}</h2><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาด/วิธีใช้</th><th>หมายเหตุ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table>
+   <h2>นัดและจำนวนยา</h2><dl class="kv"><dt>เริ่มยา</dt><dd>${tlFmt(st,false)}</dd><dt>นัดครั้งถัดไป</dt><dd><b>${tlFmt(ap,false)} (วัน${TH[ap.getDay()]})</b> — ครบ 14 วันตรงคลินิก${child?'เด็ก (พุธ)':'ผู้ใหญ่ (จันทร์/พฤหัส)'}</dd><dt>จ่ายถึงวันนัด</dt><dd>${days} วัน (รวมวันนัด)</dd><dt>ครบ 28 วัน</dt><dd>${tlFmt(mrAdd(st,27),false)}</dd></dl>
+   ${disp?`<table class="ctbl"><thead><tr><th>ยา</th><th>ใช้</th><th>จ่ายถึงวันนัด</th><th>ทั้ง course 28 วัน</th></tr></thead><tbody>${disp}</tbody></table>`:''}
+   <ul class="msgs">${L.join('')}</ul>
+   <h2>Checklist ก่อนจ่าย</h2><ul style="margin:4px 0;padding-left:20px"><li>☐ สูตรยาถูกต้องตามน้ำหนัก/อายุ/CrCl</li><li>☐ ขนาดยา/วิธีกิน (BSA, BW, CrCl) · วิธีผสม DTG dispersible</li><li>☐ วันนัด 14 วันตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ)</li><li>☐ จำนวนยาพอถึงวันนัด</li></ul>
+   <p class="hint">แบบคัดกรอง HIV Post Exposure Prophylaxis / OSCC 2024 รพ.มหาสารคาม — ไฟล์ใน คู่มือย่อ › เอกสารต้นฉบับ</p>`; }
+(function(){ if(!$('pOut')) return; ['pExD','pExT','pSt'].forEach(id=>$(id).addEventListener('input',pepRender)); ['pTab','pType','pepReg'].forEach(id=>$(id).addEventListener('change',pepRender));
+  ['bw','scr','ageIn','ageU','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pepRender); el.addEventListener('change',pepRender); } }); $('t-arv').addEventListener('click',pepRender); pepRender(); })();
 
 /* ===== anticoag.js — แท็บ HAD: Enoxaparin (ขนาดตามน้ำหนัก/ไต → syringe 40/60 mg) · Heparin ปรับ rate ตาม aPTT (weight-based nomogram)
  ⚑ อ้างอิงทั่วไป: Enoxaparin SPC / CHEST · Raschke weight-based heparin nomogram (1993) — ยืนยันกับแนวทาง/ใบสั่ง รพ.มค */

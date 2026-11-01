@@ -253,7 +253,7 @@ const hMsg=m=>{ const e=$('hPMsg'); if(e){ e.textContent=m; e.style.whiteSpace='
 function hadFill(r){ const h=r.had; $('hDrug').value=h.key; $('hAmt').value=h.amt>0?h.amt:''; $('hAmp').value=h.amt>0?+(h.amt/HAD[h.key].amp).toFixed(2):''; $('hVol').value=h.vol>0?h.vol:''; $('hRate').value=h.rate!=null?h.rate:'';
   $('hLine').value=h.line||'peripheral'; if(!$('hBw').value&&$('bw').value) $('hBw').value=$('bw').value; renderHad();
   const miss=[!(h.amt>0)&&'ปริมาณยา',!(h.vol>0)&&'สารน้ำ (ml)',h.rate==null&&'rate (ml/h)'].filter(Boolean);
-  hMsg(miss.length?`อ่านได้บางส่วน — กรอกเพิ่ม: ${miss.join(', ')}`:`อ่านแล้ว: ${HAD[h.key].name} ${h.amt} ${HAD[h.key].u} / ${h.vol} ml · ${h.rate} ml/h${h.line?'':' · ไม่ระบุสาย ตั้งเป็น Peripheral (เปลี่ยนได้)'}`); }
+  hMsg(miss.length?`อ่านได้บางส่วน — กรอกเพิ่ม: ${miss.join(', ')}`:`อ่านแล้ว: ${HAD[h.key].name} ${h.amt} ${HAD[h.key].u} / ${h.vol} ml · ${h.rate} ml/h${h.how==='conc'?` (สูตร ${fmtN(h.amt/h.vol)} mg/ml · ใช้ ${fmtN(h.rate*24)} ml/วัน → เลือกถุง ${h.vol} ml)`:''}${h.line?'':' · ไม่ระบุสาย ตั้งเป็น Peripheral (เปลี่ยนได้)'}`); }
 function hadFromText(t){ const rs=joinLines(String(t||'').split(/\n/)).map(parseLine).filter(r=>r&&r.had), pk=$('hPick');
   if(!rs.length){ pk.innerHTML=''; hMsg('ไม่พบยา HAD ที่คำนวณได้ในข้อความ (เช่น Norepinephrine, Dopamine, Adrenaline, KCl, MgSO4, Heparin, Insulin)'); return; }
   pk.innerHTML=rs.length>1?'<span class="hint">พบ '+rs.length+' รายการ เลือก:</span>'+rs.map((r,i)=>`<button type="button" class="btn sm" data-hp="${i}">${esc(HAD[r.had.key].name)} ${r.had.amt||''}/${r.had.vol||''}</button>`).join(''):'';
@@ -359,7 +359,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.19.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.19.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

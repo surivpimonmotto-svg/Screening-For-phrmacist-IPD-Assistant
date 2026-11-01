@@ -206,7 +206,10 @@ function parseLine(raw){
     const dil=(L.match(/\b(nss|0\.9\s*%?\s*nss|ns|d5w|d5s|d5|d10w|swfi|sterile water|nss\/2)\b/i)||[])[1]||'';
     const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*)?(?:nss|ns|d5w|d5s|d5|swfi)?\s*(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i)||L.match(/\b(?:nss|d5w|d5s|swfi)\s*\(\s*(\d+)\s*(?:ml)?\s*\)/i);
     let amt=null,vol=null,how='';
-    if(ratio){ amt=+ratio[1]; vol=+ratio[2]; how='ratio'; }
+    // Dopamine/Dobutamine "2:1" = ความเข้มข้น 2 mg/ml → เลือกถุงเล็กสุดที่พอใช้ 24 ชม. (100/250/500 ml) แล้วคิดปริมาณยา เช่น rate 5 → 120 ml/วัน → 250 ml + 500 mg
+    if(ratio&&['dopa','dobu'].includes(HADKEY[drug.id])&&+ratio[2]<=5){ const c=+ratio[1]/+ratio[2], r=rate?+(rate[1]||rate[2]):null, need=r?r*24:null;
+      vol=dvol?+dvol[1]:(need?([100,250,500].find(b=>b>=need)||500):250); amt=Math.round(c*vol*100)/100; how='conc'; }
+    else if(ratio){ amt=+ratio[1]; vol=+ratio[2]; how='ratio'; }
     else { const t=[...L.matchAll(DOSE_RE)].filter(x=>!/^\s*$/.test(x[0])); const tk=t.length>=2?t[t.length-1]:t[0]; if(tk) amt=toUnit(+tk[1],tk[2],drug); if(dvol) vol=+dvol[1]; }
     row.had={key:HADKEY[drug.id],amt,vol,rate:rate?+(rate[1]||rate[2]):null,dil:dil.toUpperCase(),line:/central|cvc|cvp|central line/i.test(L)?'central':/periph|\bpl\b|เส้นเลือดส่วนปลาย/i.test(L)?'peripheral':null,how,dvol:dvol?+dvol[1]:null};
     { const H=HAD[row.had.key], am=line.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?)\s*\/\s*(\d+(?:\.\d+)?)\s*ml/i);

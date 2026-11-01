@@ -130,8 +130,28 @@ const REF=[
  <li><b>DI warfarin (MKH-PR-PHA, พ.ค. 68):</b> DI-L1 ห้ามใช้ร่วม (สั่งวันเดียวกันโปรแกรมล็อก · สั่งคนละวันภายใน 120 วันถามก่อนให้ยาตัวที่ 2) → เภสัชโทร consult เปลี่ยนยา · DI-L2 ต้องระบุเหตุผล/ข้อบ่งใช้และติดตาม → consult แพทย์ ยืนยัน → ติดตามตามแนวทาง + แนบใบแจ้งเตือนคู่ยา / ไม่ยืนยัน → consult + note ไม่ต้องจ่ายยา · DI-L3 ติดตามอาการ · บันทึก: Pharmacist note · consult online · พิมพ์ใบแจ้งเตือนแนบยาขึ้นวอร์ด</li>
  <li><b>MKH-FR-PHA-054</b> แจ้งผู้ป่วยมีประวัติแพ้ยา/สงสัยแพ้ยา และทดลองใช้ยาซ้ำ (Rechallenge)/ขอยกเลิกประวัติแพ้ยา: ส่วนที่ 1 ผู้คัดกรอง · ส่วนที่ 2 แพทย์ · ส่วนที่ 3 ผู้ป่วย/ญาติลงนาม (และพยาน)</li></ol>`}
 ];
+/* เอกสารต้นฉบับ (ไฟล์ใน docs/ref/) — เปิดดู/ดาวน์โหลดจากคู่มือย่อ · ไม่มีข้อมูลผู้ป่วย */
+const REF_FILES=[
+ ['ไต / HD','renal-dose-adult-2568.pdf','ขนาดยาในผู้ใหญ่ที่มีการทำงานของไตบกพร่อง (งานวิชาการเภสัชสนเทศ 2568, 21 หน้า)','renal ไต crcl dose adjustment'],
+ ['ไต / HD','atb-renal-table-2567.pdf','ตารางปรับขนาดยาต้านจุลชีพที่ใช้บ่อยตาม CrCl / HD / CAPD (ธ.ค. 2567)','antibiotic atb renal hd capd'],
+ ['ไต / HD','hd-drug-admin-2566.pdf','แนวทางการบริหารยาในผู้ป่วย Hemodialysis (คกก.ส่งเสริมการใช้ยาสมเหตุผล 7 เม.ย. 2566)','hemodialysis hd extra dose'],
+ ['TB','tb-dose-adult.pdf','ตารางขนาดยาต้านวัณโรค ผู้ป่วยอายุ ≥15 ปี','tb วัณโรค isoniazid rifampicin'],
+ ['TB','tb-dose-child-renal.pdf','ตารางขนาดยาต้านวัณโรค เด็ก <15 ปี และผู้ป่วยไตบกพร่อง','tb วัณโรค เด็ก ped renal'],
+ ['HIV','arv-screening-ipd-2568.pdf','ARV Screening IPD 2568 (ขนาดยา ARV · ปรับตามไต · สูตร)','arv hiv dtg tld'],
+ ['HIV','oscc-arv-2024.pdf','OSCC 2024 — ยาต้านไวรัสหลังสัมผัส (เด็ก/ผู้ใหญ่, BSA) one page','oscc pep hiv azt 3tc dtg'],
+ ['เด็ก','ped-dose-2568.pdf','ขนาดยาน้ำเด็กตามน้ำหนัก (ช้อนชา/เม็ด) ฉบับปรับปรุง 2568','ped เด็ก syrup liquid'],
+ ['พิษ / Antidote','antidotes-2564.pdf','ยาต้านพิษ (Antidotes) — MSKH Pharmacy News ก.ย. 2564','antidote nac naloxone พิษ'],
+ ['ผู้สูงอายุ','pharmacy-news-2563-12-elderly.pdf','ยาที่ควรระวังในผู้สูงอายุ (Beers) — MSKH Pharmacy News ธ.ค. 2563','elderly beers ผู้สูงอายุ'],
+ ['แนวทาง IPD','ipd-screening-guideline.pdf','การคัดกรองและทบทวนคำสั่งใช้ยาของห้องจ่ายยาผู้ป่วยในโดยเภสัชกร','screening ipd คัดกรอง'],
+ ['แนวทาง IPD','di-warfarin-flow-ipd-2568.jpg','ผังปฏิบัติเมื่อพบอันตรกิริยา warfarin (DI-L1/L2/L3) ผู้ป่วยใน (MKH-PR-PHA พ.ค. 2568)','warfarin di interaction flow'],
+ ['เครื่องคำนวณ (Excel)','opioid-dose-calculation.xlsx','Opioid Dose Calculation — ประเมิน/คำนวณขนาดยา (total oral morphine)','opioid morphine ome excel'],
+ ['เครื่องคำนวณ (Excel)','calc-formulas.xlsx','สูตรคำนวณ: Colistin · Vancomycin level · Inotrope · Opioid · น้ำเกลือดูดออก/เติมเข้า (dextrose)','colistin vancomycin inotrope dextrose excel']];
+function refFilesHtml(q){ const L=REF_FILES.filter(f=>!q||(f.join(' ')).toLowerCase().includes(q)); if(!L.length) return '';
+  const ic=f=>/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
+  return `<details open style="margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700">📎 เอกสารต้นฉบับ รพ.มค (${L.length} ไฟล์) — คลิกเพื่อเปิด/ดาวน์โหลด</summary>
+   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.xlsx$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
-  $('refOut').innerHTML=REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
+  $('refOut').innerHTML=refFilesHtml(q)+REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
     return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }
 (function(){ if(!$('refOut')) return; $('refQ').addEventListener('input',renderRef); renderRef(); })();
 

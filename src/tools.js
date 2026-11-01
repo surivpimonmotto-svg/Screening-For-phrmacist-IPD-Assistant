@@ -138,6 +138,7 @@ const REF_FILES=[
  ['ไต / HD','atb-renal-table-2567.pdf','ตารางปรับขนาดยาต้านจุลชีพที่ใช้บ่อยตาม CrCl / HD / CAPD (ธ.ค. 2567)','antibiotic atb renal hd capd'],
  ['ไต / HD','hd-drug-admin-2566.pdf','แนวทางการบริหารยาในผู้ป่วย Hemodialysis (คกก.ส่งเสริมการใช้ยาสมเหตุผล 7 เม.ย. 2566)','hemodialysis hd extra dose'],
  ['TB','tb-dose-adult.pdf','ตารางขนาดยาต้านวัณโรค ผู้ป่วยอายุ ≥15 ปี','tb วัณโรค isoniazid rifampicin'],
+ ['TB','drtb-pmdt-2567.pdf','แนวทางการบริหารจัดการผู้ป่วยวัณโรคดื้อยา พ.ศ. 2567 (PMDT 2024, กองวัณโรค · 190 หน้า · 47 MB)','drtb mdr xdr bpal bedaquiline linezolid ดื้อยา'],
  ['TB','tb-dose-child-renal.pdf','ตารางขนาดยาต้านวัณโรค เด็ก <15 ปี และผู้ป่วยไตบกพร่อง','tb วัณโรค เด็ก ped renal'],
  ['HIV','arv-screening-ipd-2568.pdf','ARV Screening IPD 2568 (ขนาดยา ARV · ปรับตามไต · สูตร)','arv hiv dtg tld'],
  ['HIV','oscc-arv-2024.pdf','OSCC 2024 — ยาต้านไวรัสหลังสัมผัส (เด็ก/ผู้ใหญ่, BSA) one page','oscc pep hiv azt 3tc dtg'],
@@ -151,7 +152,7 @@ const REF_FILES=[
 function refFilesHtml(q){ const L=REF_FILES.filter(f=>!q||(f.join(' ')).toLowerCase().includes(q)); if(!L.length) return '';
   const ic=f=>/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
   return `<details open style="margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700">📎 เอกสารต้นฉบับ รพ.มค (${L.length} ไฟล์) — คลิกเพื่อเปิด/ดาวน์โหลด</summary>
-   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.xlsx$/.test(f[1])?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.xlsx$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
+   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.xlsx$|drtb-pmdt/.test(f[1])?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.xlsx$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=refFilesHtml(q)+REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
     return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }

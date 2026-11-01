@@ -801,6 +801,12 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="xRun">ตรวจ</button><button type="button" class="btn" id="xFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="xClr">ล้าง</button><span class="toast" id="xMsg"></span></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="xOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>วัณโรคดื้อยา (DR-TB) — สูตรยา · ขนาดยา · ภาวะเฉพาะ · ติดตาม ADR</h2>
+          <p class="hint" style="margin:0 0 6px">ตามแนวทาง PMDT 2567 กองวัณโรค · ใช้น้ำหนัก/อายุ/ตั้งครรภ์/CrCl จากแผงผู้ป่วย · คำสั่งที่วางด้านบนจะถูกตรวจขนาดยาและคู่ยา (QT, serotonin, Bdq-inducer) ด้วย</p>
+          <label class="f" style="max-width:520px">รูปแบบการดื้อยา<select id="dPat"></select></label>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="drOut"></div>
       </div>
     </section>
 
@@ -829,7 +835,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <details style="margin-top:10px"><summary>ตารางสูตรน้ำยา 25 สูตร (ต่อ 1,000 ml)</summary><div id="cFt" style="overflow-x:auto;margin-top:6px"></div></details>
           <p class="hint" style="margin:8px 0 0">ปริมาณน้ำยาคิดจากผลรวมอัตราไหล (pre + post + dialysate) ถ้ากรอก — ถ้าไม่กรอกใช้ dose × น้ำหนัก · ไม่รวม net ultrafiltration</p>
         </div>
-        <div class="panel sec hres" style="margin:0" id="cOut"></div>
+        <div class="panel sec hres" style="margin:0" id="crOut"></div>
       </div>
     </section>
 

@@ -9,6 +9,12 @@
 
 ---
 
+## v0.23.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- **แท็บ ยา TB: เพิ่มส่วนวัณโรคดื้อยา (DR-TB)** ตามแนวทาง PMDT 2567 กองวัณโรค: เลือกรูปแบบการดื้อยา (H, Z, E, H+Z, H+E, H+E+Z, MDR/RR, pre-XDR, XDR) → สูตรยา/ระยะเวลา · เกณฑ์ BPaL(M) เทียบน้ำหนัก/อายุ/ตั้งครรภ์ของผู้ป่วย · ขนาดยา BPaLM/BPaL และสูตร 9 เดือนตามช่วงน้ำหนัก (ไฮไลต์ช่วงของผู้ป่วย) · ปรับยาเมื่อ CrCl <30/HD · ภาวะเฉพาะ (ตั้งครรภ์, ตับ, HIV, เด็ก) · aDSM (QTcF, Lzd myelosuppression grade, neuropathy, optic neuritis, TSH ฯลฯ) · กลุ่มยา A/B/C
+- ตรวจคำสั่งที่วาง: ขนาด Bdq/Pa/Lzd/Mfx/Cfz (ความแรง × จำนวนเม็ด) และคู่ยา: Lzd+SSRI (serotonin), Lzd+AZT/co-trimoxazole, Bdq+rifampicin/EFV/PI, QT ยาวหลายตัว, FQ+ประจุบวก, Mfx+antiarrhythmic, aminoglycoside+loop diuretic
+- คู่มือย่อ: เพิ่มไฟล์แนวทาง DR-TB 2567 ฉบับเต็ม
+- **แก้บั๊ก**: แท็บเคมีบำบัดไม่แสดงผล (ตั้งแต่ v0.14.0 — id ชนกับแท็บ CRRT) · ป้องกัน id ชนกับแท็บผสม Dextrose
+
 ## v0.22.1 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - คู่มือย่อ: เพิ่ม **📎 เอกสารต้นฉบับ รพ.มค 14 ไฟล์** (docs/ref/) เปิด/ดาวน์โหลดได้ จัดกลุ่ม ไต/HD · TB · HIV · เด็ก · Antidote · ผู้สูงอายุ · แนวทาง IPD · Excel คำนวณ — ค้นหาจากช่องค้นหาได้
 

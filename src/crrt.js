@@ -17,7 +17,7 @@ const crrtNa=f=>f[0]*CRRT_NA.b+f[1]*CRRT_NA.h+f[2]*CRRT_NA.n+f[3]*CRRT_NA.s;
 function crrtPick(na,ph){ if(na==null||ph==null) return null; const g=na<=120?0:na<=130?1:na<=150?2:na<=160?3:4; const p=ph>=7.46?0:ph>=7.36?1:ph>=7.21?2:ph>=7.00?3:4; return g*5+p+1; }
 const CRRT_STOCK={b:['7.5% NaHCO3',50,'amp'],h:['0.45% NaCl',1000,'ถุง'],n:['0.9% NaCl',1000,'ขวด'],s:['3% NaCl',500,'ขวด'],w:['SWI',1000,'ถุง'],k:['KCl (20 mEq/10 ml)',10,'amp']};
 function crrtV(id){ const v=($(id)||{}).value; return v===''||v==null?null:+v; }
-function renderCrrt(){ const out=$('cOut'); if(!out) return;
+function renderCrrt(){ const out=$('crOut'); if(!out) return;
   const wt=crrtV('cWt'), dose=crrtV('cDose'), pre=crrtV('cPre')||0, post=crrtV('cPost')||0, qd=crrtV('cQd')||0, hrs=crrtV('cHr')||24, setL=crrtV('cSet')||1, kL=crrtV('cK')||0, fno=crrtV('cF');
   const flow=pre+post+qd, mode=$('cMode').value, na=crrtV('cNa'), ph=crrtV('cPh'), sug=crrtPick(na,ph);
   $('cSug').innerHTML=sug?`แนะนำตามตาราง: <b>สูตร ${sug}</b> (Na ${na} · pH ${ph})${fno&&fno!==sug?` — <span style="color:var(--warn)">ใบสั่งเลือกสูตร ${fno}</span>`:''}`:'<span class="hint">กรอก Na และ pH เพื่อดูสูตรที่ตรงตาราง</span>';
@@ -54,7 +54,7 @@ function renderCrrt(){ const out=$('cOut'); if(!out) return;
     if(ex.length) tbl+=`<h2 style="margin-top:14px">ยาอื่นในใบสั่ง</h2><ul style="margin:0;padding-left:18px">${ex.map(x=>`<li>${x}</li>`).join('')}</ul>`; }
   if(!totMl){ out.innerHTML='<div class="empty">กรอกน้ำหนัก + CRRT dose หรือ อัตราไหล (pre/post/dialysate)</div>'; return; }
   out.innerHTML=`<h2>ผลคำนวณ</h2><dl class="kv" style="margin-bottom:10px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl><ul class="msgs">${L.join('')}</ul>${tbl}`; }
-(function(){ if(!$('cOut')) return;
+(function(){ if(!$('crOut')) return;
   $('cFt').innerHTML=`<table class="ctbl" style="width:100%;text-align:center;font-size:13px"><thead><tr><th>สูตร</th><th>Serum Na</th><th>pH</th><th>7.5% NaHCO3</th><th>0.45% NaCl</th><th>0.9% NaCl</th><th>3% NaCl</th><th>SW</th><th>Final Na</th></tr></thead><tbody>${CRRT_F.map((f,i)=>`<tr data-cf="${i+1}" style="cursor:pointer"><td><b>${i+1}</b>${f[6]?'':' ⚑'}</td>${i%5===0?`<td rowspan="5">${CRRT_NAG[i/5]}</td>`:''}<td>${CRRT_PH[i%5]}</td>${f.slice(0,5).map(v=>`<td>${v||'0'}</td>`).join('')}<td>${f[5]}</td></tr>`).join('')}</tbody></table><p class="hint" style="margin:4px 0 0">คลิกแถวเพื่อเลือกสูตร · ทุกสูตรรวม 1,000 ml · ⚑ = อ่านจากภาพได้ไม่ครบ คำนวณย้อนจาก Final Na — ยืนยันกับใบสั่งจริง</p>`;
   $('cFt').querySelectorAll('[data-cf]').forEach(r=>r.onclick=()=>{ $('cF').value=r.dataset.cf; renderCrrt(); });
   ['cWt','cDose','cPre','cPost','cQd','cHr','cSet','cK','cF','cNa','cPh','cCa','cMg','cMode'].forEach(id=>{ $(id).addEventListener('input',renderCrrt); $(id).addEventListener('change',renderCrrt); });

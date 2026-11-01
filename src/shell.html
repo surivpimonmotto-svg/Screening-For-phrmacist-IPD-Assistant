@@ -807,6 +807,13 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f" style="max-width:520px">รูปแบบการดื้อยา<select id="dPat"></select></label>
         </div>
         <div class="panel sec hres" style="margin:0" id="drOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>ขนาดยา DR-TB ตามน้ำหนัก (เด็ก/ผู้ใหญ่) — ตาราง 3.6</h2>
+          <p class="hint" style="margin:0 0 6px">ใช้น้ำหนักและอายุ (เดือน) จากแผงผู้ป่วย · ครอบคลุม 3 ถึง ≥70 kg ทุกรูปแบบยา (dt, เม็ด, ยาน้ำ)</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><label class="f" style="min-width:200px">กลุ่มยา<select id="pdGrp"><option value="all">ทั้งหมด</option><option value="A">กลุ่ม A (Lfx/Mfx, Bdq, Lzd)</option><option value="B">กลุ่ม B (Cfz, Cs)</option><option value="C">กลุ่ม C</option><option value="อื่น">อื่น ๆ (Hh, Amx/clav, Pa)</option></select></label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pdAll"> แสดงทุกช่วงน้ำหนัก</label></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="pdOut"></div>
       </div>
     </section>
 

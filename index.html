@@ -807,6 +807,13 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f" style="max-width:520px">รูปแบบการดื้อยา<select id="dPat"></select></label>
         </div>
         <div class="panel sec hres" style="margin:0" id="drOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>ขนาดยา DR-TB ตามน้ำหนัก (เด็ก/ผู้ใหญ่) — ตาราง 3.6</h2>
+          <p class="hint" style="margin:0 0 6px">ใช้น้ำหนักและอายุ (เดือน) จากแผงผู้ป่วย · ครอบคลุม 3 ถึง ≥70 kg ทุกรูปแบบยา (dt, เม็ด, ยาน้ำ)</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><label class="f" style="min-width:200px">กลุ่มยา<select id="pdGrp"><option value="all">ทั้งหมด</option><option value="A">กลุ่ม A (Lfx/Mfx, Bdq, Lzd)</option><option value="B">กลุ่ม B (Cfz, Cs)</option><option value="C">กลุ่ม C</option><option value="อื่น">อื่น ๆ (Hh, Amx/clav, Pa)</option></select></label>
+          <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pdAll"> แสดงทุกช่วงน้ำหนัก</label></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="pdOut"></div>
       </div>
     </section>
 
@@ -3127,7 +3134,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.23.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.24.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4918,6 +4925,83 @@ function drtbRender(){ const out=$('drOut'); if(!out) return; const pt=getPt(), 
   $('dPat').addEventListener('change',drtbRender); $('xPaste').addEventListener('input',()=>setTimeout(drtbRender,550)); $('xRun').addEventListener('click',drtbRender); $('t-tbx').addEventListener('click',drtbRender);
   ['bw','ageIn','ageU','scr','preg','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',drtbRender); el.addEventListener('change',drtbRender); } });
   drtbRender(); })();
+
+/* ---------- ตาราง 3.6 ขนาดยาตามช่วงน้ำหนัก (เด็ก/ผู้ใหญ่ <46 kg เป็นหลัก) สูตรระยะยาว · WHO 2022 ----------
+ ช่วงน้ำหนัก: 3–<5 · 5–<7 · 7–<10 · 10–<16 · 16–<24 · 24–<30 · 30–<36 · 36–<46 · 46–<56 · 56–<70 · ≥70 kg
+ "mL" = ละลายเม็ด/แคปซูลในน้ำ 10 mL แล้วตวงตามจำนวน mL (เชิงอรรถ b) · ช่องที่รวมเซลล์ในตารางต้นฉบับ คัดลอกค่าซ้ำทุกช่วง */
+const PDR_BANDS=[3,5,7,10,16,24,30,36,46,56,70], PDR_LAB=['3–<5','5–<7','7–<10','10–<16','16–<24','24–<30','30–<36','36–<46','46–<56','56–<70','≥70'];
+const PD_NA='-';
+const PDR=[
+ ['A','Levofloxacin (Lfx)','100 mg dt (10 mg/mL)',['5 mL (0.5 dt)','1','1.5','2','3',PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA]],
+ ['A','Levofloxacin (Lfx)','250 mg tab (25 mg/mL)',['2 mL','5 mL (0.5 tab)','5 mL (0.5 tab)','1','1.5','2','3','3','3','3','3']],
+ ['A','Levofloxacin (Lfx)','500 mg tab',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'1','1.5','1.5','1.5','1.5','1.5']],
+ ['A','Levofloxacin (Lfx)','750 mg tab',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'1','1','1','1','1']],
+ ['A','Moxifloxacin (Mfx)','100 mg dt (10 mg/mL)',['4 mL','8 mL','1.5','2','3','4','4','4',PD_NA,PD_NA,PD_NA]],
+ ['A','Moxifloxacin (Mfx)','400 mg tab (40 mg/mL) standard',['1 mL','2 mL','3 mL','5 mL (0.5 tab)','7.5 mL (0.75 tab)','1','1','1','1','1','1']],
+ ['A','Moxifloxacin (Mfx)','400 mg tab high dose',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'1','1','1','1','1 หรือ 1.5']],
+ ['A','Bedaquiline (Bdq)','20 mg dt','BDQ20'],
+ ['A','Bedaquiline (Bdq)','100 mg tab (10 mg/mL)','BDQ100'],
+ ['A','Linezolid (Lzd)','20 mg/mL susp',['2 mL','4 mL','6 mL','8 mL','11 mL','14 mL','15 mL','20 mL',PD_NA,PD_NA,PD_NA]],
+ ['A','Linezolid (Lzd)','150 mg dt (15 mg/mL)',['2.5 mL','5 mL (0.5 dt)','1','1','2 ᵉ','2 ᵉ','2','3',PD_NA,PD_NA,PD_NA]],
+ ['A','Linezolid (Lzd)','600 mg tab (60 mg/mL)',[PD_NA,'1.25 mL','2.5 mL','2.5 mL','5 mL (0.5 tab) ᵉ','5 mL (0.5 tab) ᵉ','5 mL (0.5 tab)','7.5 mL (0.75 tab)','1','1','1']],
+ ['B','Clofazimine (Cfz)','50 mg cap/tab',['1 จ/ศ','1 จ/พ/ศ','1 จ/พ/ศ','1','1','2','2','2','2','2','2']],
+ ['B','Clofazimine (Cfz)','100 mg cap/tab',[PD_NA,'1 จ/ศ','1 จ/ศ','1 จ/พ/ศ','1 จ/พ/ศ','1','1','1','1','1','1']],
+ ['B','Cycloserine/Terizidone (Cs)','125 mg mini cap (12.5 mg/mL)',['2 mL','4 mL','1','2','3','4','4','4',PD_NA,PD_NA,PD_NA]],
+ ['B','Cycloserine/Terizidone (Cs)','250 mg cap (25 mg/mL)',['1 mL','2 mL','5 mL','1','2','2','2','2','3','3','3']],
+ ['C','Ethambutol (E)','100 mg dt (10 mg/mL)',['5 mL (0.5 dt)','1','2','3','4',PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA]],
+ ['C','Ethambutol (E)','400 mg tab (40 mg/mL)',['1.5 mL','3 mL','4 mL','6 mL','1','1.5','2','2','2.5','2.5','2.5–3']],
+ ['C','Delamanid (Dlm)','25 mg dt','DLM25'],
+ ['C','Delamanid (Dlm)','50 mg tab (5 mg/mL)','DLM50'],
+ ['C','Pyrazinamide (Z)','150 mg dt (15 mg/mL)',['5 mL (0.5 dt)','1','2','3','5',PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA]],
+ ['C','Pyrazinamide (Z)','400 mg tab (40 mg/mL)',['2.5 mL','5 mL (0.5 tab)','7.5 mL (0.75 tab)','1','2','2.5','3','4','4','4','4–5']],
+ ['C','Pyrazinamide (Z)','500 mg tab (50 mg/mL)',['2 mL','5 mL','5 mL','1','1.5','2','2.5','3','3','3','3–4']],
+ ['C','Imipenem-cilastatin','500+500 mg vial (ร่วม clavulanate)',['ไม่ใช้ <15 ปี (ใช้ meropenem)','ไม่ใช้ <15 ปี','ไม่ใช้ <15 ปี','ไม่ใช้ <15 ปี','ไม่ใช้ <15 ปี','ไม่ใช้ <15 ปี','2 vials (1 g+1 g) bd','2 vials bd','2 vials bd','2 vials bd','2 vials bd']],
+ ['C','Meropenem (Mpm)','1 g vial (20 mL) (ร่วม clavulanate)',['1 mL tid','2 mL tid','4 mL tid','6 mL tid','9 mL tid','11 mL tid','1 vial tid หรือ 2 vials bd','1 vial tid หรือ 2 vials bd','1 vial tid หรือ 2 vials bd','1 vial tid หรือ 2 vials bd','1 vial tid หรือ 2 vials bd']],
+ ['C','Amikacin (Am) — ≥18 ปีเท่านั้น','500 mg/2 mL amp',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'3–4 mL','4 mL','4 mL']],
+ ['C','Streptomycin (Sm) — ≥18 ปีเท่านั้น','1 g vial',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'คำนวณตามการละลาย','คำนวณตามการละลาย','คำนวณตามการละลาย']],
+ ['C','Ethionamide/Prothionamide','125 mg dt (12.5 mg/mL)',['3 mL','7 mL','1','2','3','4','4','4',PD_NA,PD_NA,PD_NA]],
+ ['C','Ethionamide/Prothionamide','250 mg tab (25 mg/mL)',[PD_NA,'3 mL','5 mL (0.5 tab)','1','2','2','2','2','3','3','4']],
+ ['C','PAS','PAS sodium sachet (≡ 4 g PAS acid)',['0.3 g bd','0.75 g bd','1 g bd','2 g bd','3 g bd','3.5 g bd','4 g bd','4 g bd','4 g bd','4 g bd','4–6 g bd']],
+ ['อื่น','Isoniazid high dose (Hh)','50 mg/5 mL soln',['5 mL','9 mL','15 mL','20 mL',PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA]],
+ ['อื่น','Isoniazid high dose (Hh)','100 mg dt/tab (10 mg/mL)',['5 mL (0.5 dt)','1','1.5','2','3','4','4','4.5',PD_NA,PD_NA,PD_NA]],
+ ['อื่น','Isoniazid high dose (Hh)','300 mg tab',[PD_NA,PD_NA,PD_NA,PD_NA,'1','1.5','1.5','1.5','2','2','2']],
+ ['อื่น','Amoxicillin/clavulanate (ร่วม Imp/Mpm)','62.5 mg clav/5 mL (250/62.5) syr',['1.5 mL tid','2 mL tid','3 mL tid','5 mL tid','8 mL tid','10 mL tid','10 mL bd หรือ tid','10 mL bd หรือ tid',PD_NA,PD_NA,PD_NA]],
+ ['อื่น','Amoxicillin/clavulanate (ร่วม Imp/Mpm)','500/125 mg tab',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'1 tid','1 bd หรือ tid','1 bd หรือ tid','1 bd หรือ tid','1 bd หรือ tid','1 bd หรือ tid']],
+ ['อื่น','Pretomanid (Pa) — เฉพาะ BPaL(M)','200 mg tab',[PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,PD_NA,'1','1','1','1','1']]];
+// Bdq/Dlm ขึ้นกับอายุ (เดือน) ด้วย
+function pdrSpecial(code,bi,mo){ const a=mo==null?null:mo, L=[];
+  const pick=(opts)=>{ if(a==null) return opts.map(o=>o[1]).join(' · '); const o=opts.find(o=>a>=o[0][0]&&a<o[0][1]); return o?o[1]:'—'; };
+  const lab=(o)=>o.map(([[x,y],t])=>`${y>=999?`≥${x}`:x===0?`<${y}`:`${x}–<${y}`} ด.: ${t}`);
+  if(code==='BDQ20'){ if(bi<=1){ const o=[[[0,3],'1.5 od × 2 สัปดาห์ → 0.5 od จ/พ/ศ × 22 สัปดาห์'],[[3,999],'3 od × 2 สัปดาห์ → 1 od จ/พ/ศ × 22 สัปดาห์']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi===2){ const o=[[[0,3],'1.5 od × 2 สัปดาห์ → 0.5 od จ/พ/ศ'],[[3,6],'3 od × 2 สัปดาห์ → 1 od จ/พ/ศ'],[[6,999],'4 od × 2 สัปดาห์ → 2 od จ/พ/ศ']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi===3){ const o=[[[3,6],'3 od × 2 สัปดาห์ → 1 od จ/พ/ศ'],[[6,999],'6 od × 2 สัปดาห์ → 3 od จ/พ/ศ']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi<=5) return '10 od × 2 สัปดาห์ → 5 od จ/พ/ศ'; return PD_NA; }
+  if(code==='BDQ100'){ if(bi<=1){ const o=[[[0,3],'3 mL od × 2 สัปดาห์ → 1 mL จ/พ/ศ'],[[3,999],'6 mL od × 2 สัปดาห์ → 2 mL จ/พ/ศ']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi===2){ const o=[[[0,3],'3 mL od × 2 สัปดาห์ → 1 mL จ/พ/ศ'],[[3,6],'6 mL od × 2 สัปดาห์ → 2 mL จ/พ/ศ'],[[6,999],'8 mL od × 2 สัปดาห์ → 4 mL จ/พ/ศ']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi===3){ const o=[[[3,6],'6 mL od × 2 สัปดาห์ → 2 mL จ/พ/ศ'],[[6,999],'8 mL od × 2 สัปดาห์ → 4 mL จ/พ/ศ']]; return a==null?lab(o).join(' · '):pick(o); }
+    if(bi<=5) return '2 od × 2 สัปดาห์ → 1 od จ/พ/ศ'; return '4 od × 2 สัปดาห์ → 2 od จ/พ/ศ (รวม 24 สัปดาห์)'; }
+  if(code==='DLM25'){ if(bi===0) return '1 od'; if(bi<=2){ const o=[[[0,3],'1 od'],[[3,999],'1 bd']]; return a==null?lab(o).join(' · '):pick(o); } if(bi===3) return '1 bd'; if(bi<=5) return '2 เช้า + 1 เย็น'; if(bi<=7) return '2 bd'; return PD_NA; }
+  if(code==='DLM50'){ if(bi===0) return '5 mL (0.5 tab) od'; if(bi<=2){ const o=[[[0,3],'5 mL (0.5 tab) od'],[[3,999],'5 mL (0.5 tab) bd']]; return a==null?lab(o).join(' · '):pick(o); } if(bi===3) return '5 mL (0.5 tab) bd'; if(bi<=5) return '10 mL (1 tab) เช้า + 5 mL (0.5 tab) เย็น'; if(bi<=7) return '1 bd'; return '2 bd'; }
+  return PD_NA; }
+function pdrRender(){ const out=$('pdOut'); if(!out) return; const pt=getPt(), bw=+pt.bw, mo=pt.age!==''&&pt.age!=null&&+pt.age>=0&&$('age').value!==''?Math.round(+$('age').value*12*10)/10:null, all=$('pdAll').checked, grp=$('pdGrp').value;
+  if(!(bw>=3)){ out.innerHTML='<div class="empty">กรอกน้ำหนัก (≥3 kg) ในแผงผู้ป่วย — ตาราง 3.6 เริ่มที่ 3 kg</div>'; return; }
+  let bi=PDR_BANDS.length-1; for(let i=0;i<PDR_BANDS.length;i++) if(bw>=PDR_BANDS[i]) bi=i;
+  const rows=PDR.filter(r=>grp==='all'||r[0]===grp);
+  const cell=(r,i)=>{ const v=typeof r[3]==='string'?pdrSpecial(r[3],i,i===bi?mo:null):r[3][i]; return v; };
+  let h=`<div class="band" style="margin-bottom:8px"><b>น้ำหนัก ${fmtN(bw)} kg → ช่วง ${PDR_LAB[bi]} kg</b>${mo!=null?` · อายุ ${mo<24?fmtN(mo)+' เดือน':fmtN(Math.round(mo/12*10)/10)+' ปี'}`:''}${bw>=46?' · ผู้ใหญ่ ≥46 kg: ใช้ตาราง 3.3 (สูตร 9 เดือน) ด้านบนเป็นหลัก':''}</div>`;
+  if(!all){ h+=`<table class="ctbl"><thead><tr><th>กลุ่ม</th><th>ยา</th><th>รูปแบบ</th><th>ขนาด/วัน (ช่วง ${PDR_LAB[bi]} kg)</th></tr></thead><tbody>${rows.map(r=>{ const v=cell(r,bi); return `<tr${v===PD_NA?' style="opacity:.45"':''}><td>${r[0]}</td><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td><td><b>${esc(v)}</b></td></tr>`; }).join('')}</tbody></table>`; }
+  else { h+=`<div style="overflow-x:auto"><table class="ctbl" style="font-size:12.5px"><thead><tr><th>ยา</th><th>รูปแบบ</th>${PDR_LAB.map((l,i)=>`<th${i===bi?' style="background:color-mix(in srgb,var(--accent) 30%,transparent)"':''}>${l}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[1])}</td><td class="hint">${esc(r[2])}</td>${PDR_LAB.map((l,i)=>`<td${i===bi?' style="font-weight:800;background:color-mix(in srgb,var(--accent) 18%,transparent)"':''}>${esc(cell(r,i))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`; }
+  h+=`<ul class="msgs">${[
+   ['info','ตัวเลข = จำนวนเม็ด/แคปซูล/ซอง ต่อวัน (od เว้นแต่ระบุ) · "mL" = ละลายเม็ด/แคปซูลผู้ใหญ่ในน้ำ 10 mL แล้วตวงตามจำนวน mL (แนะนำเม็ดกระจายตัว dt ถ้ามี)'],
+   ['info','Bdq/Dlm ขึ้นกับอายุ (เดือน) — กรอกอายุในแผงผู้ป่วย (เลือกหน่วย "เดือน" ได้) · Bdq ใช้ได้ 6–17 ปี (และ <6 ปีในสูตรระยะยาวภายใต้การกำกับ) · Dlm ≥3 ปี (และ <3 ปีภายใต้การกำกับ)'],
+   ['warn','ᵉ Lzd 150 mg dt หรือ 600 mg tab ในเด็ก 16–<24 kg: ขนาดจะเกิน 10–12 mg/kg/วัน — แพทย์อาจเลือก 1.5 dt หรือ 4 mL ของเม็ด 600 mg ที่ละลายน้ำ 10 mL'],
+   ['warn','Cs ในเด็ก 3–<7 kg ใช้ขนาดต่ำกว่าเดิมเพราะเสี่ยง ADR ทางจิตประสาท โดยเฉพาะเมื่อใช้ร่วม Dlm · Cfz เด็ก <24 kg นิยมเม็ด 50 mg · Imp/Mpm ให้ร่วม clavulanate เสมอ'],
+   ['info','Hh มักให้ pyridoxine ร่วม (เด็ก 1–2 mg/kg) · ทารกอาจให้ pyridoxine ร่วมกับวิตามินรวมน้ำ · Eto/Pto วันละครั้ง แต่แบ่ง 2 ครั้งได้ · PAS แบ่งทานได้']
+  ].map(([l,m])=>`<li><span class="tag ${l}">${LVL_TXT[l]}</span><span>${esc(m)}</span></li>`).join('')}</ul>
+  <p class="hint">ตาราง 3.6 ${esc(DRTB_SRC)} (หน้า 42–54 · ที่มา WHO operational handbook module 4, 2022) — ตรวจทานกับต้นฉบับก่อนสั่งใช้</p>`;
+  out.innerHTML=h; }
+(function(){ if(!$('pdOut')) return; ['pdAll','pdGrp'].forEach(id=>$(id).addEventListener('change',pdrRender)); $('t-tbx').addEventListener('click',pdrRender);
+  ['bw','ageIn','ageU','age'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pdrRender); el.addEventListener('change',pdrRender); } }); pdrRender(); })();
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';

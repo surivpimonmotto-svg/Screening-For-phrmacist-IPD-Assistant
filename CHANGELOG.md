@@ -9,6 +9,9 @@
 
 ---
 
+## v0.24.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- แท็บ ยา TB: **ขนาดยา DR-TB ตามน้ำหนัก (ตาราง 3.6 PMDT 2567 / WHO 2022)** ครบ 3 ถึง ≥70 kg ทุกรูปแบบ (dt, เม็ด, ยาน้ำ, ละลายน้ำ 10 mL) — Lfx, Mfx (standard/high), Bdq, Lzd, Cfz, Cs, E, Dlm, Z, Imp/Mpm, Am/Sm, Eto/Pto, PAS, Hh, Amx/clav, Pa · Bdq และ Dlm เลือกตามอายุ (เดือน) อัตโนมัติ · ดูเฉพาะช่วงน้ำหนักผู้ป่วย หรือทุกช่วง (ไฮไลต์ช่วงผู้ป่วย) · กรองตามกลุ่มยา A/B/C · เชิงอรรถ Lzd 16–<24 kg, Cs เด็กเล็ก
+
 ## v0.23.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - **แท็บ ยา TB: เพิ่มส่วนวัณโรคดื้อยา (DR-TB)** ตามแนวทาง PMDT 2567 กองวัณโรค: เลือกรูปแบบการดื้อยา (H, Z, E, H+Z, H+E, H+E+Z, MDR/RR, pre-XDR, XDR) → สูตรยา/ระยะเวลา · เกณฑ์ BPaL(M) เทียบน้ำหนัก/อายุ/ตั้งครรภ์ของผู้ป่วย · ขนาดยา BPaLM/BPaL และสูตร 9 เดือนตามช่วงน้ำหนัก (ไฮไลต์ช่วงของผู้ป่วย) · ปรับยาเมื่อ CrCl <30/HD · ภาวะเฉพาะ (ตั้งครรภ์, ตับ, HIV, เด็ก) · aDSM (QTcF, Lzd myelosuppression grade, neuropathy, optic neuritis, TSH ฯลฯ) · กลุ่มยา A/B/C
 - ตรวจคำสั่งที่วาง: ขนาด Bdq/Pa/Lzd/Mfx/Cfz (ความแรง × จำนวนเม็ด) และคู่ยา: Lzd+SSRI (serotonin), Lzd+AZT/co-trimoxazole, Bdq+rifampicin/EFV/PI, QT ยาวหลายตัว, FQ+ประจุบวก, Mfx+antiarrhythmic, aminoglycoside+loop diuretic

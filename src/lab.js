@@ -68,6 +68,7 @@ const ARV_RE=[
  [/acriptega|\btld\b/i,['TDF','3TC','DTG']],
  [/kocitaf/i,['DTG','FTC','TAF']],
  [/gpo-?vir-?t|teevir/i,['TDF','FTC','EFV']],
+ [/gpo-?vir-?z/i,['AZT','3TC','NVP']],
  [/teno-?em/i,['TDF','FTC']],
  [/alacovir/i,['ABC','3TC']],
  [/zila(r)?vir/i,['AZT','3TC']],

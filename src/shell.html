@@ -379,6 +379,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
+      <button role="tab" id="t-arv" aria-selected="false">ARV / ทารก HIV</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
@@ -703,6 +704,32 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <h2>คู่มือย่อ — แนวทางจากเอกสารของ รพ. / academic</h2>
         <label class="f" style="max-width:420px">ค้นหา<input id="refQ" placeholder="เช่น dabigatran, rechallenge, naloxone, clozapine"></label>
         <div id="refOut" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="p-arv" hidden>
+      <div class="had" style="grid-template-columns:minmax(0,1fr)">
+        <div class="panel sec" style="margin:0">
+          <h2>สกรีนยาต้านไวรัส HIV (ARV) กับยาร่วม</h2>
+          <p class="hint" style="margin:0 0 6px">วางรายการยา<b>ทั้งหมด</b>ของผู้ป่วย (ARV + ยาอื่น) — ตรวจคู่ยาที่ห้ามใช้ร่วม · การเว้นเวลากิน · วิธีกิน · สูตรซ้ำ/ไม่ครบ · ปรับตามไต (ใช้ Cr/CrCl จากแผงผู้ป่วย) · ห้ามใส่ชื่อ-สกุล/HN</p>
+          <textarea id="vPaste" rows="7" placeholder="เช่น&#10;Acriptega 1 tab od pc เช้า&#10;Calcium carbonate 1000 mg 1x3 pc&#10;Rifampicin 450 mg od ac"></textarea>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="vRun">ตรวจ</button><button type="button" class="btn" id="vFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="vEx">ตัวอย่าง</button><button type="button" class="btn" id="vClr">ล้าง</button><span class="toast" id="vMsg"></span></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="vOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>ยาป้องกันการติดเชื้อ HIV ในทารกแรกเกิด (แม่ติดเชื้อ)</h2>
+          <div class="grid2">
+            <label class="f">อายุครรภ์เมื่อคลอด (สัปดาห์)<input id="nGa" type="number" step="any" inputmode="decimal" placeholder="38"></label>
+            <label class="f">น้ำหนักแรกเกิด (kg)<input id="nBw" type="number" step="any" inputmode="decimal" placeholder="2.9"></label>
+            <label class="f">VL มารดาใกล้คลอด<select id="nVl"><option value="">ไม่ทราบ/ไม่มีผล</option><option value="lo">≤50 copies/ml</option><option value="hi">&gt;50 copies/ml</option></select></label>
+            <label class="f">มารดากิน ARV ก่อนคลอด<select id="nDur"><option value="">ไม่ทราบ</option><option value="ge12">สม่ำเสมอ ≥12 สัปดาห์</option><option value="lt12">&lt;12 สัปดาห์ / ไม่สม่ำเสมอ / ไม่ได้รับ</option></select></label>
+            <label class="f">กลุ่มความเสี่ยง<select id="nRisk"><option value="auto">ประเมินจากข้อมูลมารดา</option><option value="std">มาตรฐาน (AZT)</option><option value="high">สูง (AZT+3TC+NVP)</option></select></label>
+            <label class="f">ระยะเวลา (สัปดาห์)<select id="nWk"><option value="4">4 สัปดาห์</option><option value="6">6 สัปดาห์</option></select></label>
+            <label class="f">วันเกิด (คำนวณช่วงวันที่)<input id="nBd" placeholder="dd/mm/yy"></label>
+            <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="nBf"> ทารกได้รับนมแม่แล้ว</label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="nOut"></div>
       </div>
     </section>
 

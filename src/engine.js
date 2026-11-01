@@ -453,7 +453,9 @@ function evaluate(row,pt,rows){
   if(d.comp){ for(const o of others.filter(o=>o.comp)){ const sh=d.comp.filter(c=>o.comp.includes(c));
       if(sh.length) add('warn',`ยาพ่นซ้ำซ้อนกลุ่ม ${sh.map(c=>COMP_NAME[c]).join('+')}: ${o.name}`);
       else if((d.comp.includes('lama')&&o.comp.includes('sama'))||(d.comp.includes('sama')&&o.comp.includes('lama'))) add('warn',`Anticholinergic ซ้ำซ้อน (LAMA + SAMA): ${o.name}`); } }
-  for(const [a,b,msg] of DUP_SPECIAL){ if((d.id===a&&others.some(o=>o.cls===b))||(d.cls===b&&others.some(o=>o.id===a))) add('warn',msg); }
+  // cation ทางหลอดเลือด (Ca gluconate IV, MgSO4 IV) ไม่จับกับ DTG ในทางเดินอาหาร — ตัดออก
+  const ivRe=/\b(iv|im|inj|injection|infusion|drip)\b|ฉีด/i, othersPO=rows.filter(r=>r!==row&&r.drugId&&!ivRe.test(r.raw)).map(r=>KB.find(x=>x.id===r.drugId)).filter(Boolean);
+  for(const [a,b,msg] of DUP_SPECIAL){ const os=b==='cation'?othersPO:others; if((d.id===a&&os.some(o=>o.cls===b))||(d.cls===b&&!(b==='cation'&&ivRe.test(row.raw))&&others.some(o=>o.id===a))) add('warn',msg); }
   const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1);
   res.status = lv===3?'flag':lv===2?'warn':lv>=0||hit?'ok':'none';
   return res;

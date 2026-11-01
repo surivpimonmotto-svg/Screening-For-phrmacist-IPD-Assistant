@@ -415,7 +415,7 @@ const HAD={
  dopa:{name:'Dopamine',amp:250,ampTxt:'250 mg/10 ml',u:'mg',dose:'mcgkgmin',range:[2,20],max:50,periph:2,maxConc:3.2,dil:''},
  dobu:{name:'Dobutamine',amp:250,ampTxt:'250 mg/amp',u:'mg',dose:'mcgkgmin',range:[2,15],max:40,periph:2,maxConc:5,dil:''},
  nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
- fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
+ fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
  kcl:{name:'Potassium chloride',amp:20,ampTxt:'20 mEq/amp',u:'mEq',dose:'meqh',dil:'ห้าม IV push / IM'},
  mg:{name:'Magnesium sulfate',amp:1,ampTxt:'1 g/amp',u:'g',dose:'gh',max:4,maxDay:40,maxConc:200,dil:''},
  hep:{name:'Heparin',amp:25000,ampTxt:'25,000 unit/5 ml',u:'unit',dose:'uh',max:2000,maxDay:48000,dil:'ผสมให้ได้ 100 unit/ml'}

@@ -514,6 +514,26 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="hOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>Enoxaparin — ขนาดตามน้ำหนัก/ไต → syringe</h2>
+          <div class="grid2">
+            <label class="f" style="grid-column:1/-1">ข้อบ่งใช้<select id="eInd"></select></label>
+            <label class="f">น้ำหนัก (kg)<input id="eBw" type="number" step="any" inputmode="decimal"></label>
+            <div class="hint" style="align-self:end">CrCl/การฟอกไตใช้จากแผงผู้ป่วย · syringe ในบัญชี: 40 mg/0.4 ml · 60 mg/0.6 ml</div>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="eOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>Heparin — ปรับ rate ตาม aPTT</h2>
+          <div class="grid2">
+            <label class="f">น้ำหนัก (kg)<input id="jBw" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">aPTT (วินาที)<input id="jAptt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">aPTT control (วินาที)<input id="jCtl" type="number" step="any" inputmode="decimal" value="30"></label>
+            <label class="f">Rate ปัจจุบัน (ml/h)<input id="jRate" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">ความเข้มข้นในถุง (unit/ml)<input id="jConc" type="number" step="any" inputmode="decimal" value="100"></label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="jOut"></div>
       </div>
     </section>
 
@@ -1321,6 +1341,10 @@ const KB=[
 {id:'dopa',name:'Dopamine',match:/dopamine/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'dobu',name:'Dobutamine',match:/dobutamine|dobutex/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'nica',name:'Nicardipine inj',match:/nicardipine|cardepine/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'ntg',name:'Nitroglycerin inj (NTG)',match:/^(?!.*\b(sl|tab|tablet|spray|patch|oint|อมใต้ลิ้น)\b).*(nitroglycerin|glyceryl\s*trinitrate|\bntg\b|\bgtn\b)/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'propofol',name:'Propofol 1% inj',match:/propofol|diprivan|fresofol/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'cisatra',name:'Cisatracurium (Nimbex)',match:/cisatracurium|nimbex|nimbix/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'dexmed',name:'Dexmedetomidine (Dexdor/Hydex)',match:/dexmedetomidine|dexdor|precedex|hydex/i,unit:'mcg',special:'had',src:SRC_HAD},
 {id:'fenta',name:'Fentanyl inj',match:/fentanyl(?!.*(tts|patch|แผ่น|transdermal|durogesic))/i,unit:'mcg',special:'had',src:SRC_HAD},
 {id:'heparin',name:'Heparin',match:/heparin/i,unit:'unit',special:'had',src:SRC_HAD},
 {id:'naloxone',name:'Naloxone',match:/naloxone/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ non-dependence 0.4-2 mg IV ซ้ำทุก 2-3 นาที / dependence 0.1-0.2 mg; เด็ก 0.01 mg/kg (max 2 mg/dose)',src:'ยาต้านพิษ DIS 2564'},
@@ -1349,8 +1373,12 @@ const HAD={
  adr:{name:'Adrenaline',amp:1,ampTxt:'1 mg/1 ml',u:'mg',dose:'mcgkgmin',range:[0.05,1],max:1,periph:0.1,maxConc:0.1,dil:'',note:'1:10 = ยา 10 amp ในน้ำ 100 ml (0.1 mg/ml) จ่ายยา 10 amp ต่อสารน้ำ 100 ml ปัดเป็นทวีคูณของ 10',tenth:true},
  dopa:{name:'Dopamine',amp:250,ampTxt:'250 mg/10 ml',u:'mg',dose:'mcgkgmin',range:[2,20],max:50,periph:2,maxConc:3.2,dil:''},
  dobu:{name:'Dobutamine',amp:250,ampTxt:'250 mg/amp',u:'mg',dose:'mcgkgmin',range:[2,15],max:40,periph:2,maxConc:5,dil:''},
- nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
- fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
+ nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',amps:[[2,'2 mg/2 ml'],[10,'10 mg/10 ml']],u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
+ fenta:{name:'Fentanyl',neat:true,amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
+ ntg:{name:'Nitroglycerin (NTG)',amp:25,ampTxt:'25 mg/5 ml',u:'mg',dose:'mcgmin',rangeMin:[5,200],max:400,maxConc:0.4,dil:'D5W หรือ NSS · ขวดแก้ว/ถุงและสาย non-PVC (ยาจับกับ PVC)',note:'เริ่ม 5–10 mcg/min เพิ่มครั้งละ 5–10 mcg/min ทุก 3–5 นาทีตามความดัน'},
+ propofol:{name:'Propofol 1%',neat:true,amp:200,ampTxt:'200 mg/20 ml',amps:[[200,'200 mg/20 ml'],[500,'500 mg/50 ml']],u:'mg',dose:'mgkgh',rangeKgH:[0.3,3],max:4,maxConcMg:10,noBag:true,dil:'ใช้ไม่เจือจาง 10 mg/ml (หรือเจือจาง D5W ไม่ต่ำกว่า 2 mg/ml)',note:'เปลี่ยนขวด/สายทุก 12 ชม. · >4 mg/kg/h นาน >48 ชม. เสี่ยง PRIS — ติดตาม TG, CK, lactate · ไขมัน 1.1 kcal/ml'},
+ cisatra:{name:'Cisatracurium (Nimbex)',neat:true,amp:10,ampTxt:'10 mg/5 ml',amps:[[10,'10 mg/5 ml'],[150,'150 mg/30 ml']],u:'mg',dose:'mcgkgmin',range:[1,3],max:10,maxConc:5,noBag:true,dil:'ใช้ไม่เจือจาง 2 mg/ml หรือเจือจาง NSS/D5W 0.1–0.4 mg/ml',note:'ต้องให้ร่วมกับยา sedation/analgesia เสมอ · เก็บตู้เย็น 2–8°C · ติดตาม TOF'},
+ dexmed:{name:'Dexmedetomidine',amp:200,ampTxt:'200 mcg/2 ml',u:'mcg',dose:'mcgh',rangeKgH:[0.2,1.4],max:1.5,maxConcMcg:8,maxConcTxt:'มาตรฐาน 4 mcg/ml (200 mcg ใน NSS รวม 50 ml) หรือ 8 mcg/ml',noBag:true,dil:'เจือจาง NSS ให้ได้ 4 mcg/ml (200 mcg + NSS 48 ml) หรือ 8 mcg/ml',note:'Loading 1 mcg/kg ใน 10 นาที (มักงดใน ICU — หัวใจเต้นช้า/ความดันต่ำ) · ติดตาม HR, BP'},
  kcl:{name:'Potassium chloride',amp:20,ampTxt:'20 mEq/amp',u:'mEq',dose:'meqh',dil:'ห้าม IV push / IM'},
  mg:{name:'Magnesium sulfate',amp:1,ampTxt:'1 g/amp',u:'g',dose:'gh',max:4,maxDay:40,maxConc:200,dil:''},
  hep:{name:'Heparin',amp:25000,ampTxt:'25,000 unit/5 ml',u:'unit',dose:'uh',max:2000,maxDay:48000,dil:'ผสมให้ได้ 100 unit/ml'}
@@ -1363,11 +1391,15 @@ const HAD_STD={
  dobu:{usual:'2–15 mcg/kg/min',maxDose:'40 mcg/kg/min',maxConc:'peripheral ≤2 mg/ml · central ≤5 mg/ml',src:SRC_HAD},
  nica:{usual:'เริ่ม 3–5 mg/h เพิ่มครั้งละ 0.5–1 mg/h ทุก 15 นาที',maxDose:'15 mg/h',maxConc:null,src:SRC_HAD},
  fenta:{usual:'0.7–10 mcg/kg/h (continuous infusion ICU analgesia/sedation) ⚑',maxDose:null,maxConc:'50 mcg/ml (ยาไม่เจือจาง) ⚑',src:'⚑ อ้างอิงทั่วไป (SCCM PADIS / Lexicomp) — รอคู่มือ HAD รพ.'},
+ ntg:{usual:'5–200 mcg/min (เริ่ม 5–10) ⚑',maxDose:'200–400 mcg/min ⚑',maxConc:'≤400 mcg/ml (0.4 mg/ml) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ propofol:{usual:'0.3–3 mg/kg/h (5–50 mcg/kg/min) ⚑',maxDose:'4 mg/kg/h (เสี่ยง PRIS) ⚑',maxConc:'10 mg/ml (ไม่เจือจาง) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ cisatra:{usual:'1–3 mcg/kg/min (ICU 0.5–10) ⚑',maxDose:'10 mcg/kg/min ⚑',maxConc:'2 mg/ml (vial 150 mg/30 ml = 5 mg/ml) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ dexmed:{usual:'0.2–1.4 mcg/kg/h ⚑',maxDose:'1.4–1.5 mcg/kg/h ⚑',maxConc:'4–8 mcg/ml ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
  kcl:{usual:'ตามระดับ K และข้อบ่งใช้',maxDose:'peripheral ≤10 mEq/h · central ≤40 mEq/h',maxConc:'peripheral ≤80 mEq/L · central ≤150 mEq/L · fluid restrict ≤200 mEq/L',src:'ป้าย KCl รพ.'},
  mg:{usual:'ตามข้อบ่งใช้',maxDose:'4 g/h · 40 g/วัน',maxConc:'200 mg/ml',src:SRC_HAD},
  hep:{usual:'ตามข้อบ่งใช้ (ตาราง bolus/infusion ในแท็บคำนวณ HAD)',maxDose:'2,000 unit/h · 48,000 unit/วัน',maxConc:'ผสม 100 unit/ml',src:SRC_HAD}
 };
-const HADKEY={ne:'ne',adr:'adr',dopa:'dopa',dobu:'dobu',heparin:'hep',kcl:'kcl',mgso4:'mg',nica:'nica',fenta:'fenta'};
+const HADKEY={ne:'ne',adr:'adr',dopa:'dopa',dobu:'dobu',heparin:'hep',kcl:'kcl',mgso4:'mg',nica:'nica',fenta:'fenta',ntg:'ntg',propofol:'propofol',cisatra:'cisatra',dexmed:'dexmed'};
 const HEP_IND=[['Acute MI with fibrinolytic',60,4000,12,1000],['ACS, mechanical valve',70,5000,15,1200],['PE & ventricular/atrial thrombus',80,10000,18,1800],['Peripheral arterial embolism / DVT',80,5000,18,1000]];
 const BOTTLE=[[8,100,2],[10,250,1],[16,250,2],[21,500,1],[31,250,3],[45,500,2],[60,500,3]];
 
@@ -1823,7 +1855,9 @@ function parseLine(raw){
     { const H=HAD[row.had.key], am=line.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?)\s*\/\s*(\d+(?:\.\d+)?)\s*ml/i);
       if(am){ const u=am[2].toLowerCase(), hu=H.u.toLowerCase(); let v=+am[1];
         if(u===hu||(u.startsWith('unit')&&hu==='unit')) row.had.amp=v; else if(u==='mg'&&hu==='mcg') row.had.amp=v*1000; else if(u==='g'&&hu==='mg') row.had.amp=v*1000; else if(u==='mcg'&&hu==='mg') row.had.amp=v/1000;
-        if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; } }
+        if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; }
+      // ยาที่ให้แบบไม่เจือจาง (เช่น Propofol 500 mg/50 ml) — ไม่มีสารน้ำ → ปริมาตร = ปริมาณยา ÷ ความเข้มข้นของขวด
+      if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; } }
     row.issues=[]; row.parsed=true; row.F=null; row.doseVal=amt??''; row.doseUnit=['mcg','mEq','unit','g'].includes(HAD[row.had.key].u)?HAD[row.had.key].u:'mg';
     return row; }
   const wk=parseWeekly(sig);
@@ -2242,13 +2276,22 @@ function hadCalc(key,inp){
       else add('ok',`Dose ${fmtN(out.dose)} mcg/kg/min อยู่ในช่วงที่เหมาะสม ${h.range[0]}-${h.range[1]} mcg/kg/min (max ${h.max})`);
       out.maxRate=h.range[1]*bw*60/(conc*1000);
     } else add('warn','ใส่น้ำหนักผู้ป่วยเพื่อคำนวณ mcg/kg/min'); }
+  if(h.dose==='mcgmin'){ const m=conc*1000*rate/60; out.dose=m; out.doseU='mcg/min'; const r=h.rangeMin;
+    if(m>h.max) add('flag',`${fmtN(m)} mcg/min เกิน max ${h.max} mcg/min`); else if(m<r[0]||m>r[1]) add('warn',`${fmtN(m)} mcg/min ${m<r[0]?'ต่ำกว่า':'สูงกว่า'}ช่วงทั่วไป ${r[0]}–${r[1]} mcg/min`); else add('ok',`${fmtN(m)} mcg/min อยู่ในช่วง ${r[0]}–${r[1]} mcg/min`);
+    if(bw>0) add('info',`= ${fmtN(m/bw)} mcg/kg/min`); out.maxRate=r[1]*60/(conc*1000);
+    if(h.maxConc){ const mc=conc*1000; out.concTxt=`${fmtN(mc)} mcg/ml`; if(conc>h.maxConc*1.01) add('flag',`Conc ${fmtN(mc)} mcg/ml เกิน ${h.maxConc*1000} mcg/ml`); else add('ok',`Conc ${fmtN(mc)} mcg/ml ≤ ${h.maxConc*1000} mcg/ml`); } }
+  if(h.dose==='mgkgh'){ out.dose=null;
+    if(bw>0){ const kh=out.perH/bw, r=h.rangeKgH; out.dose=kh; out.doseU='mg/kg/h';
+      if(kh>h.max) add('flag',`${fmtN(kh)} mg/kg/h เกิน max ${h.max} mg/kg/h (= ${fmtN(kh*1000/60)} mcg/kg/min)`); else if(kh<r[0]||kh>r[1]) add('warn',`${fmtN(kh)} mg/kg/h (${fmtN(kh*1000/60)} mcg/kg/min) ${kh<r[0]?'ต่ำกว่า':'สูงกว่า'}ช่วงทั่วไป ${r[0]}–${r[1]} mg/kg/h`); else add('ok',`${fmtN(kh)} mg/kg/h (${fmtN(kh*1000/60)} mcg/kg/min) อยู่ในช่วง ${r[0]}–${r[1]} mg/kg/h`);
+      out.maxRate=r[1]*bw/conc; } else { out.dose=out.perH; out.doseU='mg/h'; add('warn','ใส่น้ำหนักผู้ป่วยเพื่อคำนวณ mg/kg/h'); }
+    if(h.maxConcMg){ if(conc>h.maxConcMg*1.01) add('flag',`Conc ${fmtN(conc)} mg/ml เกิน ${h.maxConcMg} mg/ml — ตรวจการอ่านคำสั่ง`); else add('ok',`Conc ${fmtN(conc)} mg/ml ≤ ${h.maxConcMg} mg/ml`); } }
   if(h.dose==='mgh'){out.dose=out.perH;out.doseU='mg/h'; if(out.dose>h.max) add('flag',`${fmtN(out.dose)} mg/h เกิน max ${h.max}`); else add('ok',`${fmtN(out.dose)} mg/h (ช่วง ${h.range[0]}-${h.range[1]})`);}
   if(h.dose==='mcgh'){out.dose=out.perH;out.doseU='mcg/h';
     if(bw>0){ const kh=out.perH/bw; out.doseKg=kh; const r=h.rangeKgH;
-      if(r){ if(kh>r[1]) add('warn',`${fmtN(kh)} mcg/kg/h สูงกว่าช่วงทั่วไป ${r[0]}–${r[1]} mcg/kg/h`); else if(kh<r[0]) add('warn',`${fmtN(kh)} mcg/kg/h ต่ำกว่าช่วงทั่วไป ${r[0]}–${r[1]} mcg/kg/h`); else add('ok',`${fmtN(kh)} mcg/kg/h อยู่ในช่วง ${r[0]}–${r[1]} mcg/kg/h`);
+      if(r){ if(h.max&&kh>h.max) add('flag',`${fmtN(kh)} mcg/kg/h เกิน max ${h.max} mcg/kg/h`); else if(kh>r[1]) add('warn',`${fmtN(kh)} mcg/kg/h สูงกว่าช่วงทั่วไป ${r[0]}–${r[1]} mcg/kg/h`); else if(kh<r[0]) add('warn',`${fmtN(kh)} mcg/kg/h ต่ำกว่าช่วงทั่วไป ${r[0]}–${r[1]} mcg/kg/h`); else add('ok',`${fmtN(kh)} mcg/kg/h อยู่ในช่วง ${r[0]}–${r[1]} mcg/kg/h`);
         out.maxRate=r[1]*bw/conc; } else add('info',`${fmtN(kh)} mcg/kg/h`); }
     else add('warn','ใส่น้ำหนักผู้ป่วยเพื่อคำนวณ mcg/kg/h');
-    if(h.maxConcMcg){ if(conc>h.maxConcMcg*1.01) add('flag',`Conc ${fmtN(conc)} mcg/ml เกิน ${h.maxConcMcg} mcg/ml (ความเข้มข้นยาไม่เจือจาง) — ตรวจการอ่านคำสั่ง`); else add('ok',`Conc ${fmtN(conc)} mcg/ml ≤ ${h.maxConcMcg} mcg/ml`); } }
+    if(h.maxConcMcg){ if(conc>h.maxConcMcg*1.01) add('flag',`Conc ${fmtN(conc)} mcg/ml เกิน ${h.maxConcMcg} mcg/ml (${h.maxConcTxt||'ความเข้มข้นยาไม่เจือจาง'}) — ตรวจการอ่านคำสั่ง`); else add('ok',`Conc ${fmtN(conc)} mcg/ml ≤ ${h.maxConcMcg} mcg/ml${h.maxConcTxt?` (${h.maxConcTxt})`:''}`); } }
   if(h.dose==='meqh'){out.dose=out.perH;out.doseU='mEq/h'; const L=conc*1000; out.concTxt=`${fmtN(L)} mEq/L`;
     const lim=inp.line==='central'?[150,40]:inp.line==='restrict'?[200,40]:[80,10];
     const lt=inp.line==='central'?'central':inp.line==='restrict'?'จำกัดน้ำ (fluid restrict)':'peripheral', ks='(ป้าย KCl รพ.: peripheral ≤80 mEq/L, ≤10 mEq/h · central ≤150 mEq/L, ≤40 mEq/h · fluid restrict ≤200 mEq/L)';
@@ -2272,7 +2315,7 @@ function hadCalc(key,inp){
   if(h.maxDay&&h.dose==='mcgkgmin'&&out.perDay>h.maxDay) add('flag',`ต่อวัน ${fmtN(out.perDay)} mg เกิน ${h.maxDay} mg/day`);
   // dispensing
   const per1=inp.amp||h.amp; out.ampDay=out.perDay/per1; out.ampTxt=inp.ampTxt||h.ampTxt;
-  if(!['fenta','kcl','mg','hep'].includes(key)&&rate>0){
+  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0){
     // ห้องยาเลือกถุงที่มีจริง (100 / 250 ml) ให้พอใช้ 24 ชม. แล้วใส่ยาให้ได้ความเข้มข้นเท่าคำสั่ง
     // ยาที่เปิดแล้วไม่แบ่งข้ามถุง → ปัด amp ขึ้นต่อถุง · เลือกชุดถุง (250/100 ml ผสมกันได้) ที่ใช้ยาน้อยที่สุด
     const ampPer=bag=>{let p=bag*conc/per1; return h.tenth?Math.ceil(p/10-1e-9)*10:Math.ceil(p-1e-9);};
@@ -2871,7 +2914,7 @@ $('hDrug').innerHTML=Object.entries(HAD).map(([k,h])=>`<option value="${k}">${h.
 const hadAmp=k=>{ const h=HAD[k]; if(!h.amps) return {v:h.amp,t:h.ampTxt}; const v=+$('hAmpSz').value||h.amp; return {v,t:(h.amps.find(a=>a[0]===v)||h.amps[0])[1]}; };
 function hadAmpSel(k,want){ const h=HAD[k], el=$('hAmpSz'); $('hAmpSzW').hidden=!h.amps; if(!h.amps){ el.innerHTML=''; return; } el.innerHTML=h.amps.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join(''); if(want&&h.amps.some(a=>a[0]===want)) el.value=want; }
 $('hInd').innerHTML=HEP_IND.map((x,i)=>`<option value="${i}">${x[0]}</option>`).join('');
-const HAD_EX={ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
+const HAD_EX={ntg:[50,250,6],propofol:[500,50,10],cisatra:[100,50,3],dexmed:[200,50,10],ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
 function loadHadEx(){const k=$('hDrug').value,e=HAD_EX[k]; $('hAmt').value=e[0];$('hVol').value=e[1];$('hRate').value=e[2];$('hAmp').value=+(e[0]/hadAmp(k).v).toFixed(2);}
 function hadNote(k,h,o,cu){
   const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
@@ -2900,7 +2943,7 @@ function renderHad(){
   if(h.amps&&o.perDay>0){ const big=Math.max(...h.amps.map(a=>a[0])), sm=Math.min(...h.amps.map(a=>a[0])); let best=null;
     for(let nb=0;nb<=Math.ceil(o.perDay/big);nb++){ const ns=Math.max(0,Math.ceil((o.perDay-nb*big)/sm-1e-9)), tot=nb*big+ns*sm, c={nb,ns,tot,waste:tot-o.perDay,n:nb+ns}; if(!best||c.waste<best.waste-1e-9||(Math.abs(c.waste-best.waste)<1e-9&&c.n<best.n)) best=c; }
     if(best) kv.push(['จ่ายแบบผสมขนาด (เหลือทิ้งน้อยสุด)',`${[best.nb?`${big} × ${best.nb}`:'',best.ns?`${sm} × ${best.ns}`:''].filter(Boolean).join(' + ')} = ${fmtN(best.tot)} ${h.u}`]); }
-  if(o.maxRate) kv.push([h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
+  if(o.maxRate) kv.push([h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
   kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
@@ -3029,7 +3072,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.19.8 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.20.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4545,6 +4588,56 @@ function neoRender(){ const out=$('nOut'); if(!out) return; const ga=+$('nGa').v
   $('vEx').onclick=()=>{ $('vPaste').value='Acriptega (TDF300/3TC300/DTG50) 1 tab oral od pc เช้า\nCalcium carbonate 1000 mg 1x3 pc\nFerrous fumarate 200 mg 1x1 pc\nSimvastatin 20 mg 1 tab hs\nRifampicin 450 mg 1 tab od ac\nMetformin 500 mg 2x2 pc\nOmeprazole 20 mg 1x1 ac'; renderArv(); };
   ['nGa','nBw','nWk','nBd'].forEach(id=>$(id).addEventListener('input',neoRender)); ['nRisk','nVl','nDur','nBf','nWk'].forEach(id=>$(id).addEventListener('change',neoRender));
   renderArv(); neoRender(); })();
+
+/* ===== anticoag.js — แท็บ HAD: Enoxaparin (ขนาดตามน้ำหนัก/ไต → syringe 40/60 mg) · Heparin ปรับ rate ตาม aPTT (weight-based nomogram)
+ ⚑ อ้างอิงทั่วไป: Enoxaparin SPC / CHEST · Raschke weight-based heparin nomogram (1993) — ยืนยันกับแนวทาง/ใบสั่ง รพ.มค */
+const ENOX_SYR=[40,60]; // mg ต่อ syringe (100 mg/ml) ตามบัญชียา รพ. · ขนาดปัดเป็นทวีคูณ 10 mg ตามขีด syringe
+const ENOX_IND=[
+ {k:'tx12',nm:'รักษา VTE / ACS (NSTE) — 1 mg/kg q12h',mgkg:1,q:12},
+ {k:'tx24',nm:'รักษา VTE — 1.5 mg/kg q24h',mgkg:1.5,q:24},
+ {k:'stemi75',nm:'STEMI อายุ ≥75 ปี — 0.75 mg/kg q12h (ไม่ให้ IV bolus · max 75 mg/dose 2 dose แรก)',mgkg:0.75,q:12,cap:75},
+ {k:'pro',nm:'ป้องกัน VTE — 40 mg q24h',fix:40,q:24}];
+function enoxCalc(){ const out=$('eOut'); if(!out) return; const pt=getPt(), bw=+$('eBw').value||+pt.bw||0, ind=ENOX_IND.find(x=>x.k===$('eInd').value), cr=pt.crcl, dial=pt.dial;
+  if(!$('eBw').value&&pt.bw) $('eBw').value=pt.bw;
+  const L=[], li=(l,m)=>L.push(`<li><span class="tag ${l}">${LVL_TXT[l]}</span><span>${m}</span></li>`);
+  let dose=null, q=ind.q, why='';
+  if(ind.fix){ dose=ind.fix; if(cr!=null&&cr<30&&!dial){ dose=30; why='CrCl <30 → 30 mg q24h (แนวทาง รพ.มค)'; } if(bw>0&&(+pt.ht>0)&&bw/((+pt.ht/100)**2)>=40) li('warn','BMI ≥40: พิจารณา 40 mg q12h'); }
+  else { if(!(bw>0)){ out.innerHTML='<div class="empty">ใส่น้ำหนัก (kg)</div>'; return; } dose=ind.mgkg*bw;
+    if(cr!=null&&cr<30&&!dial){ q=24; dose=1*bw; why=`CrCl ${fmtN(Math.round(cr))} (<30) → ปรับเป็น 1 mg/kg q24h = ${fmtN(Math.round(bw*10)/10)} mg`; }
+    if(ind.cap&&dose>ind.cap){ dose=ind.cap; why=(why?why+' · ':'')+`cap ${ind.cap} mg สำหรับ 2 dose แรก`; }
+    if(bw>150) li('warn','น้ำหนัก >150 kg: ข้อมูลจำกัด — พิจารณาตรวจ anti-Xa'); }
+  if(dial) li('flag','HD/CAPD: หลีกเลี่ยง enoxaparin — พิจารณา UFH (heparin)');
+  if(cr==null&&!dial) li('info','ไม่มี CrCl — กรอก Cr ในแผงผู้ป่วยเพื่อปรับตามไต');
+  // เลือก syringe: ชุดที่เหลือทิ้งน้อยสุด (ปัดขนาดเป็นทวีคูณ 10 mg ตามขีด syringe)
+  const D=Math.round(dose/10)*10||10; let best=null;
+  for(let a=0;a<=4;a++) for(let b=0;b<=4;b++){ const t=a*ENOX_SYR[0]+b*ENOX_SYR[1]; if(t<D) continue; const c={a,b,t,w:t-D,n:a+b}; if(!best||c.w<best.w||(c.w===best.w&&c.n<best.n)) best=c; }
+  const sy=[best.a?`40 mg × ${best.a}`:'',best.b?`60 mg × ${best.b}`:''].filter(Boolean).join(' + '), perDay=24/q;
+  out.innerHTML=`<h2>Enoxaparin</h2><div class="big" style="font-size:2rem;font-weight:800">${fmtN(D)} mg <span style="font-size:1rem;font-weight:500">SC q${q}h</span></div>
+   <dl class="kv"><dt>คำนวณ</dt><dd>${ind.fix?`${fmtN(ind.fix)} mg`:`${ind.mgkg} mg/kg × ${fmtN(bw)} kg = ${fmtN(Math.round(ind.mgkg*bw*10)/10)} mg`} → ปัดตามขีด syringe <b>${fmtN(D)} mg = ${fmtN(D/100)} ml</b>${why?`<br><span style="color:#b45309">${esc(why)}</span>`:''}</dd>
+   <dt>ใช้ syringe ต่อครั้ง</dt><dd><b>${sy}</b>${best.w?` · ไล่ยาทิ้ง ${fmtN(best.w)} mg (${fmtN(best.w/100)} ml) ก่อนฉีด`:''}</dd>
+   <dt>ต่อวัน</dt><dd>${perDay} ครั้ง = ${fmtN(D*perDay)} mg · syringe ${[best.a?`40 mg × ${best.a*perDay}`:'',best.b?`60 mg × ${best.b*perDay}`:''].filter(Boolean).join(' + ')}</dd></dl>
+   ${L.length?`<ul class="msgs">${L.join('')}</ul>`:''}
+   <p class="hint" style="margin:6px 0 0">ติดตาม CBC/platelet (HIT) · Cr · อาการเลือดออก · ห้ามฉีด IM · ⚑ อ้างอิงทั่วไป (SPC/CHEST) — ยืนยันกับแนวทาง รพ.</p>`; }
+
+/* Heparin: ปรับตาม aPTT (Raschke weight-based nomogram) — ค่าเป็นเท่าของ control (ratio) หรือวินาที */
+const HEP_NOMO=[[1.2,'bolus 80 unit/kg แล้วเพิ่ม 4 unit/kg/h',80,4,0],[1.5,'bolus 40 unit/kg แล้วเพิ่ม 2 unit/kg/h',40,2,0],[2.3,'คงเดิม (อยู่ในเป้า 1.5–2.3 เท่า)',0,0,0],[3,'ลด 2 unit/kg/h',0,-2,0],[Infinity,'หยุดยา 1 ชม. แล้วลด 3 unit/kg/h',0,-3,1]];
+function hepNomo(){ const out=$('jOut'); if(!out) return; const bw=+$('jBw').value||+getPt().bw||0, a=+$('jAptt').value, c=+$('jCtl').value||30, cur=+$('jRate').value, conc=+$('jConc').value||100;
+  if(!$('jBw').value&&getPt().bw) $('jBw').value=getPt().bw;
+  if(!(a>0)||!(bw>0)||!(cur>=0)){ out.innerHTML='<div class="empty">กรอก น้ำหนัก · aPTT · rate ปัจจุบัน (ml/h)</div>'; return; }
+  const r=a/c, row=HEP_NOMO.find(x=>r<x[0]), curU=cur*conc, newU=Math.max(0,curU+row[3]*bw), bol=Math.min(row[2]*bw,row[2]===80?10000:5000);
+  out.innerHTML=`<h2>Heparin ปรับตาม aPTT</h2><div class="big" style="font-size:1.8rem;font-weight:800">${fmtN(Math.round(newU/conc*10)/10)} ml/h <span style="font-size:1rem;font-weight:500">(${fmtN(Math.round(newU))} unit/h)</span></div>
+   <dl class="kv"><dt>aPTT</dt><dd>${fmtN(a)} วินาที = <b>${fmtN(Math.round(r*100)/100)} เท่า</b>ของ control ${fmtN(c)} วินาที</dd><dt>คำแนะนำ</dt><dd><b>${esc(row[1])}</b></dd>
+   ${row[2]?`<dt>Bolus</dt><dd>${row[2]} × ${fmtN(bw)} = <b>${fmtN(Math.round(bol))} unit</b> = <b>${fmtN(Math.round(bol/5000*100)/100)} ml</b> จาก vial 25,000 unit/5 ml IV push</dd>`:''}
+   ${row[4]?'<dt>หยุดยา</dt><dd>หยุด 1 ชม. แล้วเริ่ม rate ใหม่</dd>':''}
+   <dt>Rate เดิม → ใหม่</dt><dd>${fmtN(cur)} ml/h (${fmtN(Math.round(curU))} unit/h = ${fmtN(Math.round(curU/bw*10)/10)} unit/kg/h) → <b>${fmtN(Math.round(newU/conc*10)/10)} ml/h</b> (${fmtN(Math.round(newU/bw*10)/10)} unit/kg/h)</dd>
+   <dt>ตรวจ aPTT ครั้งถัดไป</dt><dd>${row[3]||row[2]?'6 ชม. หลังปรับ':'6 ชม. (ถ้าอยู่ในเป้า 2 ครั้งติด ตรวจวันละครั้ง)'}</dd></dl>
+   ${newU>2000?'<ul class="msgs"><li><span class="tag warn">ทบทวน</span><span>เกิน 2,000 unit/h (เกณฑ์ HAD รพ.) — ยืนยันกับแพทย์</span></li></ul>':''}
+   <p class="hint" style="margin:6px 0 0">⚑ Raschke weight-based nomogram (เป้า aPTT 1.5–2.3 เท่า) — ถ้า รพ. มี nomogram ของตัวเองให้ยึดตามนั้น · ติดตาม platelet (HIT)</p>`; }
+(function(){ if(!$('eOut')) return; $('eInd').innerHTML=ENOX_IND.map(x=>`<option value="${x.k}">${x.nm}</option>`).join('');
+  ['eBw'].forEach(id=>$(id).addEventListener('input',enoxCalc)); $('eInd').addEventListener('change',enoxCalc);
+  ['jBw','jAptt','jCtl','jRate','jConc'].forEach(id=>$(id).addEventListener('input',hepNomo));
+  ['scr','bw','ht','ageIn','mode'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',()=>{enoxCalc();hepNomo();}); el.addEventListener('change',()=>{enoxCalc();hepNomo();}); } });
+  enoxCalc(); hepNomo(); })();
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';

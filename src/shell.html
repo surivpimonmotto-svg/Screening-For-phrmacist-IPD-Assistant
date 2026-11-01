@@ -514,6 +514,26 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="hOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>Enoxaparin — ขนาดตามน้ำหนัก/ไต → syringe</h2>
+          <div class="grid2">
+            <label class="f" style="grid-column:1/-1">ข้อบ่งใช้<select id="eInd"></select></label>
+            <label class="f">น้ำหนัก (kg)<input id="eBw" type="number" step="any" inputmode="decimal"></label>
+            <div class="hint" style="align-self:end">CrCl/การฟอกไตใช้จากแผงผู้ป่วย · syringe ในบัญชี: 40 mg/0.4 ml · 60 mg/0.6 ml</div>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="eOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>Heparin — ปรับ rate ตาม aPTT</h2>
+          <div class="grid2">
+            <label class="f">น้ำหนัก (kg)<input id="jBw" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">aPTT (วินาที)<input id="jAptt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">aPTT control (วินาที)<input id="jCtl" type="number" step="any" inputmode="decimal" value="30"></label>
+            <label class="f">Rate ปัจจุบัน (ml/h)<input id="jRate" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">ความเข้มข้นในถุง (unit/ml)<input id="jConc" type="number" step="any" inputmode="decimal" value="100"></label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="jOut"></div>
       </div>
     </section>
 

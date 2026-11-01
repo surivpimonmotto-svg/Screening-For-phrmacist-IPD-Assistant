@@ -208,7 +208,7 @@ $('hDrug').innerHTML=Object.entries(HAD).map(([k,h])=>`<option value="${k}">${h.
 const hadAmp=k=>{ const h=HAD[k]; if(!h.amps) return {v:h.amp,t:h.ampTxt}; const v=+$('hAmpSz').value||h.amp; return {v,t:(h.amps.find(a=>a[0]===v)||h.amps[0])[1]}; };
 function hadAmpSel(k,want){ const h=HAD[k], el=$('hAmpSz'); $('hAmpSzW').hidden=!h.amps; if(!h.amps){ el.innerHTML=''; return; } el.innerHTML=h.amps.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join(''); if(want&&h.amps.some(a=>a[0]===want)) el.value=want; }
 $('hInd').innerHTML=HEP_IND.map((x,i)=>`<option value="${i}">${x[0]}</option>`).join('');
-const HAD_EX={ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
+const HAD_EX={ntg:[50,250,6],propofol:[500,50,10],cisatra:[100,50,3],dexmed:[200,50,10],ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
 function loadHadEx(){const k=$('hDrug').value,e=HAD_EX[k]; $('hAmt').value=e[0];$('hVol').value=e[1];$('hRate').value=e[2];$('hAmp').value=+(e[0]/hadAmp(k).v).toFixed(2);}
 function hadNote(k,h,o,cu){
   const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
@@ -237,7 +237,7 @@ function renderHad(){
   if(h.amps&&o.perDay>0){ const big=Math.max(...h.amps.map(a=>a[0])), sm=Math.min(...h.amps.map(a=>a[0])); let best=null;
     for(let nb=0;nb<=Math.ceil(o.perDay/big);nb++){ const ns=Math.max(0,Math.ceil((o.perDay-nb*big)/sm-1e-9)), tot=nb*big+ns*sm, c={nb,ns,tot,waste:tot-o.perDay,n:nb+ns}; if(!best||c.waste<best.waste-1e-9||(Math.abs(c.waste-best.waste)<1e-9&&c.n<best.n)) best=c; }
     if(best) kv.push(['จ่ายแบบผสมขนาด (เหลือทิ้งน้อยสุด)',`${[best.nb?`${big} × ${best.nb}`:'',best.ns?`${sm} × ${best.ns}`:''].filter(Boolean).join(' + ')} = ${fmtN(best.tot)} ${h.u}`]); }
-  if(o.maxRate) kv.push([h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
+  if(o.maxRate) kv.push([h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
   kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
@@ -366,7 +366,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.19.8 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.20.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

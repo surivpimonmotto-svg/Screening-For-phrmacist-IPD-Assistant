@@ -9,6 +9,13 @@
 
 ---
 
+## v0.20.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- **HAD เพิ่ม 4 ยา** (ขนาด amp ตามบัญชียา รพ.): **NTG** 25 mg/5 ml (mcg/min, conc ≤400 mcg/ml, non-PVC) · **Propofol 1%** 200 mg/20 ml, 500 mg/50 ml (mg/kg/h + mcg/kg/min, max 4 mg/kg/h PRIS) · **Nimbex** 10 mg/5 ml, 150 mg/30 ml (mcg/kg/min) · **Dexmedetomidine** 200 mcg/2 ml (mcg/kg/h, 4–8 mcg/ml) — ช่วงขนาด ⚑ อ้างอิงทั่วไป รอคู่มือ HAD รพ.
+- Nicardipine เลือกขนาด amp 2 mg/2 ml หรือ 10 mg/10 ml
+- ยาที่ให้ไม่เจือจาง (Propofol, Nimbex, Fentanyl) วางคำสั่งแบบ "500 mg/50 ml" ไม่มีสารน้ำ → คิดปริมาตรจากขวดให้
+- **Enoxaparin**: ข้อบ่งใช้ (1 mg/kg q12h · 1.5 mg/kg q24h · STEMI ≥75 · ป้องกัน 40 mg) + ปรับตาม CrCl <30 / HD → ขนาดปัดตามขีด + syringe 40/60 mg ที่ใช้และปริมาณที่ไล่ทิ้ง
+- **Heparin ปรับ rate ตาม aPTT** (Raschke weight-based nomogram ⚑) → bolus (ml จาก vial 25,000 unit/5 ml) · rate ใหม่ ml/h · นัดตรวจ aPTT
+
 ## v0.19.8 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - HAD Fentanyl: เพิ่มขนาด amp **500 mcg/10 ml** (เลือกขนาด amp ได้ · วางคำสั่งที่มี 500 mcg/10 ml เลือกให้อัตโนมัติ) + แนะนำจ่ายแบบผสมขนาดที่เหลือทิ้งน้อยสุด เช่น 600 mcg = 500 × 1 + 100 × 1
 - แก้บั๊ก: เลือก Fentanyl ในแท็บ HAD แล้วผลคำนวณไม่เปลี่ยน (ค้างผลของยาตัวก่อน)

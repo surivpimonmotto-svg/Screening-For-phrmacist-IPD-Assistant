@@ -386,6 +386,10 @@ const KB=[
 {id:'dopa',name:'Dopamine',match:/dopamine/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'dobu',name:'Dobutamine',match:/dobutamine|dobutex/i,unit:'mg',special:'had',src:SRC_HAD},
 {id:'nica',name:'Nicardipine inj',match:/nicardipine|cardepine/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'ntg',name:'Nitroglycerin inj (NTG)',match:/^(?!.*\b(sl|tab|tablet|spray|patch|oint|อมใต้ลิ้น)\b).*(nitroglycerin|glyceryl\s*trinitrate|\bntg\b|\bgtn\b)/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'propofol',name:'Propofol 1% inj',match:/propofol|diprivan|fresofol/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'cisatra',name:'Cisatracurium (Nimbex)',match:/cisatracurium|nimbex|nimbix/i,unit:'mg',special:'had',src:SRC_HAD},
+{id:'dexmed',name:'Dexmedetomidine (Dexdor/Hydex)',match:/dexmedetomidine|dexdor|precedex|hydex/i,unit:'mcg',special:'had',src:SRC_HAD},
 {id:'fenta',name:'Fentanyl inj',match:/fentanyl(?!.*(tts|patch|แผ่น|transdermal|durogesic))/i,unit:'mcg',special:'had',src:SRC_HAD},
 {id:'heparin',name:'Heparin',match:/heparin/i,unit:'unit',special:'had',src:SRC_HAD},
 {id:'naloxone',name:'Naloxone',match:/naloxone/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ non-dependence 0.4-2 mg IV ซ้ำทุก 2-3 นาที / dependence 0.1-0.2 mg; เด็ก 0.01 mg/kg (max 2 mg/dose)',src:'ยาต้านพิษ DIS 2564'},
@@ -414,8 +418,12 @@ const HAD={
  adr:{name:'Adrenaline',amp:1,ampTxt:'1 mg/1 ml',u:'mg',dose:'mcgkgmin',range:[0.05,1],max:1,periph:0.1,maxConc:0.1,dil:'',note:'1:10 = ยา 10 amp ในน้ำ 100 ml (0.1 mg/ml) จ่ายยา 10 amp ต่อสารน้ำ 100 ml ปัดเป็นทวีคูณของ 10',tenth:true},
  dopa:{name:'Dopamine',amp:250,ampTxt:'250 mg/10 ml',u:'mg',dose:'mcgkgmin',range:[2,20],max:50,periph:2,maxConc:3.2,dil:''},
  dobu:{name:'Dobutamine',amp:250,ampTxt:'250 mg/amp',u:'mg',dose:'mcgkgmin',range:[2,15],max:40,periph:2,maxConc:5,dil:''},
- nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
- fenta:{name:'Fentanyl',amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
+ nica:{name:'Nicardipine',amp:2,ampTxt:'2 mg/2 ml (ตามคู่มือ)',amps:[[2,'2 mg/2 ml'],[10,'10 mg/10 ml']],u:'mg',dose:'mgh',range:[3,15],max:15,dil:'',note:'เริ่ม 3-5 mg/h เพิ่มครั้งละ 0.5-1 mg ทุก 15 นาที max 15 mg/h'},
+ fenta:{name:'Fentanyl',neat:true,amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
+ ntg:{name:'Nitroglycerin (NTG)',amp:25,ampTxt:'25 mg/5 ml',u:'mg',dose:'mcgmin',rangeMin:[5,200],max:400,maxConc:0.4,dil:'D5W หรือ NSS · ขวดแก้ว/ถุงและสาย non-PVC (ยาจับกับ PVC)',note:'เริ่ม 5–10 mcg/min เพิ่มครั้งละ 5–10 mcg/min ทุก 3–5 นาทีตามความดัน'},
+ propofol:{name:'Propofol 1%',neat:true,amp:200,ampTxt:'200 mg/20 ml',amps:[[200,'200 mg/20 ml'],[500,'500 mg/50 ml']],u:'mg',dose:'mgkgh',rangeKgH:[0.3,3],max:4,maxConcMg:10,noBag:true,dil:'ใช้ไม่เจือจาง 10 mg/ml (หรือเจือจาง D5W ไม่ต่ำกว่า 2 mg/ml)',note:'เปลี่ยนขวด/สายทุก 12 ชม. · >4 mg/kg/h นาน >48 ชม. เสี่ยง PRIS — ติดตาม TG, CK, lactate · ไขมัน 1.1 kcal/ml'},
+ cisatra:{name:'Cisatracurium (Nimbex)',neat:true,amp:10,ampTxt:'10 mg/5 ml',amps:[[10,'10 mg/5 ml'],[150,'150 mg/30 ml']],u:'mg',dose:'mcgkgmin',range:[1,3],max:10,maxConc:5,noBag:true,dil:'ใช้ไม่เจือจาง 2 mg/ml หรือเจือจาง NSS/D5W 0.1–0.4 mg/ml',note:'ต้องให้ร่วมกับยา sedation/analgesia เสมอ · เก็บตู้เย็น 2–8°C · ติดตาม TOF'},
+ dexmed:{name:'Dexmedetomidine',amp:200,ampTxt:'200 mcg/2 ml',u:'mcg',dose:'mcgh',rangeKgH:[0.2,1.4],max:1.5,maxConcMcg:8,maxConcTxt:'มาตรฐาน 4 mcg/ml (200 mcg ใน NSS รวม 50 ml) หรือ 8 mcg/ml',noBag:true,dil:'เจือจาง NSS ให้ได้ 4 mcg/ml (200 mcg + NSS 48 ml) หรือ 8 mcg/ml',note:'Loading 1 mcg/kg ใน 10 นาที (มักงดใน ICU — หัวใจเต้นช้า/ความดันต่ำ) · ติดตาม HR, BP'},
  kcl:{name:'Potassium chloride',amp:20,ampTxt:'20 mEq/amp',u:'mEq',dose:'meqh',dil:'ห้าม IV push / IM'},
  mg:{name:'Magnesium sulfate',amp:1,ampTxt:'1 g/amp',u:'g',dose:'gh',max:4,maxDay:40,maxConc:200,dil:''},
  hep:{name:'Heparin',amp:25000,ampTxt:'25,000 unit/5 ml',u:'unit',dose:'uh',max:2000,maxDay:48000,dil:'ผสมให้ได้ 100 unit/ml'}
@@ -428,11 +436,15 @@ const HAD_STD={
  dobu:{usual:'2–15 mcg/kg/min',maxDose:'40 mcg/kg/min',maxConc:'peripheral ≤2 mg/ml · central ≤5 mg/ml',src:SRC_HAD},
  nica:{usual:'เริ่ม 3–5 mg/h เพิ่มครั้งละ 0.5–1 mg/h ทุก 15 นาที',maxDose:'15 mg/h',maxConc:null,src:SRC_HAD},
  fenta:{usual:'0.7–10 mcg/kg/h (continuous infusion ICU analgesia/sedation) ⚑',maxDose:null,maxConc:'50 mcg/ml (ยาไม่เจือจาง) ⚑',src:'⚑ อ้างอิงทั่วไป (SCCM PADIS / Lexicomp) — รอคู่มือ HAD รพ.'},
+ ntg:{usual:'5–200 mcg/min (เริ่ม 5–10) ⚑',maxDose:'200–400 mcg/min ⚑',maxConc:'≤400 mcg/ml (0.4 mg/ml) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ propofol:{usual:'0.3–3 mg/kg/h (5–50 mcg/kg/min) ⚑',maxDose:'4 mg/kg/h (เสี่ยง PRIS) ⚑',maxConc:'10 mg/ml (ไม่เจือจาง) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ cisatra:{usual:'1–3 mcg/kg/min (ICU 0.5–10) ⚑',maxDose:'10 mcg/kg/min ⚑',maxConc:'2 mg/ml (vial 150 mg/30 ml = 5 mg/ml) ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
+ dexmed:{usual:'0.2–1.4 mcg/kg/h ⚑',maxDose:'1.4–1.5 mcg/kg/h ⚑',maxConc:'4–8 mcg/ml ⚑',src:'⚑ อ้างอิงทั่วไป (SPC / Lexicomp / SCCM PADIS) — รอคู่มือ HAD รพ.'},
  kcl:{usual:'ตามระดับ K และข้อบ่งใช้',maxDose:'peripheral ≤10 mEq/h · central ≤40 mEq/h',maxConc:'peripheral ≤80 mEq/L · central ≤150 mEq/L · fluid restrict ≤200 mEq/L',src:'ป้าย KCl รพ.'},
  mg:{usual:'ตามข้อบ่งใช้',maxDose:'4 g/h · 40 g/วัน',maxConc:'200 mg/ml',src:SRC_HAD},
  hep:{usual:'ตามข้อบ่งใช้ (ตาราง bolus/infusion ในแท็บคำนวณ HAD)',maxDose:'2,000 unit/h · 48,000 unit/วัน',maxConc:'ผสม 100 unit/ml',src:SRC_HAD}
 };
-const HADKEY={ne:'ne',adr:'adr',dopa:'dopa',dobu:'dobu',heparin:'hep',kcl:'kcl',mgso4:'mg',nica:'nica',fenta:'fenta'};
+const HADKEY={ne:'ne',adr:'adr',dopa:'dopa',dobu:'dobu',heparin:'hep',kcl:'kcl',mgso4:'mg',nica:'nica',fenta:'fenta',ntg:'ntg',propofol:'propofol',cisatra:'cisatra',dexmed:'dexmed'};
 const HEP_IND=[['Acute MI with fibrinolytic',60,4000,12,1000],['ACS, mechanical valve',70,5000,15,1200],['PE & ventricular/atrial thrombus',80,10000,18,1800],['Peripheral arterial embolism / DVT',80,5000,18,1000]];
 const BOTTLE=[[8,100,2],[10,250,1],[16,250,2],[21,500,1],[31,250,3],[45,500,2],[60,500,3]];
 

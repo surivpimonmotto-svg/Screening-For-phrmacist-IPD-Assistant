@@ -794,6 +794,8 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">วันที่สัมผัส<input id="pExD" placeholder="dd/mm/yy"></label>
             <label class="f">เวลาที่สัมผัส<input id="pExT" placeholder="เช่น 22:30"></label>
             <label class="f">วันเริ่มยา<input id="pSt" placeholder="dd/mm/yy (ว่าง = วันนี้)"></label>
+            <label class="f">วิธีนัด<select id="pApM"><option value="next">วันคลินิกถัดไป (ผู้ใหญ่ จ/พฤ · เด็ก พ)</option><option value="d14">ครบ 14 วันตรงวันคลินิก</option><option value="man">กรอกวันนัดเอง</option></select></label>
+            <label class="f" id="pApW" hidden>วันนัด<input id="pAp" placeholder="dd/mm/yy"></label>
             <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pTab" checked> เด็กกลืนยาเม็ดได้ (14–&lt;35 kg)</label>
           </div>
         </div>
@@ -3147,7 +3149,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.25.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.25.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4724,7 +4726,10 @@ function pepRender(){ const out=$('pOut'); if(!out) return; const pt=getPt(), bw
       else { rows.push(['3TC(150)','<b>1 เม็ด q12h</b> (CrCl ≥50 หรือยังไม่ทราบ — ตรวจ Cr)','']); perDay.push(['3TC(150) (เม็ด)',2]); }
       if(cr!=null&&cr<10) li('warn','CrCl <10: AZT ปรับเป็น 100 mg q8h หรือ 300 mg q24h (ARV Screening IPD 2568)'); } }
   // วันนัด: ครบ 14 วันตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ)
-  const child=bw<35||pt.isPed, cd=child?[3]:[1,4]; let ap=mrAdd(st,14); while(!cd.includes(ap.getDay())) ap=mrAdd(ap,1);
+  const child=bw<35||pt.isPed, cd=child?[3]:[1,4], am=$('pApM').value; let ap;
+  if(am==='man'&&tlDate($('pAp').value,'0:00')) ap=tlDate($('pAp').value,'0:00');
+  else { ap=mrAdd(st,am==='next'?1:14); while(!cd.includes(ap.getDay())) ap=mrAdd(ap,1); }
+  $('pApW').hidden=am!=='man';
   const days=Math.round((ap-st)/864e5)+1, TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
   const disp=perDay.map(([n,q])=>`<tr><td>${esc(n)}</td><td>${fmtN(Math.round(q*100)/100)}/วัน</td><td><b>${fmtN(Math.ceil(q*days-1e-9))}</b></td><td class="hint">${fmtN(Math.ceil(q*28-1e-9))}</td></tr>`).join('');
   li('info','หลีกเลี่ยงยาที่มีประจุ 2+ (antacid, Ca, Zn, Fe, วิตามินรวม) ภายใน 6 ชม. ของ DTG');
@@ -4732,12 +4737,12 @@ function pepRender(){ const out=$('pOut'); if(!out) return; const pt=getPt(), bw
   if(typ==='oPEP') li('info','oPEP (สัมผัสจากการทำงาน): บันทึกรายงานอุบัติเหตุ · ตรวจ anti-HIV, HBsAg/anti-HBs, anti-HCV ของผู้สัมผัสและแหล่งสัมผัส');
   if(typ==='nPEP') li('info','nPEP: พิจารณาตรวจ/ป้องกัน STI · ยาคุมฉุกเฉิน · วัคซีนตับอักเสบบี · ส่งต่อ OSCC กรณีถูกล่วงละเมิด');
   out.innerHTML=`<h2>${esc(title)}</h2><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาด/วิธีใช้</th><th>หมายเหตุ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table>
-   <h2>นัดและจำนวนยา</h2><dl class="kv"><dt>เริ่มยา</dt><dd>${tlFmt(st,false)}</dd><dt>นัดครั้งถัดไป</dt><dd><b>${tlFmt(ap,false)} (วัน${TH[ap.getDay()]})</b> — ครบ 14 วันตรงคลินิก${child?'เด็ก (พุธ)':'ผู้ใหญ่ (จันทร์/พฤหัส)'}</dd><dt>จ่ายถึงวันนัด</dt><dd>${days} วัน (รวมวันนัด)</dd><dt>ครบ 28 วัน</dt><dd>${tlFmt(mrAdd(st,27),false)}</dd></dl>
+   <h2>นัดและจำนวนยา</h2><dl class="kv"><dt>เริ่มยา</dt><dd>${tlFmt(st,false)}</dd><dt>นัดครั้งถัดไป</dt><dd><b>${tlFmt(ap,false)} (วัน${TH[ap.getDay()]})</b> — ${am==='man'?'กรอกเอง':am==='next'?'วันคลินิกถัดไป':'ครบ 14 วันตรงคลินิก'}${am==='man'?'':child?'เด็ก (พุธ)':'ผู้ใหญ่ (จันทร์/พฤหัส)'}${am==='man'&&!cd.includes(ap.getDay())?' <span style="color:#b45309">· ไม่ตรงวันคลินิก</span>':''}</dd><dt>จ่ายถึงวันนัด</dt><dd>${days} วัน (รวมวันนัด)</dd><dt>ครบ 28 วัน</dt><dd>${tlFmt(mrAdd(st,27),false)}</dd></dl>
    ${disp?`<table class="ctbl"><thead><tr><th>ยา</th><th>ใช้</th><th>จ่ายถึงวันนัด</th><th>ทั้ง course 28 วัน</th></tr></thead><tbody>${disp}</tbody></table>`:''}
    <ul class="msgs">${L.join('')}</ul>
    <h2>Checklist ก่อนจ่าย</h2><ul style="margin:4px 0;padding-left:20px"><li>☐ สูตรยาถูกต้องตามน้ำหนัก/อายุ/CrCl</li><li>☐ ขนาดยา/วิธีกิน (BSA, BW, CrCl) · วิธีผสม DTG dispersible</li><li>☐ วันนัด 14 วันตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ)</li><li>☐ จำนวนยาพอถึงวันนัด</li></ul>
    <p class="hint">แบบคัดกรอง HIV Post Exposure Prophylaxis / OSCC 2024 รพ.มหาสารคาม — ไฟล์ใน คู่มือย่อ › เอกสารต้นฉบับ</p>`; }
-(function(){ if(!$('pOut')) return; ['pExD','pExT','pSt'].forEach(id=>$(id).addEventListener('input',pepRender)); ['pTab','pType','pepReg'].forEach(id=>$(id).addEventListener('change',pepRender));
+(function(){ if(!$('pOut')) return; ['pExD','pExT','pSt','pAp'].forEach(id=>$(id).addEventListener('input',pepRender)); ['pTab','pType','pepReg','pApM'].forEach(id=>$(id).addEventListener('change',pepRender));
   ['bw','scr','ageIn','ageU','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pepRender); el.addEventListener('change',pepRender); } }); $('t-arv').addEventListener('click',pepRender); pepRender(); })();
 
 /* ===== anticoag.js — แท็บ HAD: Enoxaparin (ขนาดตามน้ำหนัก/ไต → syringe 40/60 mg) · Heparin ปรับ rate ตาม aPTT (weight-based nomogram)

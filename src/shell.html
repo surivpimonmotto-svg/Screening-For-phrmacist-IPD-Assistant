@@ -794,6 +794,8 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">วันที่สัมผัส<input id="pExD" placeholder="dd/mm/yy"></label>
             <label class="f">เวลาที่สัมผัส<input id="pExT" placeholder="เช่น 22:30"></label>
             <label class="f">วันเริ่มยา<input id="pSt" placeholder="dd/mm/yy (ว่าง = วันนี้)"></label>
+            <label class="f">วิธีนัด<select id="pApM"><option value="next">วันคลินิกถัดไป (ผู้ใหญ่ จ/พฤ · เด็ก พ)</option><option value="d14">ครบ 14 วันตรงวันคลินิก</option><option value="man">กรอกวันนัดเอง</option></select></label>
+            <label class="f" id="pApW" hidden>วันนัด<input id="pAp" placeholder="dd/mm/yy"></label>
             <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pTab" checked> เด็กกลืนยาเม็ดได้ (14–&lt;35 kg)</label>
           </div>
         </div>

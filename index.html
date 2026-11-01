@@ -280,12 +280,12 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
-#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
-#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste::placeholder{color:#64748b;font-family:inherit}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste)::placeholder{color:#8ea0c4}}
-:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
+#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
+#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste::placeholder{color:#64748b;font-family:inherit}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste)::placeholder{color:#8ea0c4}}
+:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
 #ptBox{border:1.5px solid #8b5cf6;background:linear-gradient(180deg,color-mix(in srgb,#8b5cf6 12%,var(--surface)),var(--surface))}
 #ptBox summary{color:#7c3aed} @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #ptBox summary{color:#c4b5fd}}
 /* v0.10 — สีสถานะสดใส */
@@ -2986,7 +2986,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.19.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.19.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -5106,7 +5106,7 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   ta.addEventListener('paste',ev=>{ const it=[...(ev.clipboardData||{}).items||[]].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; const hasText=(ev.clipboardData.getData('text')||'').trim(); if(hasText) return; ev.preventDefault(); ev.stopImmediatePropagation(); ocrImage(it.getAsFile(),ta,msgEl); },true);
   ta.addEventListener('dragover',ev=>{ if([...ev.dataTransfer.items].some(x=>x.type.startsWith('image/'))) ev.preventDefault(); });
   ta.addEventListener('drop',ev=>{ const f=[...ev.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(!f) return; ev.preventDefault(); ocrImage(f,ta,msgEl); }); }
-['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT'].forEach(ocrAttach);
+['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste'].forEach(ocrAttach);
 
 /* ===== copy.js — ปุ่มคัดลอก: รายส่วน (หัวข้อ h2) · รายช่อง · ทั้งหน้า (ปุ่มลอยมุมขวาล่าง) =====
  คัดลอกทั้งแบบ rich (วางใน Word/LINE/อีเมลเห็นตาราง) และข้อความล้วน · ช่องกรอกถูกแทนด้วยค่าที่กรอก · ไม่คัดลอกปุ่ม */

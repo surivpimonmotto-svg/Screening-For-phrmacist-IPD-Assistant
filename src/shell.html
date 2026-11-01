@@ -843,6 +843,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">นัดรับยาที่ค้าง<input id="iAp" placeholder="dd/mm/yy"></label>
             <label class="f">จำนวนวันที่สั่ง (คิดจำนวนทั้งหมด)<input id="iDays" type="number" step="1" inputmode="numeric" placeholder="เช่น 28"></label>
           </div>
+          <div style="margin:4px 0 6px"><span class="hint">ประเภทการค้างยา (เลือกได้หลายข้อ — ใบเดียวใช้ได้ทุกประเภท):</span><div id="iType" style="margin-top:2px"></div></div>
           <textarea id="iPaste" rows="4" placeholder="เช่น&#10;TLD 1 tab od&#10;Amlodipine 10 mg 1x1 pc"></textarea>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="iRead">อ่านคำสั่ง</button><button type="button" class="btn" id="iFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="iClr">ล้าง</button><span class="toast" id="iMsg0"></span></div>
         </div>

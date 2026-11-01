@@ -332,6 +332,7 @@ function renderLiq(){
    <dl class="kv" style="margin-bottom:12px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
    ${checks.length?`<ul class="msgs">${checks.map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>`:''}
    <p class="hint" style="margin:12px 0 4px">ข้อความฉลาก/note</p><div class="note" style="min-height:auto">${esc(sticker)}</div>`;
+  window.liqLast={name,ml,amt,uu,F,prn:LF.prn,maxCount:LF.maxCount,sym:$('lSym').value,label:LF.label,days,nb,bottle,kb:liqCur&&liqCur.kb?liqCur.kb.id:null};
 }
 $('lDrug').addEventListener('change',pickLiq);
 ['lConc','lDose','lDays','lBottle','lBw'].forEach(id=>$(id).addEventListener('input',renderLiq));
@@ -367,7 +368,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.27.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.28.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

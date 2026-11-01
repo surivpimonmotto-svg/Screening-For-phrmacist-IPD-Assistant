@@ -582,6 +582,13 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         </div>
         <div class="panel sec hres" style="margin:0" id="lOut"></div>
       </div>
+      <div class="panel sec" style="margin-top:10px">
+        <h2>📄 แผ่นพับการใช้ยาน้ำเด็ก (ตวงเป็นซีซี)</h2>
+        <p class="hint" style="margin:0 0 6px">คำนวณยาด้านบน → กด "+ เพิ่มยานี้ลงแผ่นพับ" (เพิ่มได้หลายตัว) · แก้ขนาด/เวลา/ผงแห้ง/ยาฆ่าเชื้อในตารางได้ · ชื่อ-HN เว้นให้เขียนมือ</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px"><button type="button" class="btn pri sm" id="llAdd">+ เพิ่มยานี้ลงแผ่นพับ</button><button type="button" class="btn sm" id="llClr">ล้างรายการ</button><label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="llStk">มีช่องติดสติกเกอร์ยา</label><span class="toast" id="llMsg"></span></div>
+        <div id="llRows" style="overflow-x:auto"></div>
+        <div id="llOut" style="margin-top:8px"></div>
+      </div>
     </section>
 
     <section id="p-dex" hidden>

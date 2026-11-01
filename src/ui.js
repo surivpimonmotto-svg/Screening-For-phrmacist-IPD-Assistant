@@ -301,7 +301,11 @@ function renderLiq(){
   const conc=+$('lConc').value, cu=$('lCU').value, dose=+$('lDose').value, du=$('lDU').value, days=+$('lDays').value, bottle=+$('lBottle').value; const LF=liqF(), F=LF.F;
   const bw=+$('lBw').value||+$('bw').value||null, age=+$('age').value;
   if(!$('lBw').value&&$('bw').value) $('lBw').value=$('bw').value;
-  const out=$('lOut');
+  const out=$('lOut'); window.liqLast=null;
+  if(!(conc>0)&&dose>0&&(du==='ml'||du==='tsp')){ // ยาที่ไม่มีความเข้มข้นในบัญชี (เช่น GG syrup) — สั่งเป็น ml/ช้อนชา ใช้ทำแผ่นพับได้
+    const ml=du==='tsp'?dose*5:dose, mlDay=ml*F, total=days>0?mlDay*days:null, nb=total&&bottle>0?Math.ceil(total/bottle-1e-9):null, name=liqCur?liqCur.name:'ยาน้ำ';
+    window.liqLast={name,ml,amt:null,uu:cu,F,prn:LF.prn,maxCount:LF.maxCount,sym:$('lSym').value,label:LF.label,days,nb,bottle,kb:liqCur&&liqCur.kb?liqCur.kb.id:null};
+    out.innerHTML=`<div class="band"><b>${esc(name)}</b> · ครั้งละ <b>${fmtMl(ml)} ml</b> · วันละ ${fmtMl(mlDay)} ml${total?` · ${days} วัน = ${fmtMl(total)} ml${nb?` (${nb} ขวด)`:''}`:''}</div><p class="hint">ไม่มีความเข้มข้นในบัญชียา — คิดเป็นปริมาตรอย่างเดียว (ไม่ตรวจขนาด mg) · กด "+ เพิ่มยานี้ลงแผ่นพับ" ด้านล่างได้</p>`; return; }
   if(!(conc>0&&dose>0)){out.innerHTML='<div class="empty">เลือกยา แล้วกรอกขนาดที่สั่งต่อครั้ง</div>';return}
   let amt, ml; const uu=cu;
   if(du==='amt'){amt=dose; ml=dose/conc;}
@@ -368,7 +372,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.28.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.28.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

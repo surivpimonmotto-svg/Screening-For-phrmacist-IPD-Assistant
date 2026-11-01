@@ -1,6 +1,9 @@
 /* ===== liqleaf.js — แผ่นพับ "การใช้ยาน้ำสำหรับเด็ก" (A4 แนวตั้ง 1 หน้า) พร้อมรูปกระบอกตวงยาแสดงขีด ซีซี (ml) ของแต่ละยา
  อ้างอิง: คำแนะนำสถาบันสุขภาพเด็กแห่งชาติมหาราชินี/กรมการแพทย์ · งานวิจัยการตวงยาน้ำของผู้ปกครอง (TJPP) · ฉลากยา */
 let llRows=[];
+// ยาผงแห้ง: [ชื่อ, วันที่ใช้ได้หลังผสม, เก็บตู้เย็น] — ค่าทั่วไปตามฉลากผู้ผลิต ตรวจกับฉลากยี่ห้อที่จ่ายจริงเสมอ (แก้ในตารางได้)
+const LL_DRY=[[/augmentin|amoxi.*clav|co-?amox/i,7,true],[/amoxi/i,14,false],[/cefixime|cefspan/i,14,false],[/cefdinir|omnicef/i,10,false],[/cefalexin|cephalexin/i,14,true],[/cefaclor/i,14,true],[/cefuroxime/i,10,false],[/azithro/i,5,false],[/clarithro/i,14,false],[/dicloxa|cloxa/i,14,true],[/erythro/i,10,true],[/oseltamivir|tamiflu/i,10,true]];
+const LL_USE=[[/para|prctl/i,'ลดไข้ แก้ปวด'],[/glyceryl|guai|\bgg\b/i,'ละลายเสมหะ'],[/chlorphen|cpm|cetiri|loratad|hydroxyzine/i,'ลดน้ำมูก แก้แพ้ แก้คัน'],[/bromhex|ambroxol|acetylcyst/i,'ละลายเสมหะ'],[/domperid/i,'แก้คลื่นไส้อาเจียน'],[/salbut|ventolin/i,'ขยายหลอดลม'],[/albendaz/i,'ถ่ายพยาธิ'],[/\bors\b|oral rehyd/i,'ทดแทนน้ำเกลือแร่'],[/ferr|\biron\b/i,'บำรุงเลือด (ธาตุเหล็ก)'],[/zinc/i,'เสริมสังกะสี (ท้องเสีย)'],[/simethicone|air-?x/i,'ขับลม']];
 const LL_TIME=['หลังอาหาร','ก่อนอาหาร 30 นาที','พร้อมอาหาร','ก่อนนอน','—'];
 function llFreqTh(F,prn,max,sym,label){ if(prn) return `เวลา${sym||'มีอาการ'} ${label} (ไม่เกินวันละ ${max} ครั้ง)`;
   const m={6:'วันละ 6 ครั้ง (ทุก 4 ชั่วโมง)',4:'วันละ 4 ครั้ง เช้า-กลางวัน-เย็น-ก่อนนอน',3:'วันละ 3 ครั้ง เช้า-กลางวัน-เย็น',2:'วันละ 2 ครั้ง เช้า-เย็น',1:'วันละ 1 ครั้ง'}; const k=Math.round(F*1000)/1000; return m[k]||`ตามแพทย์สั่ง (${label})`; }
@@ -44,6 +47,6 @@ function llRender(){ const out=$('llOut'); if(!out) return; const box=$('llRows'
   $('llPr').onclick=()=>printHtml(`<div style="zoom:${llRows.length>4?.82:.92}">${llHtml(true)}</div>`); }
 (function(){ if(!$('llOut')) return;
   $('llAdd').onclick=()=>{ const x=window.liqLast; if(!x||!(x.ml>0)){ cpMsg($('llMsg'),'คำนวณยาด้านบนก่อน'); return; }
-    const abx=x.kb&&typeof ATB_IDS!=='undefined'&&ATB_IDS.includes(x.kb)||/amoxi|augmentin|amox|cef|cotrimox|bactrim|azithro|clarithro|erythro|cloxa|dicloxa|roxithro|cephalexin|penicillin|metronid/i.test(x.name), dry=abx&&!/metronid/i.test(x.name);
-    llRows.push({name:x.name,ml:x.ml<10?Math.round(x.ml*10)/10:Math.round(x.ml*2)/2,freq:llFreqTh(x.F,x.prn,x.maxCount,x.sym,x.label),time:x.prn?'—':'หลังอาหาร',use:x.kb==='para'?'ลดไข้ แก้ปวด':'',days:x.prn?null:(x.days||null),dry,dryDays:7,fridge:dry,abx,kb:x.kb}); llRender(); cpMsg($('llMsg'),'เพิ่มแล้ว'); };
+    const abx=x.kb&&typeof ATB_IDS!=='undefined'&&ATB_IDS.includes(x.kb)||/amoxi|augmentin|amox|cef|cotrimox|bactrim|azithro|clarithro|erythro|cloxa|dicloxa|roxithro|cephalexin|cefalexin|penicillin|metronid|clinda/i.test(x.name), dr=LL_DRY.find(d=>d[0].test(x.name)), use=(LL_USE.find(u=>u[0].test(x.name)||u[0].test(x.kb||''))||[,abx?'ฆ่าเชื้อ':''])[1];
+    llRows.push({name:x.name,ml:x.ml<10?Math.round(x.ml*10)/10:Math.round(x.ml*2)/2,freq:llFreqTh(x.F,x.prn,x.maxCount,x.sym,x.label),time:x.prn?'—':'หลังอาหาร',use,days:x.prn?null:(x.days||null),dry:!!dr,dryDays:dr?dr[1]:7,fridge:dr?dr[2]:false,abx,kb:x.kb}); llRender(); cpMsg($('llMsg'),'เพิ่มแล้ว'); };
   $('llClr').onclick=()=>{ llRows=[]; llRender(); }; $('llStk').addEventListener('change',llRender); llRender(); })();

@@ -19,7 +19,7 @@ function tbRender(){ const out=$('xOut'); if(!out) return; const pt=getPt(), bw=
     else { const lo=r.kg[0]*bw, hi=Math.min(r.kg[1]*bw,r.max); mg=Math.min((r.kg[0]+r.kg[1])/2*bw,r.max); how=`${r.kg[0]}–${r.kg[1]} mg/kg = ${r0(lo)}–${r0(hi)} mg (max ${r.max})`; }
     const tb=tbTabs(id,mg), freq=(!ped&&r.renal3x&&imp)?'3 ครั้ง/สัปดาห์'+(pt.dial==='HD'?' หลังฟอก':''):'วันละครั้ง';
     return {id,ab,nm,mg:tb.t,how,tb,freq,renal3x:!ped&&r.renal3x&&imp,capd:cap&&r.capd?r.capd:''}; });
-  const perWk=x=>x.renal3x?3:7;
+  const perWk=x=>x.renal3x?3:7; window.tbLast={rec,ph,bw,imp,dial:pt.dial,ped};
   const recH=`<table class="ctbl"><thead><tr><th>ยา</th><th>ขนาด/ครั้ง</th><th>เม็ด</th><th>ความถี่</th><th>ที่มา</th>${days?`<th>จ่าย ${days} วัน</th>`:''}</tr></thead><tbody>${rec.map(x=>`<tr><td><b>${x.ab}</b> ${x.nm}</td><td><b>${fmtN(x.mg)} mg</b></td><td>${tbTabTxt(x.tb)}</td><td>${x.freq}${x.capd?`<div class="hint">${esc(x.capd)}</div>`:''}</td><td class="hint">${esc(x.how)}</td>${days?`<td>${x.tb.c.map(([s,n])=>`${s} mg × <b>${Math.ceil(n*days*perWk(x)/7)}</b> เม็ด`).join('<br>')}</td>`:''}</tr>`).join('')}</tbody></table>`;
   // คำสั่งที่วาง → ตรวจด้วยกฎหน้าคัดกรอง
   const rws=joinLines(($('xPaste').value||'').split(/\n/)).map(parseLine).filter(Boolean);

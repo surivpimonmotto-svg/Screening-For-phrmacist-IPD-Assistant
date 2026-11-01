@@ -818,6 +818,18 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         </div>
         <div class="panel sec hres" style="margin:0" id="xOut"></div>
         <div class="panel sec" style="margin:0">
+          <h2>แผ่นพับให้ความรู้ผู้ป่วยวัณโรค (พิมพ์แจก)</h2>
+          <p class="hint" style="margin:0 0 6px">ใส่สูตรยาและจำนวนเม็ดตามน้ำหนักจากตารางด้านบนให้อัตโนมัติ (เลือกระยะเข้มข้น/ต่อเนื่องที่ด้านบน) · ชื่อ/HN เว้นเขียนมือ</p>
+          <div class="grid2">
+            <label class="f">ผู้ป่วย<select id="lfType"><option value="new">รายใหม่ (เริ่มรักษา)</option><option value="old">รายเก่า (ระหว่างรักษา/ระยะต่อเนื่อง)</option></select></label>
+            <label class="f">เวลากินยา<input id="lfTime" value="ก่อนนอน" placeholder="เช่น ก่อนนอน หรือ ก่อนอาหารเช้า 1 ชม."></label>
+            <label class="f">วันเริ่มยา (ปฏิทินติ๊ก)<input id="lfStart" placeholder="dd/mm/yy"></label>
+            <label class="f">นัดครั้งถัดไป<input id="lfAp" placeholder="dd/mm/yy"></label>
+            <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="lfB6" checked> ได้วิตามินบี 6 ร่วม</label>
+          </div>
+        </div>
+        <div class="panel sec" style="margin:0" id="lfOut"></div>
+        <div class="panel sec" style="margin:0">
           <h2>วัณโรคดื้อยา (DR-TB) — สูตรยา · ขนาดยา · ภาวะเฉพาะ · ติดตาม ADR</h2>
           <p class="hint" style="margin:0 0 6px">ตามแนวทาง PMDT 2567 กองวัณโรค · ใช้น้ำหนัก/อายุ/ตั้งครรภ์/CrCl จากแผงผู้ป่วย · คำสั่งที่วางด้านบนจะถูกตรวจขนาดยาและคู่ยา (QT, serotonin, Bdq-inducer) ด้วย</p>
           <label class="f" style="max-width:520px">รูปแบบการดื้อยา<select id="dPat"></select></label>

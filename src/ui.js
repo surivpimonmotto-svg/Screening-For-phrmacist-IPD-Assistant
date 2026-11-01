@@ -346,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.18.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.18.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -565,13 +565,20 @@ function wfPills(x){ if(!x) return '<span style="color:var(--muted)">หยุ�
   for(let i=0;i<f;i++) h+='<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#f59e0b" stroke="#b45309"/></svg>';
   if(r>1e-9) h+=`<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="#b45309"/><path d="M8,1 A7,7 0 0,0 8,15 Z" fill="#f59e0b"/></svg>`; return h; }
 function wfAdjRender(){ const box=$('wAdj'); if(!box) return;
-  { const pt=getPt(); let rec=[]; if(pt.inr!=null){ const t=+$('wTgt').value, row=WF_ADJ[t].find(r=>pt.inr<r[0]), m=row[1].match(/(เพิ่ม|ลด)ขนาดยาต่อสัปดาห์ (\d+)(?:-(\d+))?%/); if(m){ const a=+m[2], b=+(m[3]||m[2]), sg=m[1]==='เพิ่ม'?1:-1; rec=WF_PCTS.filter(v=>Math.sign(v)===sg&&Math.abs(v)>=a&&Math.abs(v)<=b); } }
+  let recTxt='', recR=null; { const pt=getPt(); let rec=[]; if(pt.inr!=null){ const t=+$('wTgt').value, row=WF_ADJ[t].find(r=>pt.inr<r[0]); recTxt=`INR ${pt.inr} (เป้าหมาย ${t===2?'2.0-3.0':'2.5-3.5'}) → ${row[1]}`; const m=row[1].match(/(เพิ่ม|ลด)ขนาดยาต่อสัปดาห์ (\d+)(?:-(\d+))?%/); if(m){ const a=+m[2], b=+(m[3]||m[2]), sg=m[1]==='เพิ่ม'?1:-1; recR=[sg*a,sg*b].sort((x,y)=>x-y); rec=WF_PCTS.filter(v=>Math.sign(v)===sg&&Math.abs(v)>=a&&Math.abs(v)<=b); } else if(/คงขนาด/.test(row[1])) recR=[0,0]; }
     $('wPctB').querySelectorAll('[data-wp]').forEach(b=>{ const on=rec.includes(+b.dataset.wp); b.style.outline=on?'2px solid var(--accent)':''; b.title=on?`ตามตารางปรับยา (INR ${pt.inr})`:''; }); } const o=wfRead('old'), n=wfRead('new'), base=o.any?o:n.any?n:null;
-  if(!base){ box.innerHTML='<span class="hint">กรอกสูตรเดิมก่อน แล้วเลือก % ที่ต้องการปรับ</span>'; return; }
+  // เทียบย้อนกลับ: สูตรเดิม vs สูตรใหม่ที่กรอก → ปรับไปกี่ % · ตรงกับตารางปรับยาตาม INR หรือไม่
+  let cmp=''; { const mw=r=>r.u.reduce((a,x)=>a+(x||0)*r.s,0), Wo=mw(o), Wn=mw(n);
+    if(o.any&&n.any&&Wo>0){ const ch=(Wn-Wo)*100/Wo, chR=Math.round(ch*10)/10, dir=Math.abs(ch)<0.05?'คงเดิม':ch>0?`เพิ่ม ${fmtN(Math.abs(chR))}%`:`ลด ${fmtN(Math.abs(chR))}%`;
+      let ok='', col='var(--ink)'; if(recR){ const lo=recR[0]-0.5, hi=recR[1]+0.5; if(chR>=lo&&chR<=hi){ ok='✓ อยู่ในช่วงที่ตารางแนะนำ'; col='#15803d'; } else { const need=recR[0]===recR[1]?'คงขนาดเดิม':`${recR[0]>0?'เพิ่ม':'ลด'} ${Math.abs(recR[0]<0?recR[1]:recR[0])}-${Math.abs(recR[0]<0?recR[0]:recR[1])}%`; ok=`⚠ ไม่ตรงตารางแนะนำ (ควร${need}) — กดปุ่ม % ด้านบนเพื่อให้ระบบเสนอสูตรใหม่`; col='#b45309'; } }
+      else if(Math.abs(ch)>20){ ok='⚠ เกิน 20% ต่อสัปดาห์ ยืนยันกับแพทย์'; col='#b45309'; }
+      cmp=`<div style="border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:8px;background:var(--sunk)"><div style="font-size:15px">เดิม <b>${fmtN(Wo)}</b> mg/สัปดาห์ → ใหม่ <b>${fmtN(Wn)}</b> mg/สัปดาห์ = <b style="font-size:17px;color:${ch>0?'#2563eb':ch<0?'#dc2626':'inherit'}">${dir}</b> <span class="hint">(${Wn-Wo>=0?'+':''}${fmtN(Wn-Wo)} mg)</span></div>${recTxt?`<div style="font-size:13px;margin-top:3px">${esc(recTxt)}</div>`:'<div class="hint" style="margin-top:3px">ใส่ INR ล่าสุดในแผงข้อมูลผู้ป่วย เพื่อเทียบกับตารางปรับยา</div>'}${ok?`<div style="font-size:13px;font-weight:700;color:${col};margin-top:3px">${ok}</div>`:''}</div>`; }
+    else if(recTxt) cmp=`<div style="font-size:13px;margin-bottom:6px">${esc(recTxt)}</div>`; }
+  if(!base){ box.innerHTML=cmp+'<span class="hint">กรอกสูตรเดิมก่อน แล้วเลือก % ที่ต้องการปรับ</span>'; return; }
   const W=base.u.reduce((a,x)=>a+(x||0)*base.s,0), pct=+$('wPct').value, s=+$('w_new_s').value||WF_HOSP;
-  if(!pct||!(W>0)){ box.innerHTML=`<span class="hint">สูตร${o.any?'เดิม':'ปัจจุบัน'} ${fmtN(W)} mg/สัปดาห์ — เลือก % ที่ต้องการปรับ</span>`; return; }
+  if(!pct||!(W>0)){ box.innerHTML=cmp+`<span class="hint">สูตร${o.any?'เดิม':'ปัจจุบัน'} ${fmtN(W)} mg/สัปดาห์ — ${n.any&&o.any?'ถ้าสูตรใหม่ยังไม่เหมาะ ':''}เลือก % ที่ต้องการปรับ (คิดจากสูตรเดิม)</span>`; return; }
   const T=W*(1+pct/100), H=Math.round(T/(s/2)); const opts=[H-2,H-1,H,H+1,H+2].filter(h=>h>0).map(h=>{ const u=wfSpread(h), w=u.reduce((a,x)=>a+x*s,0); return {u,w,ch:(w-W)*100/W}; }).filter(x=>Math.sign(x.ch)===Math.sign(pct)&&Math.abs(x.ch)>0.01).sort((a,b)=>Math.abs(a.w-T)-Math.abs(b.w-T)).slice(0,3).sort((a,b)=>a.w-b.w);
-  box.innerHTML=`<div style="margin-bottom:6px">${o.any?'สูตรเดิม':'สูตรปัจจุบัน'} <b>${fmtN(W)}</b> mg/สัปดาห์ ${pct>0?'เพิ่ม':'ลด'} ${Math.abs(pct)}% → เป้าหมาย <b>${fmtN(T)}</b> mg/สัปดาห์ (เม็ด ${s} mg)</div>
+  box.innerHTML=cmp+`<div style="margin-bottom:6px">${o.any?'สูตรเดิม':'สูตรปัจจุบัน'} <b>${fmtN(W)}</b> mg/สัปดาห์ ${pct>0?'เพิ่ม':'ลด'} ${Math.abs(pct)}% → เป้าหมาย <b>${fmtN(T)}</b> mg/สัปดาห์ (เม็ด ${s} mg)</div>
    <table class="ctbl" style="width:100%;text-align:center"><thead><tr><th style="text-align:left">ทางเลือก</th>${WD.map(d=>`<th>${DAY_TH[d]}</th>`).join('')}<th>mg/สัปดาห์</th><th>เปลี่ยน</th><th></th></tr></thead><tbody>${opts.map((x,i)=>`<tr${Math.abs(x.w-T)===Math.min(...opts.map(y=>Math.abs(y.w-T)))?' style="font-weight:700"':''}><td style="text-align:left;font-weight:400">${esc(wfPatTxt(x.u))}</td>${x.u.map(v=>`<td>${wfDayTxt(v)}</td>`).join('')}<td>${fmtN(x.w)}</td><td style="color:${Math.abs(x.ch)>20?'var(--flag)':'inherit'}">${x.ch>=0?'+':''}${fmtN(Math.round(x.ch*10)/10)}%</td><td><button type="button" class="btn sm" data-wopt="${i}">ใช้เป็นสูตรใหม่</button></td></tr>`).join('')}</tbody></table>
    <p class="hint" style="margin:6px 0 0">กระจายขนาดให้ใกล้เคียงกันทุกวัน (ต่างกันไม่เกินครึ่งเม็ด) · ตัวหนา = ใกล้เป้าหมายที่สุด · ตรวจสอบกับแพทย์ก่อนใช้</p>`;
   box.querySelectorAll('[data-wopt]').forEach(b=>b.onclick=()=>{ const x=opts[+b.dataset.wopt]; if(!o.any&&n.any){ WD.forEach((d,i)=>$('w_old_'+d).value=n.u[i]??''); $('w_old_s').value=n.s; } WD.forEach((d,i)=>$('w_new_'+d).value=x.u[i]); renderWf(); }); }

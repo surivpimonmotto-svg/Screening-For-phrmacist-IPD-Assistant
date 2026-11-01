@@ -318,6 +318,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
  .mk{font-size:9.5pt} .mkt{font-weight:700;font-size:12pt;text-align:center;margin:4px 0 6px} .mkh{font-weight:700;margin:8px 0 2px} .pt4.sm td,.pt4.sm th{padding:2px 4px;font-size:8.8pt} .pt4 pre{white-space:pre-wrap;font-family:inherit;margin:0}
  *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+.wdform table,.wdform tr,.wdform td,.wdform th{color:inherit;font-family:inherit}
 </style>
 
 <header class="top">
@@ -2955,7 +2956,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.18.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.18.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4196,7 +4197,11 @@ function wdiText(o){ const L=[`แบบติดตาม INR — DI Warfarin +
 function wdiRender(){ const out=$('wdOut'); if(!out) return; const o=wdiCalc();
   $('wdFormTxt').textContent=o.nm?(o.info?`${o.info.name} · ${o.form==='long'?'Long term':o.form==='ind'?'Inducer (ติดตามหลังหยุด Day 7/21/35)':'Short term'} · ${o.info.eff}`:'ไม่พบในทะเบียน DI warfarin ของ รพ. — เลือกชนิดแบบฟอร์มเอง'):'';
   if(!o.nm){ out.innerHTML='<div class="empty">เลือก/พิมพ์ยาที่ใช้ร่วมกับ warfarin</div>'; return; }
-  out.innerHTML=`<h2>แบบส่งต่อติดตาม INR (DI Warfarin)</h2>${wdiHtml(o)}<div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm pri" type="button" id="wdPr">พิมพ์แบบฟอร์ม</button><button class="btn sm" type="button" id="wdCp">คัดลอกตารางวันนัด</button><span class="toast" id="wdMsg"></span></div>`;
+  const need=[]; if(o.form!=='ind'&&o.phase!=='stop'&&!o.st) need.push('วันเริ่มใช้ยาร่วมกัน → คำนวณวันนัด Day '+(o.form==='short'?'3/6/9/12':o.prof.start));
+  if(o.form==='ind'||o.phase!=='start'){ if(!o.stop) need.push('วันหยุดยา (พิมพ์วันที่ หรือ "5 วัน") → คำนวณวันนัดหลังหยุด'); }
+  if(o.form==='ind'&&!o.inrStop) need.push('INR ก่อนหยุดยาล่าสุด'); else if(o.form!=='ind'&&o.phase!=='stop'&&!o.inr) need.push('INR วันเริ่ม (ถ้ามี)');
+  const hint=need.length?`<div data-nocopy style="background:#fff7ed;border:1px solid #fb923c;color:#9a3412;border-radius:8px;padding:6px 10px;margin:0 0 8px;font-size:13px"><b>ยังไม่ได้กรอก (ช่องด้านบน):</b> ${need.map(esc).join(' · ')}<br><span style="font-size:12px">ช่องที่เว้นว่างจะพิมพ์เป็นเส้นประให้เขียนมือ · ชื่อผู้ป่วย / HN / เบอร์โทร เขียนมือเสมอ</span></div>`:`<div data-nocopy style="color:#15803d;font-size:13px;margin:0 0 8px">✓ กรอกครบ วันนัดคำนวณแล้ว · เหลือเขียนมือ ชื่อผู้ป่วย / HN / ผล INR</div>`;
+  out.innerHTML=`<h2>แบบส่งต่อติดตาม INR (DI Warfarin)</h2>${hint}${wdiHtml(o)}<div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm pri" type="button" id="wdPr">พิมพ์แบบฟอร์ม</button><button class="btn sm" type="button" id="wdCp">คัดลอกตารางวันนัด</button><span class="toast" id="wdMsg"></span></div>`;
   $('wdPr').onclick=()=>printHtml(`<div class="mk">${wdiHtml(o,true)}</div>`);
   $('wdCp').onclick=()=>{ const t=wdiText(o); copyRich(txtHtml(t),t,$('wdMsg')); }; }
 (function(){ if(!$('wdOut')) return; $('wdDrugL').innerHTML=WDI_DRUGS.map(x=>`<option value="${x}">`).join('');

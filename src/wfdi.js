@@ -85,7 +85,11 @@ function wdiText(o){ const L=[`แบบติดตาม INR — DI Warfarin +
 function wdiRender(){ const out=$('wdOut'); if(!out) return; const o=wdiCalc();
   $('wdFormTxt').textContent=o.nm?(o.info?`${o.info.name} · ${o.form==='long'?'Long term':o.form==='ind'?'Inducer (ติดตามหลังหยุด Day 7/21/35)':'Short term'} · ${o.info.eff}`:'ไม่พบในทะเบียน DI warfarin ของ รพ. — เลือกชนิดแบบฟอร์มเอง'):'';
   if(!o.nm){ out.innerHTML='<div class="empty">เลือก/พิมพ์ยาที่ใช้ร่วมกับ warfarin</div>'; return; }
-  out.innerHTML=`<h2>แบบส่งต่อติดตาม INR (DI Warfarin)</h2>${wdiHtml(o)}<div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm pri" type="button" id="wdPr">พิมพ์แบบฟอร์ม</button><button class="btn sm" type="button" id="wdCp">คัดลอกตารางวันนัด</button><span class="toast" id="wdMsg"></span></div>`;
+  const need=[]; if(o.form!=='ind'&&o.phase!=='stop'&&!o.st) need.push('วันเริ่มใช้ยาร่วมกัน → คำนวณวันนัด Day '+(o.form==='short'?'3/6/9/12':o.prof.start));
+  if(o.form==='ind'||o.phase!=='start'){ if(!o.stop) need.push('วันหยุดยา (พิมพ์วันที่ หรือ "5 วัน") → คำนวณวันนัดหลังหยุด'); }
+  if(o.form==='ind'&&!o.inrStop) need.push('INR ก่อนหยุดยาล่าสุด'); else if(o.form!=='ind'&&o.phase!=='stop'&&!o.inr) need.push('INR วันเริ่ม (ถ้ามี)');
+  const hint=need.length?`<div data-nocopy style="background:#fff7ed;border:1px solid #fb923c;color:#9a3412;border-radius:8px;padding:6px 10px;margin:0 0 8px;font-size:13px"><b>ยังไม่ได้กรอก (ช่องด้านบน):</b> ${need.map(esc).join(' · ')}<br><span style="font-size:12px">ช่องที่เว้นว่างจะพิมพ์เป็นเส้นประให้เขียนมือ · ชื่อผู้ป่วย / HN / เบอร์โทร เขียนมือเสมอ</span></div>`:`<div data-nocopy style="color:#15803d;font-size:13px;margin:0 0 8px">✓ กรอกครบ วันนัดคำนวณแล้ว · เหลือเขียนมือ ชื่อผู้ป่วย / HN / ผล INR</div>`;
+  out.innerHTML=`<h2>แบบส่งต่อติดตาม INR (DI Warfarin)</h2>${hint}${wdiHtml(o)}<div style="display:flex;gap:6px;margin-top:8px"><button class="btn sm pri" type="button" id="wdPr">พิมพ์แบบฟอร์ม</button><button class="btn sm" type="button" id="wdCp">คัดลอกตารางวันนัด</button><span class="toast" id="wdMsg"></span></div>`;
   $('wdPr').onclick=()=>printHtml(`<div class="mk">${wdiHtml(o,true)}</div>`);
   $('wdCp').onclick=()=>{ const t=wdiText(o); copyRich(txtHtml(t),t,$('wdMsg')); }; }
 (function(){ if(!$('wdOut')) return; $('wdDrugL').innerHTML=WDI_DRUGS.map(x=>`<option value="${x}">`).join('');

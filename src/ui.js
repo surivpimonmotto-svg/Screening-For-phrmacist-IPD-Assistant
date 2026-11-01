@@ -346,7 +346,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.18.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.18.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -680,10 +680,16 @@ function wfRowOf(r,L){ if(!r) return null; const s=(r.weekly&&r.weekly.mgU)||r.s
   else { let un=r.doseUnit==='unit'?+r.doseVal:(s&&r.doseVal?+r.doseVal/s:null); if(un==null||isNaN(un)||!r.F) return null; const per=un*r.F; if(Math.abs(r.F-1)>0.01&&r.F<1) return null; u.fill(per); }
   return {s,u,disp:dispOf(L)}; }
 function wfSet(k,x){ if(x.s&&[...$(`w_${k}_s`).options].some(o=>+o.value===x.s)) $(`w_${k}_s`).value=String(x.s); WD.forEach((d,i)=>$(`w_${k}_${d}`).value=x.u[i]==null?'':x.u[i]); }
+// คู่ยา DI ที่พบในข้อความที่วาง → ปุ่มสร้างแบบติดตาม INR
+function wfDiChips(di){ const h=$('wDiChips'); if(!h) return; if(!di.length){ h.innerHTML=''; return; }
+  h.innerHTML=`<span class="hint">พบคู่ยา DI กับ warfarin:</span> `+di.map(n=>`<button type="button" class="btn sm" data-wdi="${esc(n)}" style="border-color:#f59e0b">⚠ ${esc(n)} → แบบติดตาม INR</button>`).join(' ');
+  h.querySelectorAll('[data-wdi]').forEach(b=>b.onclick=()=>{ $('wdDrug').value=b.dataset.wdi; if(!$('wdStart').value) $('wdStart').value=tlFmt(new Date(),false); const inr=$('inr').value; if(inr&&!$('wdInr').value) $('wdInr').value=inr; if(typeof wdiRender==='function') wdiRender(); $('wdDrug').scrollIntoView({behavior:'smooth',block:'center'}); }); }
 function wfParse(){ const raw=$('wOrder').value; if(!raw.trim()) return;
   const lines=joinLines(raw.split(/\n/)); const hits=[];
-  lines.forEach(L=>{ if(!/warfarin|orfarin|มาร์ฟาริน|วาร์ฟาริน/i.test(L)) return; const r=parseLine(L); const x=wfRowOf(r,L); if(x) hits.push({...x,L,tag:/เดิม|\bold\b|ก่อนปรับ/i.test(L)?'old':/ใหม่|\bnew\b|ปรับเป็น/i.test(L)?'new':null}); });
-  if(!hits.length){ $('wMsg').textContent='ไม่พบคำสั่ง Warfarin ที่อ่านได้ — ตรวจรูปแบบคำสั่ง หรือกรอกเองในตาราง'; return; }
+  const di=[]; lines.forEach(L=>{ const k=typeof WARF_DI!=='undefined'&&!/warfarin|orfarin/i.test(L)?WARF_DI.find(x=>x.re.test(L)):null; if(k){ const nm=(typeof WDI_DRUGS!=='undefined'&&WDI_DRUGS.find(x=>new RegExp(x.split(/[ (]/)[0].slice(0,5),'i').test(L)))||k.name; if(!di.includes(nm)) di.push(nm); } });
+  wfDiChips(di);
+  lines.forEach(L=>{ const r=parseLine(L); if(!r||!(r.drugId==='warfarin'||/warfarin|orfarin|มาร์ฟาริน|วาร์ฟาริน/i.test(L))) return; const x=wfRowOf(r,L); if(x) hits.push({...x,L,tag:/เดิม|\bold\b|ก่อนปรับ/i.test(L)?'old':/ใหม่|\bnew\b|ปรับเป็น/i.test(L)?'new':null}); });
+  if(!hits.length){ $('wMsg').textContent='ไม่พบคำสั่ง Warfarin ที่อ่านได้ — ตรวจรูปแบบคำสั่ง หรือกรอกเองในตาราง'+(di.length?` · พบคู่ยา DI: ${di.join(', ')}`:''); return; }
   const to=(document.querySelector('input[name="wTo"]:checked')||{}).value||'auto'; const done=[];
   if(to!=='auto'){ wfSet(to,hits[hits.length-1]); done.push(to==='old'?'เดิม':'ใหม่'); }
   else if(hits.length===1){ const k=hits[0].tag||'new'; wfSet(k,hits[0]); done.push(k==='old'?'เดิม':'ใหม่'); }

@@ -12,7 +12,7 @@ const WDI_PROF=[[/amiodar|cordarone/i,{form:'long',start:7,stopM:[1,3],stopTxt:'
  [/valpro|depakin/i,{form:'long',start:3,stopD:14,stopTxt:'14 วัน',mg:'ติดตามค่า INR ภายใน 3 วันหลังใช้ยาร่วมกัน และปรับขนาดยา warfarin ให้เหมาะสม'}],
  [/phenytoin|dilantin/i,{form:'long',start:7,stopD:14,stopTxt:'14 วัน',mg:'ในช่วง 1 สัปดาห์แรกที่มีการใช้ร่วมกัน INR เพิ่ม ติดตาม INR หลังเริ่มใช้ร่วมกัน ภายใน 1 สัปดาห์ · จากนั้นอาจมี INR ลดลงจาก enzyme inducer · หลังหยุดใช้ร่วมกัน ติดตาม INR ภายใน 1-2 สัปดาห์'}],
  [/fluoxet|prozac/i,{form:'long',start:7,stopD:14,stopTxt:'14 วัน',mg:null}],
- [/rifamp|rifinah|rimstar|carbamaz|tegretol|phenobarb/i,{form:'ind',stopDays:[7,21,35]}]];
+ [/rifamp|\brifam\b|rifinah|rimstar|carbamaz|tegretol|phenobarb/i,{form:'ind',stopDays:[7,21,35]}]];
 const wdiProf=nm=>(WDI_PROF.find(x=>x[0].test(nm))||[])[1]||null;
 const WDI_FORM_IND='Rifampin, Carbamazepine, Phenobarbital';
 function wdiInfo(name){ const k=(typeof WARF_DI!=='undefined'?WARF_DI:[]).find(x=>x.re.test(name)); return k||null; }

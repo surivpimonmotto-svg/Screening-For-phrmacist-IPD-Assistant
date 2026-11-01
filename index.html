@@ -752,6 +752,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <details class="labbox" open style="margin-bottom:10px"><summary>วางคำสั่งยา Warfarin <span class="hint">— copy จาก HIS / ใบสั่งยา วางได้หลายบรรทัด (ยาอื่นปนมาได้ ระบบเลือกเฉพาะ Warfarin)</span></summary>
             <textarea id="wOrder" rows="4" placeholder="เช่น&#10;WARFARIN 3 MG TAB 30 เม็ด&#10;  รับประทานครั้งละ 1 เม็ด วันละ 1 ครั้ง ก่อนนอน ยกเว้นวันศุกร์ ครึ่งเม็ด&#10;มี 2 รายการ = บรรทัดแรกเป็นสูตรเดิม บรรทัดหลังเป็นสูตรใหม่ (หรือเขียนคำว่า เดิม / ใหม่ นำหน้า)"></textarea>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 0"><button type="button" id="wParse" class="btn sm pri">อ่านคำสั่ง → คำนวณ mg/week</button><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="auto" checked>อัตโนมัติ</label><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="old">ใส่แถวเดิม</label><label class="hint" style="display:flex;gap:4px;align-items:center"><input type="radio" name="wTo" value="new">ใส่แถวใหม่</label><button type="button" id="wClr" class="btn sm">ล้างตาราง</button><span id="wMsg" class="hint"></span></div>
+            <div id="wDiChips" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"></div>
           </details>
           <div style="overflow-x:auto"><table id="wTbl" style="border-collapse:collapse;width:100%;font-size:14px"></table></div>
           <div class="grid2" style="margin-top:10px">
@@ -1339,7 +1340,7 @@ const WARF_DI=[
  {re:/phenytoin|dilantin/i,name:'Phenytoin',form:'long',eff:'moderate · ช่วงแรก ↑เลือดออก ระยะยาว ↓INR',mg:'ปรับ warfarin ตาม INR',mon:'INR ภายใน 1 สัปดาห์หลังเริ่ม · ต่อมา INR อาจลด (enzyme inducer) · หลังหยุด INR ภายใน 1-2 สัปดาห์'},
  {re:/phenobarb/i,name:'Phenobarbital',form:'long',eff:'moderate · ↓INR (1-2 สัปดาห์) · หลังหยุด INR สูงขึ้น เสี่ยงเลือดออก',mg:'ปรับ warfarin ช่วง 1-2 สัปดาห์ · หลังหยุด phenobarbital พิจารณาลด warfarin หรือเปลี่ยนเป็น benzodiazepine',mon:'INR ใกล้ชิดเมื่อเริ่ม/หยุด · หลังหยุดเฝ้าระวังต่อ 2-3 สัปดาห์ถึง >1 เดือน'},
  {re:/carbamaz|tegretol/i,name:'Carbamazepine',form:'long',eff:'moderate-severe · ↓INR (10-35 วัน) · หลังหยุด INR สูงขึ้น',mg:'อาจเพิ่ม warfarin ช่วง 1-2 สัปดาห์ · หลังหยุด 2-4 สัปดาห์พิจารณาลด warfarin',mon:'INR ใกล้ชิดเมื่อเริ่ม/หยุด'},
- {re:/rifamp|rifinah|rimstar/i,name:'Rifampicin',form:'long',eff:'moderate · ↓INR · หลังหยุด INR สูงขึ้น (ผลอยู่ได้ถึง 5 สัปดาห์)',mg:'เพิ่ม warfarin ตาม INR · หลังหยุดพิจารณาลด warfarin',mon:'INR ภายใน 1-2 สัปดาห์หลังเริ่ม · หลังหยุด INR ภายใน 1 สัปดาห์ และติดตามต่อถึง 5 สัปดาห์'},
+ {re:/rifamp|\brifam\b|rifinah|rimstar/i,name:'Rifampicin',form:'long',eff:'moderate · ↓INR · หลังหยุด INR สูงขึ้น (ผลอยู่ได้ถึง 5 สัปดาห์)',mg:'เพิ่ม warfarin ตาม INR · หลังหยุดพิจารณาลด warfarin',mon:'INR ภายใน 1-2 สัปดาห์หลังเริ่ม · หลังหยุด INR ภายใน 1 สัปดาห์ และติดตามต่อถึง 5 สัปดาห์'},
 ];
 /* ---------- Antibiotic lock therapy (ALT) 5 ml: เอกสาร ALT ห้องยา (IDSA 2009 / Justo & Bookstaver 2014) ---------- */
 const SRC_ALT='Antibiotic Lock Therapy 5 ml (IDSA 2009 / Justo & Bookstaver 2014)';
@@ -1610,7 +1611,7 @@ function dispOf(sig){const m=sig.match(WK_DISP_RE); if(!m) return null; const n=
 function parseWeekly(sig){
   sig=sig.replace(WK_DISP_RE,' ').replace(/ครึ่ง\s*(?:เม็ด|tab)?/g,' 0.5 เม็ด ');
   // แยกช่วงเมื่อมีขนาดยาใหม่ตามหลังกลุ่มวัน เช่น "0.5 tab จ พ ศ 1*1 อาทิตย์"
-  sig=sig.replace(/((?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์|(?:^|\s)(?:จ|อ|พ|พฤ|ศ|ส|อา)\.?)\s+)(?=(?:\d+(?:\.\d+)?|\d*[½¼¾])\s*(?:[x×*]\s*\d|tab|tabs|เม็ด))/g,'$1 และ ');
+  sig=sig.replace(/((?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์|(?:^|[\s\-–])(?:จ|อ|พ|พฤ|ศ|ส|อา)\.?)\s+)(?=(?:\d+(?:\.\d+)?|\d*[½¼¾])\s*(?:[x×*]\s*\d|tab|tabs|เม็ด))/g,'$1 และ ');
   if(!/จันทร์|อังคาร|พุธ|พฤหัส|ศุกร์|เสาร์|อาทิตย์|(^|[\s\-,])(จ|อ|พ|พฤ|ศ|ส|อา)\.?(?=[\s\-,/]|ถึง|$)|\b(mon|tue|wed|thu|fri|sat|sun)/i.test(sig)) return null;
   if(/สัปดาห์ละ|ครั้ง\s*\/\s*(สัปดาห์|wk)/.test(sig)&&!/และ|,|;/.test(sig)) {/* TB style: let freq parser handle unless multiple segments */}
   let off=new Set(), exc=null; const om=sig.match(/(ยกเว้น|หยุด|งด|เว้น|\boff\b)(.*)$/i);
@@ -2954,7 +2955,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.18.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.18.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -3288,10 +3289,16 @@ function wfRowOf(r,L){ if(!r) return null; const s=(r.weekly&&r.weekly.mgU)||r.s
   else { let un=r.doseUnit==='unit'?+r.doseVal:(s&&r.doseVal?+r.doseVal/s:null); if(un==null||isNaN(un)||!r.F) return null; const per=un*r.F; if(Math.abs(r.F-1)>0.01&&r.F<1) return null; u.fill(per); }
   return {s,u,disp:dispOf(L)}; }
 function wfSet(k,x){ if(x.s&&[...$(`w_${k}_s`).options].some(o=>+o.value===x.s)) $(`w_${k}_s`).value=String(x.s); WD.forEach((d,i)=>$(`w_${k}_${d}`).value=x.u[i]==null?'':x.u[i]); }
+// คู่ยา DI ที่พบในข้อความที่วาง → ปุ่มสร้างแบบติดตาม INR
+function wfDiChips(di){ const h=$('wDiChips'); if(!h) return; if(!di.length){ h.innerHTML=''; return; }
+  h.innerHTML=`<span class="hint">พบคู่ยา DI กับ warfarin:</span> `+di.map(n=>`<button type="button" class="btn sm" data-wdi="${esc(n)}" style="border-color:#f59e0b">⚠ ${esc(n)} → แบบติดตาม INR</button>`).join(' ');
+  h.querySelectorAll('[data-wdi]').forEach(b=>b.onclick=()=>{ $('wdDrug').value=b.dataset.wdi; if(!$('wdStart').value) $('wdStart').value=tlFmt(new Date(),false); const inr=$('inr').value; if(inr&&!$('wdInr').value) $('wdInr').value=inr; if(typeof wdiRender==='function') wdiRender(); $('wdDrug').scrollIntoView({behavior:'smooth',block:'center'}); }); }
 function wfParse(){ const raw=$('wOrder').value; if(!raw.trim()) return;
   const lines=joinLines(raw.split(/\n/)); const hits=[];
-  lines.forEach(L=>{ if(!/warfarin|orfarin|มาร์ฟาริน|วาร์ฟาริน/i.test(L)) return; const r=parseLine(L); const x=wfRowOf(r,L); if(x) hits.push({...x,L,tag:/เดิม|\bold\b|ก่อนปรับ/i.test(L)?'old':/ใหม่|\bnew\b|ปรับเป็น/i.test(L)?'new':null}); });
-  if(!hits.length){ $('wMsg').textContent='ไม่พบคำสั่ง Warfarin ที่อ่านได้ — ตรวจรูปแบบคำสั่ง หรือกรอกเองในตาราง'; return; }
+  const di=[]; lines.forEach(L=>{ const k=typeof WARF_DI!=='undefined'&&!/warfarin|orfarin/i.test(L)?WARF_DI.find(x=>x.re.test(L)):null; if(k){ const nm=(typeof WDI_DRUGS!=='undefined'&&WDI_DRUGS.find(x=>new RegExp(x.split(/[ (]/)[0].slice(0,5),'i').test(L)))||k.name; if(!di.includes(nm)) di.push(nm); } });
+  wfDiChips(di);
+  lines.forEach(L=>{ const r=parseLine(L); if(!r||!(r.drugId==='warfarin'||/warfarin|orfarin|มาร์ฟาริน|วาร์ฟาริน/i.test(L))) return; const x=wfRowOf(r,L); if(x) hits.push({...x,L,tag:/เดิม|\bold\b|ก่อนปรับ/i.test(L)?'old':/ใหม่|\bnew\b|ปรับเป็น/i.test(L)?'new':null}); });
+  if(!hits.length){ $('wMsg').textContent='ไม่พบคำสั่ง Warfarin ที่อ่านได้ — ตรวจรูปแบบคำสั่ง หรือกรอกเองในตาราง'+(di.length?` · พบคู่ยา DI: ${di.join(', ')}`:''); return; }
   const to=(document.querySelector('input[name="wTo"]:checked')||{}).value||'auto'; const done=[];
   if(to!=='auto'){ wfSet(to,hits[hits.length-1]); done.push(to==='old'?'เดิม':'ใหม่'); }
   else if(hits.length===1){ const k=hits[0].tag||'new'; wfSet(k,hits[0]); done.push(k==='old'?'เดิม':'ใหม่'); }
@@ -4116,7 +4123,7 @@ const WDI_PROF=[[/amiodar|cordarone/i,{form:'long',start:7,stopM:[1,3],stopTxt:'
  [/valpro|depakin/i,{form:'long',start:3,stopD:14,stopTxt:'14 วัน',mg:'ติดตามค่า INR ภายใน 3 วันหลังใช้ยาร่วมกัน และปรับขนาดยา warfarin ให้เหมาะสม'}],
  [/phenytoin|dilantin/i,{form:'long',start:7,stopD:14,stopTxt:'14 วัน',mg:'ในช่วง 1 สัปดาห์แรกที่มีการใช้ร่วมกัน INR เพิ่ม ติดตาม INR หลังเริ่มใช้ร่วมกัน ภายใน 1 สัปดาห์ · จากนั้นอาจมี INR ลดลงจาก enzyme inducer · หลังหยุดใช้ร่วมกัน ติดตาม INR ภายใน 1-2 สัปดาห์'}],
  [/fluoxet|prozac/i,{form:'long',start:7,stopD:14,stopTxt:'14 วัน',mg:null}],
- [/rifamp|rifinah|rimstar|carbamaz|tegretol|phenobarb/i,{form:'ind',stopDays:[7,21,35]}]];
+ [/rifamp|\brifam\b|rifinah|rimstar|carbamaz|tegretol|phenobarb/i,{form:'ind',stopDays:[7,21,35]}]];
 const wdiProf=nm=>(WDI_PROF.find(x=>x[0].test(nm))||[])[1]||null;
 const WDI_FORM_IND='Rifampin, Carbamazepine, Phenobarbital';
 function wdiInfo(name){ const k=(typeof WARF_DI!=='undefined'?WARF_DI:[]).find(x=>x.re.test(name)); return k||null; }

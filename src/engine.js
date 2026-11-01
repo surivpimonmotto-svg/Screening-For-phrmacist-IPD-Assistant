@@ -51,7 +51,7 @@ function dispOf(sig){const m=sig.match(WK_DISP_RE); if(!m) return null; const n=
 function parseWeekly(sig){
   sig=sig.replace(WK_DISP_RE,' ').replace(/ครึ่ง\s*(?:เม็ด|tab)?/g,' 0.5 เม็ด ');
   // แยกช่วงเมื่อมีขนาดยาใหม่ตามหลังกลุ่มวัน เช่น "0.5 tab จ พ ศ 1*1 อาทิตย์"
-  sig=sig.replace(/((?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์|(?:^|\s)(?:จ|อ|พ|พฤ|ศ|ส|อา)\.?)\s+)(?=(?:\d+(?:\.\d+)?|\d*[½¼¾])\s*(?:[x×*]\s*\d|tab|tabs|เม็ด))/g,'$1 และ ');
+  sig=sig.replace(/((?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์|(?:^|[\s\-–])(?:จ|อ|พ|พฤ|ศ|ส|อา)\.?)\s+)(?=(?:\d+(?:\.\d+)?|\d*[½¼¾])\s*(?:[x×*]\s*\d|tab|tabs|เม็ด))/g,'$1 และ ');
   if(!/จันทร์|อังคาร|พุธ|พฤหัส|ศุกร์|เสาร์|อาทิตย์|(^|[\s\-,])(จ|อ|พ|พฤ|ศ|ส|อา)\.?(?=[\s\-,/]|ถึง|$)|\b(mon|tue|wed|thu|fri|sat|sun)/i.test(sig)) return null;
   if(/สัปดาห์ละ|ครั้ง\s*\/\s*(สัปดาห์|wk)/.test(sig)&&!/และ|,|;/.test(sig)) {/* TB style: let freq parser handle unless multiple segments */}
   let off=new Set(), exc=null; const om=sig.match(/(ยกเว้น|หยุด|งด|เว้น|\boff\b)(.*)$/i);

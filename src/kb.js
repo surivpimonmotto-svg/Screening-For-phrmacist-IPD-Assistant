@@ -448,7 +448,7 @@ const WARF_DI=[
  {re:/phenytoin|dilantin/i,name:'Phenytoin',form:'long',eff:'moderate · ช่วงแรก ↑เลือดออก ระยะยาว ↓INR',mg:'ปรับ warfarin ตาม INR',mon:'INR ภายใน 1 สัปดาห์หลังเริ่ม · ต่อมา INR อาจลด (enzyme inducer) · หลังหยุด INR ภายใน 1-2 สัปดาห์'},
  {re:/phenobarb/i,name:'Phenobarbital',form:'long',eff:'moderate · ↓INR (1-2 สัปดาห์) · หลังหยุด INR สูงขึ้น เสี่ยงเลือดออก',mg:'ปรับ warfarin ช่วง 1-2 สัปดาห์ · หลังหยุด phenobarbital พิจารณาลด warfarin หรือเปลี่ยนเป็น benzodiazepine',mon:'INR ใกล้ชิดเมื่อเริ่ม/หยุด · หลังหยุดเฝ้าระวังต่อ 2-3 สัปดาห์ถึง >1 เดือน'},
  {re:/carbamaz|tegretol/i,name:'Carbamazepine',form:'long',eff:'moderate-severe · ↓INR (10-35 วัน) · หลังหยุด INR สูงขึ้น',mg:'อาจเพิ่ม warfarin ช่วง 1-2 สัปดาห์ · หลังหยุด 2-4 สัปดาห์พิจารณาลด warfarin',mon:'INR ใกล้ชิดเมื่อเริ่ม/หยุด'},
- {re:/rifamp|rifinah|rimstar/i,name:'Rifampicin',form:'long',eff:'moderate · ↓INR · หลังหยุด INR สูงขึ้น (ผลอยู่ได้ถึง 5 สัปดาห์)',mg:'เพิ่ม warfarin ตาม INR · หลังหยุดพิจารณาลด warfarin',mon:'INR ภายใน 1-2 สัปดาห์หลังเริ่ม · หลังหยุด INR ภายใน 1 สัปดาห์ และติดตามต่อถึง 5 สัปดาห์'},
+ {re:/rifamp|\brifam\b|rifinah|rimstar/i,name:'Rifampicin',form:'long',eff:'moderate · ↓INR · หลังหยุด INR สูงขึ้น (ผลอยู่ได้ถึง 5 สัปดาห์)',mg:'เพิ่ม warfarin ตาม INR · หลังหยุดพิจารณาลด warfarin',mon:'INR ภายใน 1-2 สัปดาห์หลังเริ่ม · หลังหยุด INR ภายใน 1 สัปดาห์ และติดตามต่อถึง 5 สัปดาห์'},
 ];
 /* ---------- Antibiotic lock therapy (ALT) 5 ml: เอกสาร ALT ห้องยา (IDSA 2009 / Justo & Bookstaver 2014) ---------- */
 const SRC_ALT='Antibiotic Lock Therapy 5 ml (IDSA 2009 / Justo & Bookstaver 2014)';

@@ -280,12 +280,12 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
-#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
-#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste::placeholder{color:#64748b;font-family:inherit}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste)::placeholder{color:#8ea0c4}}
-:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
+#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
+#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste::placeholder{color:#64748b;font-family:inherit}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste)::placeholder{color:#8ea0c4}}
+:root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
 #ptBox{border:1.5px solid #8b5cf6;background:linear-gradient(180deg,color-mix(in srgb,#8b5cf6 12%,var(--surface)),var(--surface))}
 #ptBox summary{color:#7c3aed} @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #ptBox summary{color:#c4b5fd}}
 /* v0.10 — สีสถานะสดใส */
@@ -381,6 +381,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-arv" aria-selected="false">ARV / PEP / ทารก HIV (รอตรวจ)</button>
       <button role="tab" id="t-tbx" aria-selected="false">ยา TB</button>
+      <button role="tab" id="t-iou" aria-selected="false">ใบค้างยา</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
@@ -829,6 +830,23 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pdAll"> แสดงทุกช่วงน้ำหนัก</label></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="pdOut"></div>
+      </div>
+    </section>
+
+    <section id="p-iou" hidden>
+      <div class="had" style="grid-template-columns:minmax(0,1fr)">
+        <div class="panel sec" style="margin:0">
+          <h2>ใบค้างยา — ยาขาด/จ่ายไม่ครบ</h2>
+          <p class="hint" style="margin:0 0 6px">วางคำสั่งยา หรือดึงจากหน้าคัดกรอง / กดปุ่ม "ทำใบค้างยา" ในหัวข้อ PEP (แท็บ ARV) · แก้จำนวนในตารางได้ · ชื่อผู้ป่วย AN HN เว้นให้เขียนมือ (โปรแกรมไม่เก็บ)</p>
+          <div class="grid2">
+            <label class="f">วันที่ออกใบ<input id="iDate" placeholder="dd/mm/yy (ว่าง = วันนี้)"></label>
+            <label class="f">นัดรับยาที่ค้าง<input id="iAp" placeholder="dd/mm/yy"></label>
+            <label class="f">จำนวนวันที่สั่ง (คิดจำนวนทั้งหมด)<input id="iDays" type="number" step="1" inputmode="numeric" placeholder="เช่น 28"></label>
+          </div>
+          <textarea id="iPaste" rows="4" placeholder="เช่น&#10;TLD 1 tab od&#10;Amlodipine 10 mg 1x1 pc"></textarea>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="iRead">อ่านคำสั่ง</button><button type="button" class="btn" id="iFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="iClr">ล้าง</button><span class="toast" id="iMsg0"></span></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="iOut"></div>
       </div>
     </section>
 
@@ -2980,7 +2998,7 @@ $('printNote').onclick=()=>{ if(noteHtml) printHtml(noteHtml); };
 [['cnName','name'],['cnTitle','title'],['cnTel','tel'],['cnWard','ward']].forEach(([id,k])=>{ const el=$(id); const v=cnPref(k); if(v&&k!=='ward') el.value=v; el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ if(k!=='ward') cnPref(k,el.value); renderRows(); }); });
 
 /* tabs */
-const TABS=['screen','mr','had','liq','dex','opi','pk','tl','dtl','wf','arv','tbx','cmt','crrt','adr','rca','ref','kb'];
+const TABS=['screen','mr','had','liq','dex','opi','pk','tl','dtl','wf','arv','tbx','iou','cmt','crrt','adr','rca','ref','kb'];
 function tab(n){TABS.forEach(t=>{$('t-'+t).setAttribute('aria-selected',t===n);$('p-'+t).hidden=t!==n;});}
 TABS.forEach(t=>$('t-'+t).onclick=()=>tab(t));
 
@@ -3149,7 +3167,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.25.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.26.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4739,9 +4757,12 @@ function pepRender(){ const out=$('pOut'); if(!out) return; const pt=getPt(), bw
   out.innerHTML=`<h2>${esc(title)}</h2><table class="ctbl"><thead><tr><th>ยา</th><th>ขนาด/วิธีใช้</th><th>หมายเหตุ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td class="hint">${esc(r[2])}</td></tr>`).join('')}</tbody></table>
    <h2>นัดและจำนวนยา</h2><dl class="kv"><dt>เริ่มยา</dt><dd>${tlFmt(st,false)}</dd><dt>นัดครั้งถัดไป</dt><dd><b>${tlFmt(ap,false)} (วัน${TH[ap.getDay()]})</b> — ${am==='man'?'กรอกเอง':am==='next'?'วันคลินิกถัดไป':'ครบ 14 วันตรงคลินิก'}${am==='man'?'':child?'เด็ก (พุธ)':'ผู้ใหญ่ (จันทร์/พฤหัส)'}${am==='man'&&!cd.includes(ap.getDay())?' <span style="color:#b45309">· ไม่ตรงวันคลินิก</span>':''}</dd><dt>จ่ายถึงวันนัด</dt><dd>${days} วัน (รวมวันนัด)</dd><dt>ครบ 28 วัน</dt><dd>${tlFmt(mrAdd(st,27),false)}</dd></dl>
    ${disp?`<table class="ctbl"><thead><tr><th>ยา</th><th>ใช้</th><th>จ่ายถึงวันนัด</th><th>ทั้ง course 28 วัน</th></tr></thead><tbody>${disp}</tbody></table>`:''}
+   ${perDay.length?'<div style="margin:6px 0"><button type="button" class="btn sm" id="pIou">🧾 ทำใบค้างยา (ทั้ง course 28 วัน · ครั้งที่ 1 = จ่ายถึงวันนัด)</button></div>':''}
    <ul class="msgs">${L.join('')}</ul>
    <h2>Checklist ก่อนจ่าย</h2><ul style="margin:4px 0;padding-left:20px"><li>☐ สูตรยาถูกต้องตามน้ำหนัก/อายุ/CrCl</li><li>☐ ขนาดยา/วิธีกิน (BSA, BW, CrCl) · วิธีผสม DTG dispersible</li><li>☐ วันนัด 14 วันตรงวันคลินิก (ผู้ใหญ่ จันทร์/พฤหัส · เด็ก พุธ)</li><li>☐ จำนวนยาพอถึงวันนัด</li></ul>
-   <p class="hint">แบบคัดกรอง HIV Post Exposure Prophylaxis / OSCC 2024 รพ.มหาสารคาม — ไฟล์ใน คู่มือย่อ › เอกสารต้นฉบับ</p>`; }
+   <p class="hint">แบบคัดกรอง HIV Post Exposure Prophylaxis / OSCC 2024 รพ.มหาสารคาม — ไฟล์ใน คู่มือย่อ › เอกสารต้นฉบับ</p>`;
+  if($('pIou')) $('pIou').onclick=()=>{ if(typeof iouRows==='undefined') return; const unit=n=>/ml/.test(n)?'ml':'เม็ด', sig=n=>{ const r=rows.find(x=>n.startsWith(x[0].split(' ')[0])); return r?r[1].replace(/<[^>]+>/g,''):''; };
+    iouRows=perDay.map(([n,q])=>iouNew({drug:n.replace(/\s*\((เม็ด|ml)\)$/,''),sig:sig(n),tot:Math.ceil(q*28-1e-9),d1:Math.ceil(q*days-1e-9),unit:unit(n),pd:q})); $('iDate').value=tlFmt(st,false).replace(/(\d+)\/(\d+)\/\d\d(\d\d)$/,'$1/$2/$3'); $('iAp').value=tlFmt(ap,false).replace(/(\d+)\/(\d+)\/\d\d(\d\d)$/,'$1/$2/$3'); $('iDays').value=28; $('t-iou').click(); iouRender(); }; }
 (function(){ if(!$('pOut')) return; ['pExD','pExT','pSt','pAp'].forEach(id=>$(id).addEventListener('input',pepRender)); ['pTab','pType','pepReg','pApM'].forEach(id=>$(id).addEventListener('change',pepRender));
   ['bw','scr','ageIn','ageU','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pepRender); el.addEventListener('change',pepRender); } }); $('t-arv').addEventListener('click',pepRender); pepRender(); })();
 
@@ -5073,6 +5094,47 @@ function pdrRender(){ const out=$('pdOut'); if(!out) return; const pt=getPt(), b
   out.innerHTML=h; }
 (function(){ if(!$('pdOut')) return; ['pdAll','pdGrp'].forEach(id=>$(id).addEventListener('change',pdrRender)); $('t-tbx').addEventListener('click',pdrRender);
   ['bw','ageIn','ageU','age'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pdrRender); el.addEventListener('change',pdrRender); } }); pdrRender(); })();
+
+/* ===== iou.js — แท็บ "ใบค้างยา": ยาขาด/จ่ายไม่ครบ → คำนวณยอดค้างจ่าย · พอถึงวันไหน · พิมพ์ใบค้างยา
+ ช่อง: วดป · ชื่อผู้ป่วย AN/HN (เว้นให้เขียนมือ — โปรแกรมไม่เก็บ) · ยาที่สั่งครั้งนี้ · regimen · จำนวนทั้งหมด · ครั้งที่ 1 · ครั้งที่ 2 · ค้างจ่าย · ชื่อผู้ค้าง ภก./ภญ. */
+let iouRows=[];
+const IOU_UNITS=['เม็ด','แคปซูล','ขวด','ซอง','หลอด','vial','amp','ml'];
+function iouNew(o={}){ return {drug:o.drug||'',sig:o.sig||'',tot:o.tot??'',d1:o.d1??'',d2:o.d2??'',unit:o.unit||'เม็ด',pd:o.pd??''}; }
+function iouCalc(r){ const tot=+r.tot||0, d1=+r.d1||0, d2=+r.d2||0, owe=Math.max(0,tot-d1-d2), pd=+r.pd||0; return {tot,d1,d2,owe,pd,days:pd>0?Math.floor((d1+d2)/pd+1e-9):null}; }
+function iouRender(){ const out=$('iOut'); if(!out) return; const st=tlDate($('iDate').value,'0:00')||(()=>{const d=new Date(); d.setHours(0,0,0,0); return d;})(), ap=tlDate($('iAp').value,'0:00');
+  if(!iouRows.length) iouRows=[iouNew()];
+  const inp=(i,k,w,t='text')=>`<input data-i="${i}" data-k="${k}" type="${t}" value="${esc(String(iouRows[i][k]))}" style="width:${w}" ${t==='number'?'step="any" inputmode="decimal"':''}>`;
+  const warn=[];
+  const body=iouRows.map((r,i)=>{ const c=iouCalc(r); let cover='';
+    if(c.days!=null&&(r.d1!==''||r.d2!=='')){ const end=mrAdd(st,c.days-1); cover=`พอ ${c.days} วัน (ถึง ${tlFmt(end,false)})`; if(ap&&end<mrAdd(ap,-1)) warn.push(`${r.drug||'รายการ '+(i+1)}: ยาพอถึง ${tlFmt(end,false)} แต่นัด ${tlFmt(ap,false)} — <b>ขาดยา ${Math.round((ap-end)/864e5)-1} วัน</b> ควรนัดเร็วขึ้นหรือจ่ายเพิ่ม`); }
+    return `<tr><td>${inp(i,'drug','170px')}</td><td>${inp(i,'sig','130px')}</td><td>${inp(i,'tot','70px','number')}</td><td>${inp(i,'d1','70px','number')}</td><td>${inp(i,'d2','70px','number')}</td><td><b style="color:${c.owe?'#b91c1c':'#15803d'}">${fmtN(c.owe)}</b></td><td><select data-i="${i}" data-k="unit">${IOU_UNITS.map(u=>`<option${u===r.unit?' selected':''}>${u}</option>`).join('')}</select></td><td>${inp(i,'pd','60px','number')}</td><td class="hint">${cover}</td><td><button type="button" class="btn sm" data-del="${i}">✕</button></td></tr>`; }).join('');
+  out.innerHTML=`<h2>รายการค้างจ่าย</h2><div style="overflow-x:auto"><table class="ctbl"><thead><tr><th>ยาที่สั่งครั้งนี้</th><th>Regimen</th><th>จำนวนทั้งหมด</th><th>ครั้งที่ 1 จ่าย</th><th>ครั้งที่ 2 จ่าย</th><th>ค้างจ่าย</th><th>หน่วย</th><th>ใช้/วัน</th><th>ยาที่จ่ายพอ</th><th></th></tr></thead><tbody>${body}</tbody></table></div>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="btn sm" id="iAdd">+ เพิ่มรายการ</button><button type="button" class="btn sm pri" id="iPr">🖨 พิมพ์ใบค้างยา</button><button type="button" class="btn sm" id="iCp">📋 คัดลอกข้อความ</button><span class="toast" id="iMsg"></span></div>
+   ${warn.length?`<ul class="msgs">${warn.map(w=>`<li><span class="tag warn">${LVL_TXT.warn}</span><span>${w}</span></li>`).join('')}</ul>`:''}
+   <h2 style="margin-top:12px">ตัวอย่างใบค้างยา</h2>${iouHtml(st,ap)}`;
+  out.querySelectorAll('input[data-i],select[data-i]').forEach(el=>el.addEventListener('change',()=>{ iouRows[+el.dataset.i][el.dataset.k]=el.value; iouRender(); }));
+  out.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ iouRows.splice(+b.dataset.del,1); iouRender(); });
+  $('iAdd').onclick=()=>{ iouRows.push(iouNew()); iouRender(); };
+  $('iPr').onclick=()=>printHtml(`<div class="mk">${iouHtml(st,ap,true)}<div style="border-top:1px dashed #64748b;margin:10mm 0 6mm"></div>${iouHtml(st,ap,true,'สำเนา (ห้องยา)')}</div>`);
+  $('iCp').onclick=()=>{ const t=iouText(st,ap); copyRich(txtHtml(t),t,$('iMsg')); }; }
+function iouHtml(st,ap,pr,copy){ const L=x=>`<span style="display:inline-block;min-width:${x}px;border-bottom:1px dotted #64748b">&nbsp;</span>`, rs=iouRows.filter(r=>r.drug||r.tot);
+  return `<div class="wdform" style="font-family:Sarabun,Tahoma,sans-serif;color:#0f172a;background:#fff;padding:${pr?0:'12px'};border:${pr?0:'1px solid #cbd5e1'};border-radius:8px;max-width:760px;font-size:13.5px">
+   <div style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:17px;font-weight:700">ใบค้างยา</div><div style="font-size:11px;color:#475569">กลุ่มงานเภสัชกรรม โรงพยาบาลมหาสารคาม${copy?' · '+esc(copy):''}</div></div>
+   <p style="margin:6px 0">วันที่ <b>${tlFmt(st,false)}</b> &nbsp; ชื่อผู้ป่วย ${L(210)} &nbsp; AN ${L(80)} &nbsp; HN ${L(80)}</p>
+   <table style="border-collapse:collapse;width:100%;font-size:13px;margin:6px 0" border="1"><tr style="background:#f1f5f9"><th style="padding:3px 5px">ยาที่สั่งครั้งนี้</th><th style="padding:3px 5px">Regimen</th><th style="padding:3px 5px">จำนวนทั้งหมด</th><th style="padding:3px 5px">ครั้งที่ 1 จ่าย</th><th style="padding:3px 5px">ครั้งที่ 2 จ่าย</th><th style="padding:3px 5px">ค้างจ่าย</th></tr>
+   ${(rs.length?rs:[iouNew(),iouNew()]).map(r=>{ const c=iouCalc(r), u=r.unit; return `<tr><td style="padding:4px 5px">${esc(r.drug)||'&nbsp;'}</td><td style="padding:4px 5px">${esc(r.sig)}</td><td style="padding:4px 5px;text-align:center">${r.tot!==''?`${fmtN(c.tot)} ${u}`:''}</td><td style="padding:4px 5px;text-align:center">${r.d1!==''?`${fmtN(c.d1)} ${u}`:''}</td><td style="padding:4px 5px;text-align:center">${r.d2!==''?`${fmtN(c.d2)} ${u}`:'…… '+u}</td><td style="padding:4px 5px;text-align:center;font-weight:700">${r.tot!==''?`${fmtN(c.owe)} ${u}`:''}</td></tr>`; }).join('')}</table>
+   <p style="margin:6px 0">นัดรับยาที่ค้าง วันที่ ${ap?`<b>${tlFmt(ap,false)}</b>`:L(110)} &nbsp; ผู้ค้างจ่าย ภก./ภญ. ${L(180)} &nbsp; ผู้รับยาครั้งที่ 2 ${L(140)}</p>
+   <p style="margin:4px 0 0;font-size:11.5px;color:#475569">กรุณานำใบนี้มาแสดงเมื่อมารับยาที่ค้าง · ถ้ายาหมดก่อนวันนัด ติดต่อห้องยา โทร.043-711750 ต่อ ห้องยาผู้ป่วยนอก 9250, 9246 / ห้องยาผู้ป่วยใน 9248, 9249</p></div>`; }
+function iouText(st,ap){ const L=[`ใบค้างยา วันที่ ${tlFmt(st,false)}${ap?` · นัดรับ ${tlFmt(ap,false)}`:''}`]; iouRows.filter(r=>r.drug).forEach(r=>{ const c=iouCalc(r); L.push(`- ${r.drug}${r.sig?` (${r.sig})`:''}: ทั้งหมด ${fmtN(c.tot)} · ครั้งที่ 1 ${fmtN(c.d1)}${c.d2?` · ครั้งที่ 2 ${fmtN(c.d2)}`:''} · ค้างจ่าย ${fmtN(c.owe)} ${r.unit}`); }); return L.join('\n'); }
+// ดึงจากคำสั่งยา (paste / หน้าคัดกรอง): ใช้ชื่อยา + วิธีใช้ · จำนวนทั้งหมดคิดจากวันที่ระบุ
+function iouFromText(t){ const days=+$('iDays').value||0; const rs=joinLines(String(t||'').split(/\n/)).map(parseLine).filter(Boolean);
+  iouRows=rs.map(r=>{ const mm=masterOf(r), nm=mm?mm[1]:r.raw.replace(/\s+\d.*$/,'').slice(0,40), D=+r.doseVal||0, perUnit=r.doseUnit==='unit'?D:(r.unitMg&&r.doseVal&&r.doseUnit==='mg'?D/r.unitMg:null), F=r.F||null, pd=perUnit&&F?Math.round(perUnit*F*100)/100:'';
+    return iouNew({drug:nm,sig:(r.raw.match(/\d+(?:\.\d+)?\s*[x*]\s*\d+.*$|\b(od|bid|tid|qid|hs|q\d+h?).*$/i)||[''])[0].slice(0,30),pd,tot:pd&&days?Math.ceil(pd*days-1e-9):''}); });
+  iouRender(); }
+(function(){ if(!$('iOut')) return; ['iDate','iAp'].forEach(id=>$(id).addEventListener('input',iouRender));
+  $('iRead').onclick=()=>iouFromText($('iPaste').value); $('iClr').onclick=()=>{ $('iPaste').value=''; iouRows=[iouNew()]; iouRender(); };
+  $('iFromScr').onclick=()=>{ if(typeof rows==='undefined'||!rows.length){ cpMsg($('iMsg0'),'หน้าคัดกรองยังไม่มีรายการยา'); return; } $('iPaste').value=rows.map(r=>r.raw).join('\n'); iouFromText($('iPaste').value); };
+  iouRender(); })();
 
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';
@@ -5677,7 +5739,7 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   ta.addEventListener('paste',ev=>{ const it=[...(ev.clipboardData||{}).items||[]].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; const hasText=(ev.clipboardData.getData('text')||'').trim(); if(hasText) return; ev.preventDefault(); ev.stopImmediatePropagation(); ocrImage(it.getAsFile(),ta,msgEl); },true);
   ta.addEventListener('dragover',ev=>{ if([...ev.dataTransfer.items].some(x=>x.type.startsWith('image/'))) ev.preventDefault(); });
   ta.addEventListener('drop',ev=>{ const f=[...ev.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(!f) return; ev.preventDefault(); ocrImage(f,ta,msgEl); }); }
-['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste','hPaste','xPaste'].forEach(ocrAttach);
+['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste'].forEach(ocrAttach);
 
 /* ===== copy.js — ปุ่มคัดลอก: รายส่วน (หัวข้อ h2) · รายช่อง · ทั้งหน้า (ปุ่มลอยมุมขวาล่าง) =====
  คัดลอกทั้งแบบ rich (วางใน Word/LINE/อีเมลเห็นตาราง) และข้อความล้วน · ช่องกรอกถูกแทนด้วยค่าที่กรอก · ไม่คัดลอกปุ่ม */

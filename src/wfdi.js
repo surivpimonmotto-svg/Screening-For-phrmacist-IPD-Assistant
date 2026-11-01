@@ -22,7 +22,7 @@ function wdiCalc(){ const nm=$('wdDrug').value.trim(), info=wdiInfo(nm), st=mrDa
   return {nm,info,prof:prof||{form:'long',start:7,stopD:14,stopTxt:'14 วัน'},st,stop,form,inr:$('wdInr').value.trim(),tgt:$('wdTgt').value.trim(),phase:$('wdPhase').value,hosp:$('wdHosp').value.trim(),card:$('wdCard').value,inrStop:$('wdInrStop').value.trim()}; }
 const wdF=d=>d?`${d.getDate()}/${d.getMonth()+1}/${String(d.getFullYear()+543).slice(2)}`:'............';
 function wdiHtml(o,forPrint){ const L=x=>`<span style="display:inline-block;min-width:${x||90}px;border-bottom:1px dotted #64748b;text-align:center">&nbsp;</span>`, V=(v,w)=>v?`<b style="display:inline-block;min-width:${w||70}px;border-bottom:1px dotted #64748b;text-align:center">${esc(v)}</b>`:L(w);
-  const head=`<div style="font-size:10px;text-align:right;color:#475569">MKH-FR-PHA-059</div>${o.hosp?`<div style="font-size:20px;font-weight:700;color:#be185d;text-align:right">ติดตาม ${esc(o.hosp)}</div>`:''}
+  const head=`<div style="font-size:10px;text-align:right;color:#475569">MKH-FR-PHA-059</div>${o.hosp?`<div style="font-size:20px;font-weight:700;color:#be185d;text-align:right">ส่งต่อไปยัง ${esc(o.hosp)}</div>`:`<div style="font-size:14px;text-align:right;margin-top:2px">ส่งต่อไปยัง ${L(170)} <span style="font-size:11px;color:#475569">(สถานบริการอื่น)</span></div>`}
    <div style="border:1.5px solid #0f172a;padding:6px 10px;text-align:center;font-weight:700;margin:4px 0 8px">แบบส่งต่อเพื่อติดตามค่า INR อย่างใกล้ชิด จากคู่ยาที่เกิด Drug interaction กับ ยา Warfarin<br>โรงพยาบาลมหาสารคาม</div>
    <div style="text-align:center;font-size:12.5px;margin-bottom:8px">สำหรับคู่ยาที่ใช้ร่วมกัน ${o.form==='long'?`(${WDI_FORM_LONG})`:o.form==='ind'?`(${WDI_FORM_IND})`:`Short term (${WDI_FORM_SHORT})`}</div>
    <p style="margin:4px 0">ชื่อผู้ป่วย ${L(200)} HN ${L(80)} Target INR ${V(o.tgt,60)} วันที่ ${V(o.st?wdF(o.st):'',70)}</p>
@@ -80,7 +80,7 @@ function wdiText(o){ const L=[`แบบติดตาม INR — DI Warfarin +
   if(o.form==='short'){ [3,6,9,12].forEach(n=>{ const d=o.st?mrAdd(o.st,n):null; if(!o.stop||!d||d<=o.stop) L.push(`  Day ${n}: ${wdF(d)} INR = ....`); }); L.push(`หยุดยา ${o.nm} ${wdF(o.stop)}`,`  Day 5 หลังหยุด: ${wdF(o.stop?mrAdd(o.stop,5):null)} INR = ....`); }
   else if(o.form==='ind'){ L.push(`หยุดใช้ร่วมกัน ${wdF(o.stop)}${o.inrStop?` (INR ก่อนหยุด ${o.inrStop})`:''}`); (o.prof.stopDays||[7,21,35]).forEach(n=>L.push(`  Day ${n} หลังหยุด: ${wdF(o.stop?mrAdd(o.stop,n):null)} INR = ....`)); }
   else { const pf=o.prof; if(o.phase!=='stop') L.push(`  Day ${pf.start} หลังเริ่ม: ${wdF(o.st?mrAdd(o.st,pf.start):null)} INR = ....`); if(o.phase!=='start'){ L.push(`หยุดใช้ร่วมกัน ${wdF(o.stop)}`, pf.stopM?`  หลังหยุด ${pf.stopTxt}: ${o.stop?`${wdF(mrAddMon(o.stop,pf.stopM[0]))} – ${wdF(mrAddMon(o.stop,pf.stopM[1]))}`:'....'} INR = ....`:`  หลังหยุด ${pf.stopTxt}: ${wdF(o.stop?mrAdd(o.stop,pf.stopD):null)} INR = ....`); } }
-  if(o.hosp) L.push(`ติดตามที่ ${o.hosp}`);
+  if(o.hosp) L.push(`ส่งต่อไปยัง ${o.hosp}`);
   L.push('หาก INR มีแนวโน้มเพิ่มขึ้น เรียนปรึกษาแพทย์เพื่อปรับลดขนาด warfarin หรือหยุดยาได้'); return L.join('\n'); }
 function wdiRender(){ const out=$('wdOut'); if(!out) return; const o=wdiCalc();
   $('wdFormTxt').textContent=o.nm?(o.info?`${o.info.name} · ${o.form==='long'?'Long term':o.form==='ind'?'Inducer (ติดตามหลังหยุด Day 7/21/35)':'Short term'} · ${o.info.eff}`:'ไม่พบในทะเบียน DI warfarin ของ รพ. — เลือกชนิดแบบฟอร์มเอง'):'';

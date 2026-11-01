@@ -779,7 +779,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
             <label class="f">Target INR<input id="wdTgt" value="2.0-3.0"></label>
             <label class="f">INR ก่อนหยุดยาล่าสุด (Inducer)<input id="wdInrStop" placeholder="1.1"></label>
             <label class="f">ช่วงที่ติดตาม (Long term)<select id="wdPhase"><option value="both">ทั้งเริ่มใช้และหยุดใช้ร่วม</option><option value="start">เฉพาะเมื่อเริ่มใช้ร่วม</option><option value="stop">เฉพาะหลังหยุดใช้ร่วม</option></select></label>
-            <label class="f">ติดตามที่ (รพ.) <input id="wdHosp" placeholder="เช่น รพ.โกสุมพิสัย (เว้นว่าง = รพ.มค)"></label>
+            <label class="f">ส่งต่อไปยัง (สถานบริการอื่น) <input id="wdHosp" placeholder="เช่น รพ.โกสุมพิสัย / รพ.สต. (เว้นว่าง = เขียนมือ)"></label>
             <label class="f">ใบนำทางผู้ป่วย<select id="wdCard"><option value="none">ไม่พิมพ์</option><option value="yellow">ใบเหลือง — ติดตามที่ รพ.มค</option><option value="blue">ใบฟ้า — ส่งต่อ รพ.ชุมชน</option></select></label>
           </div>
           <div style="display:flex;gap:6px;align-items:center;margin-top:8px"><button type="button" class="btn sm" id="wdFromScr">ดึงคู่ยาจากหน้าคัดกรอง</button><span class="hint" id="wdFormTxt"></span><span class="toast" id="wdMsg0"></span></div>

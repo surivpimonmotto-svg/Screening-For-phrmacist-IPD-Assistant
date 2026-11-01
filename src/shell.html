@@ -379,7 +379,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-tl" aria-selected="false">Timeline / จ่ายต่อ</button>
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
-      <button role="tab" id="t-arv" aria-selected="false">ARV / ทารก HIV</button>
+      <button role="tab" id="t-arv" aria-selected="false">ARV / ทารก HIV (รอตรวจ)</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
@@ -710,6 +710,16 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
     <section id="p-arv" hidden>
       <div class="had" style="grid-template-columns:minmax(0,1fr)">
         <div class="panel sec" style="margin:0">
+          <div style="margin:0 0 10px;padding:10px 12px;border-radius:10px;border:2px solid #f59e0b;background:color-mix(in srgb,#f59e0b 15%,transparent)"><b>⚠ รอเภสัชกรผู้ชำนาญด้าน HIV ตรวจสอบข้อมูล — ส่วนทารกแรกเกิดยังไม่ใช้สั่ง/จ่ายจริง</b>
+            <div style="font-size:.92em;margin-top:4px">ประเด็นที่ต้องยืนยัน (เทียบตาราง 4.8 แนวทางชาติ 2564/65 / protocol รพ.มค):</div>
+            <ol style="margin:4px 0 0;padding-left:22px;font-size:.92em">
+              <li>ทารกเสี่ยงสูง: ให้ยานาน <b>4 หรือ 6 สัปดาห์</b></li>
+              <li>ขนาด <b>NVP</b> (ตอนนี้ 4 mg/kg วันละครั้ง) และขนาดในทารกคลอดก่อนกำหนด GA &lt;37 สัปดาห์ (ยังไม่มีในโปรแกรม)</li>
+              <li><b>AZT / 3TC ในทารกคลอดก่อนกำหนด</b> (ตอนนี้ใช้ตาราง DHHS สหรัฐฯ) ตรงกับแนวทางไทยหรือไม่</li>
+              <li>เกณฑ์แบ่งกลุ่มเสี่ยง: มารดากิน ARV <b>≥12 หรือ ≥4 สัปดาห์</b> · VL ตัดที่ 50</li>
+              <li>ส่วนผู้ใหญ่: ทบทวนกฎคู่ยา/การเว้นเวลา และเพิ่มคู่ที่พบบ่อยหน้างานที่ยังไม่มี</li>
+            </ol>
+            <div style="font-size:.85em;margin-top:4px">ผลการตรวจ/ข้อแก้ไข ส่งให้ผู้ดูแลโปรแกรม (Motto) เพื่อปรับและนำป้ายนี้ออก</div></div>
           <h2>สกรีนยาต้านไวรัส HIV (ARV) กับยาร่วม</h2>
           <p class="hint" style="margin:0 0 6px">วางรายการยา<b>ทั้งหมด</b>ของผู้ป่วย (ARV + ยาอื่น) — ตรวจคู่ยาที่ห้ามใช้ร่วม · การเว้นเวลากิน · วิธีกิน · สูตรซ้ำ/ไม่ครบ · ปรับตามไต (ใช้ Cr/CrCl จากแผงผู้ป่วย) · ห้ามใส่ชื่อ-สกุล/HN</p>
           <textarea id="vPaste" rows="7" placeholder="เช่น&#10;Acriptega 1 tab od pc เช้า&#10;Calcium carbonate 1000 mg 1x3 pc&#10;Rifampicin 450 mg od ac"></textarea>

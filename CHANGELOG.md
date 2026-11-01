@@ -9,6 +9,12 @@
 
 ---
 
+## v0.21.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
+- **HAD Amiodarone (Cordarone 150 mg/3 ml)**: mg/min · ตรวจ conc ที่ผิดบ่อย — peripheral ≤2 mg/ml · central ≤6 · ต่ำกว่า 0.6 mg/ml ไม่คงตัว · **ผสม NSS = ต้องแก้ (D5W เท่านั้น)** (ทั้งหน้าคัดกรองและแท็บ HAD) · max 2.2 g/วัน · สูตรมาตรฐาน 900 mg/D5W 500 ml 33 → 17 ml/h
+- **Methylprednisolone inj**: pulse 1 g / 500 mg / เด็ก 30 mg/kg · mg/kg/วัน · ขนาดคงที่ → vial 1 g / 40 mg ที่ใช้และส่วนที่ทิ้ง · วิธีผสม/เวลาให้ตามขนาด · เทียบ Pred/HC/Dexa
+- **rt-PA (Actilyse 50 mg)**: stroke 0.9 mg/kg (max 90) และ 0.6 mg/kg · STEMI accelerated · PE 100 mg/2 ชม. → จำนวน vial · ml ที่ต้องไล่ทิ้ง · bolus ml · infusion ml/h
+- ทั้งหมด ⚑ อ้างอิงทั่วไป (SPC / AHA) รอยืนยันกับแนวทาง รพ.
+
 ## v0.20.0 — 1 พ.ย. 69 — Motto (ผ่าน Claude)
 - **HAD เพิ่ม 4 ยา** (ขนาด amp ตามบัญชียา รพ.): **NTG** 25 mg/5 ml (mcg/min, conc ≤400 mcg/ml, non-PVC) · **Propofol 1%** 200 mg/20 ml, 500 mg/50 ml (mg/kg/h + mcg/kg/min, max 4 mg/kg/h PRIS) · **Nimbex** 10 mg/5 ml, 150 mg/30 ml (mcg/kg/min) · **Dexmedetomidine** 200 mcg/2 ml (mcg/kg/h, 4–8 mcg/ml) — ช่วงขนาด ⚑ อ้างอิงทั่วไป รอคู่มือ HAD รพ.
 - Nicardipine เลือกขนาด amp 2 mg/2 ml หรือ 10 mg/10 ml

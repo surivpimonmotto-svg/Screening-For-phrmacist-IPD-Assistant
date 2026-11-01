@@ -534,6 +534,25 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="jOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>Methylprednisolone inj — ขนาด · vial · การผสม</h2>
+          <div class="grid2">
+            <label class="f" style="grid-column:1/-1">แบบการให้<select id="mReg"></select></label>
+            <label class="f" id="mValW" hidden><span id="mValL">mg/kg/วัน</span><input id="mVal" type="number" step="any" inputmode="decimal"></label>
+            <label class="f" id="mFW" hidden>วันละ (ครั้ง)<select id="mF"><option value="1">1 (OD)</option><option value="2">2 (q12h)</option><option value="3">3 (q8h)</option><option value="4">4 (q6h)</option></select></label>
+            <label class="f">น้ำหนัก (kg)<input id="mBw" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">จำนวนวัน<input id="mDays" type="number" step="1" inputmode="numeric" placeholder="เช่น 3"></label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="mOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>rt-PA (Alteplase / Actilyse 50 mg)</h2>
+          <div class="grid2">
+            <label class="f" style="grid-column:1/-1">ข้อบ่งใช้<select id="tInd"></select></label>
+            <label class="f">น้ำหนักจริง (kg)<input id="tBw" type="number" step="any" inputmode="decimal"></label>
+          </div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="tOut"></div>
       </div>
     </section>
 

@@ -208,7 +208,7 @@ $('hDrug').innerHTML=Object.entries(HAD).map(([k,h])=>`<option value="${k}">${h.
 const hadAmp=k=>{ const h=HAD[k]; if(!h.amps) return {v:h.amp,t:h.ampTxt}; const v=+$('hAmpSz').value||h.amp; return {v,t:(h.amps.find(a=>a[0]===v)||h.amps[0])[1]}; };
 function hadAmpSel(k,want){ const h=HAD[k], el=$('hAmpSz'); $('hAmpSzW').hidden=!h.amps; if(!h.amps){ el.innerHTML=''; return; } el.innerHTML=h.amps.map(a=>`<option value="${a[0]}">${a[1]}</option>`).join(''); if(want&&h.amps.some(a=>a[0]===want)) el.value=want; }
 $('hInd').innerHTML=HEP_IND.map((x,i)=>`<option value="${i}">${x[0]}</option>`).join('');
-const HAD_EX={ntg:[50,250,6],propofol:[500,50,10],cisatra:[100,50,3],dexmed:[200,50,10],ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
+const HAD_EX={amio:[900,500,33],ntg:[50,250,6],propofol:[500,50,10],cisatra:[100,50,3],dexmed:[200,50,10],ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
 function loadHadEx(){const k=$('hDrug').value,e=HAD_EX[k]; $('hAmt').value=e[0];$('hVol').value=e[1];$('hRate').value=e[2];$('hAmp').value=+(e[0]/hadAmp(k).v).toFixed(2);}
 function hadNote(k,h,o,cu){
   const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
@@ -230,14 +230,14 @@ function renderHad(){
   $('hAmtLab').textContent=`ปริมาณยาในขวด (${h.u})`; $('hInfo').textContent=[hadAmp(k).t,h.dil,h.note].filter(Boolean).join(' · ');
   $('hLineW').hidden=!(k==='kcl'||HAD[k].periph!=null); $('hLine').querySelector('[value=restrict]').hidden=k!=='kcl'; if(k!=='kcl'&&$('hLine').value==='restrict') $('hLine').value='peripheral'; $('hIndW').hidden=k!=='hep';
   const pt=getPt(); if(!$('hBw').value&&$('bw').value) $('hBw').value=$('bw').value;
-  const o=hadCalc(k,{bw:$('hBw').value,amt:$('hAmt').value,vol:$('hVol').value,rate:$('hRate').value,line:$('hLine').value,hepInd:$('hInd').value,crcl:pt.dial?0:pt.crcl,amp:hadAmp(k).v,ampTxt:hadAmp(k).t});
+  const o=hadCalc(k,{bw:$('hBw').value,amt:$('hAmt').value,vol:$('hVol').value,rate:$('hRate').value,line:$('hLine').value,hepInd:$('hInd').value,crcl:pt.dial?0:pt.crcl,amp:hadAmp(k).v,ampTxt:hadAmp(k).t,dil:hadDil[k]||''});
   if(o.conc==null){$('hOut').innerHTML='<div class="empty">กรอกปริมาณยา ปริมาตร และ rate</div>';return}
   const cu=h.u==='mcg'?'mcg/ml':h.u==='mEq'?'mEq/ml':h.u==='g'?'g/ml':h.u==='unit'?'unit/ml':'mg/ml';
   const kv=[['ความเข้มข้น',o.concTxt||`${fmtN(o.conc)} ${cu}`],['ต่อชั่วโมง',`${fmtN(o.perH)} ${h.u}/h`],['ต่อวัน (24 ชม.)',`${fmtN(o.perDay)} ${h.u}`],['สารน้ำต่อวัน',`${r0(o.volDay)} ml`]];
   if(h.amps&&o.perDay>0){ const big=Math.max(...h.amps.map(a=>a[0])), sm=Math.min(...h.amps.map(a=>a[0])); let best=null;
     for(let nb=0;nb<=Math.ceil(o.perDay/big);nb++){ const ns=Math.max(0,Math.ceil((o.perDay-nb*big)/sm-1e-9)), tot=nb*big+ns*sm, c={nb,ns,tot,waste:tot-o.perDay,n:nb+ns}; if(!best||c.waste<best.waste-1e-9||(Math.abs(c.waste-best.waste)<1e-9&&c.n<best.n)) best=c; }
     if(best) kv.push(['จ่ายแบบผสมขนาด (เหลือทิ้งน้อยสุด)',`${[best.nb?`${big} × ${best.nb}`:'',best.ns?`${sm} × ${best.ns}`:''].filter(Boolean).join(' + ')} = ${fmtN(best.tot)} ${h.u}`]); }
-  if(o.maxRate) kv.push([h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
+  if(o.maxRate) kv.push([h.dose==='mgmin'?`Rate ที่ ${h.rangeMgMin[1]} mg/min`:h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
   kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
@@ -250,14 +250,15 @@ function renderHad(){
    <div class="note" id="hNote" style="min-height:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.6">${esc(hadNote(k,h,o,cu))}</div>`;
   $('hCopy').onclick=()=>copyRich('',hadNote(k,h,o,cu),$('hToast'));
 }
-$('hDrug').addEventListener('change',()=>{hadAmpSel($('hDrug').value);loadHadEx();renderHad();});
+$('hDrug').addEventListener('change',()=>{hadDil={};hadAmpSel($('hDrug').value);loadHadEx();renderHad();});
 $('hAmpSz').addEventListener('change',()=>{const a=+$('hAmt').value;$('hAmp').value=a>0?+(a/hadAmp($('hDrug').value).v).toFixed(2):'';renderHad();});
 $('hAmp').addEventListener('input',()=>{const a=+$('hAmp').value;if(a>0)$('hAmt').value=+(a*hadAmp($('hDrug').value).v).toFixed(3);renderHad();});
 ['hAmt','hVol','hRate','hBw'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='hAmt'){const a=+$('hAmt').value;$('hAmp').value=a>0?+(a/hadAmp($('hDrug').value).v).toFixed(2):'';}renderHad();}));
 ['hLine','hInd'].forEach(id=>$(id).addEventListener('change',renderHad));
 // วางคำสั่งยา HAD → เติมช่องอัตโนมัติ (ใช้ตัวอ่านเดียวกับหน้าคัดกรอง)
 const hMsg=m=>{ const e=$('hPMsg'); if(e){ e.textContent=m; e.style.whiteSpace='normal'; } };
-function hadFill(r){ const h=r.had; $('hDrug').value=h.key; hadAmpSel(h.key,h.amp||(HAD[h.key].amps&&h.amt>0&&h.amt%500===0&&h.amt>=500?500:null)); $('hAmt').value=h.amt>0?h.amt:''; $('hAmp').value=h.amt>0?+(h.amt/hadAmp(h.key).v).toFixed(2):''; $('hVol').value=h.vol>0?h.vol:''; $('hRate').value=h.rate!=null?h.rate:'';
+var hadDil={};
+function hadFill(r){ const h=r.had; hadDil={[h.key]:h.dil||''}; $('hDrug').value=h.key; hadAmpSel(h.key,h.amp||(HAD[h.key].amps&&h.amt>0&&h.amt%500===0&&h.amt>=500?500:null)); $('hAmt').value=h.amt>0?h.amt:''; $('hAmp').value=h.amt>0?+(h.amt/hadAmp(h.key).v).toFixed(2):''; $('hVol').value=h.vol>0?h.vol:''; $('hRate').value=h.rate!=null?h.rate:'';
   $('hLine').value=h.line||'peripheral'; if(!$('hBw').value&&$('bw').value) $('hBw').value=$('bw').value; renderHad();
   const miss=[!(h.amt>0)&&'ปริมาณยา',!(h.vol>0)&&'สารน้ำ (ml)',h.rate==null&&'rate (ml/h)'].filter(Boolean);
   hMsg(miss.length?`อ่านได้บางส่วน — กรอกเพิ่ม: ${miss.join(', ')}`:`อ่านแล้ว: ${HAD[h.key].name} ${h.amt} ${HAD[h.key].u} / ${h.vol} ml · ${h.rate} ml/h${h.how==='conc'?` (สูตร ${fmtN(h.amt/h.vol)} mg/ml · ใช้ ${fmtN(h.rate*24)} ml/วัน → ถุง ${h.vol} ml${Math.ceil(h.rate*24/h.vol)>1?` × ${Math.ceil(h.rate*24/h.vol)} ถุง/วัน`:''})`:''}${h.line?'':' · ไม่ระบุสาย ตั้งเป็น Peripheral (เปลี่ยนได้)'}`); }
@@ -366,7 +367,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.20.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.21.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

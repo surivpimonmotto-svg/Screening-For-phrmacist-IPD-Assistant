@@ -336,7 +336,7 @@ function evaluate(row,pt,rows){
     res.D=h.amt; res.T=null;
     if(!(h.amt>0&&h.vol>0)) add('warn',`HAD: อ่านคำสั่งไม่ครบ — อ่านได้ ยา ${h.amt>0?h.amt+' '+H.u:'–'} · สารน้ำ ${h.vol>0?h.vol+' ml':'–'} · rate ${h.rate!=null?h.rate+' ml/h':'–'} (ต้องมีครบ 3 ค่าจึงคำนวณ dose/conc ได้ เช่น 4:250 rate 10 หรือ 8 mg + D5W 250 ml rate 10 cc/hr) — กรอกในแท็บ "คำนวณ HAD"`);
     else if(h.rate==null) add('warn','HAD: ไม่พบ rate (เช่น 10 cc/hr) — ตรวจ dose ไม่ได้');
-    else { const o=hadCalc(h.key,{bw,amt:h.amt,vol:h.vol,rate:h.rate,line:h.line,crcl:pt.dial?0:pt.crcl,amp:h.amp,ampTxt:h.ampTxt});
+    else { const o=hadCalc(h.key,{bw,dil:h.dil,amt:h.amt,vol:h.vol,rate:h.rate,line:h.line,crcl:pt.dial?0:pt.crcl,amp:h.amp,ampTxt:h.ampTxt});
       const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
       const S=(typeof HAD_STD!=='undefined'&&HAD_STD[h.key])||{};
       // 1) ค่าที่คำนวณได้
@@ -640,6 +640,15 @@ function hadCalc(key,inp){
     if(m>h.max) add('flag',`${fmtN(m)} mcg/min เกิน max ${h.max} mcg/min`); else if(m<r[0]||m>r[1]) add('warn',`${fmtN(m)} mcg/min ${m<r[0]?'ต่ำกว่า':'สูงกว่า'}ช่วงทั่วไป ${r[0]}–${r[1]} mcg/min`); else add('ok',`${fmtN(m)} mcg/min อยู่ในช่วง ${r[0]}–${r[1]} mcg/min`);
     if(bw>0) add('info',`= ${fmtN(m/bw)} mcg/kg/min`); out.maxRate=r[1]*60/(conc*1000);
     if(h.maxConc){ const mc=conc*1000; out.concTxt=`${fmtN(mc)} mcg/ml`; if(conc>h.maxConc*1.01) add('flag',`Conc ${fmtN(mc)} mcg/ml เกิน ${h.maxConc*1000} mcg/ml`); else add('ok',`Conc ${fmtN(mc)} mcg/ml ≤ ${h.maxConc*1000} mcg/ml`); } }
+  if(h.dose==='mgmin'){ const m=conc*rate/60, r=h.rangeMgMin; out.dose=m; out.doseU='mg/min';
+    if(m>r[1]*1.05) add('warn',`${fmtN(m)} mg/min สูงกว่าช่วง maintenance ${r[0]}–${r[1]} mg/min (ถ้าเป็น loading ต้องให้ใน 10 นาทีแล้วลด rate)`); else if(m<r[0]*0.95) add('warn',`${fmtN(m)} mg/min ต่ำกว่าช่วง ${r[0]}–${r[1]} mg/min`); else add('ok',`${fmtN(m)} mg/min อยู่ในช่วง ${r[0]}–${r[1]} mg/min`);
+    if(out.perDay>h.maxDay) add('flag',`ต่อวัน ${fmtN(out.perDay)} mg เกิน ${h.maxDay} mg/24 ชม.`);
+    if(h.minConc&&conc<h.minConc*0.99) add('warn',`Conc ${fmtN(conc)} mg/ml ต่ำกว่า ${h.minConc} mg/ml — สารละลายไม่คงตัว (ใช้ยาอย่างน้อย 2 amp ต่อ D5W 500 ml)`);
+    if(conc>h.maxConc*1.01) add('flag',`Conc ${fmtN(conc)} mg/ml เกิน ${h.maxConc} mg/ml`);
+    else if(conc>h.periph*1.01) add(inp.line==='central'?'ok':'warn',inp.line==='central'?`Conc ${fmtN(conc)} mg/ml ให้ทาง central line ได้ (≤${h.maxConc})`:`Conc ${fmtN(conc)} mg/ml เกิน ${h.periph} mg/ml — peripheral เสี่ยงหลอดเลือดดำอักเสบ ให้ทาง central หรือเจือจางเพิ่ม`);
+    else add('ok',`Conc ${fmtN(conc)} mg/ml (${h.minConc||0}–${h.periph} mg/ml) ให้ทาง peripheral ได้`);
+    if(h.d5wOnly&&inp.dil&&/nss|\bns\b|0\.9/i.test(inp.dil)) add('flag',`ผสมใน ${inp.dil} — ${h.name} ต้องผสม D5W เท่านั้น (ตกตะกอนใน NSS)`);
+    out.maxRate=r[1]*60/conc; }
   if(h.dose==='mgkgh'){ out.dose=null;
     if(bw>0){ const kh=out.perH/bw, r=h.rangeKgH; out.dose=kh; out.doseU='mg/kg/h';
       if(kh>h.max) add('flag',`${fmtN(kh)} mg/kg/h เกิน max ${h.max} mg/kg/h (= ${fmtN(kh*1000/60)} mcg/kg/min)`); else if(kh<r[0]||kh>r[1]) add('warn',`${fmtN(kh)} mg/kg/h (${fmtN(kh*1000/60)} mcg/kg/min) ${kh<r[0]?'ต่ำกว่า':'สูงกว่า'}ช่วงทั่วไป ${r[0]}–${r[1]} mg/kg/h`); else add('ok',`${fmtN(kh)} mg/kg/h (${fmtN(kh*1000/60)} mcg/kg/min) อยู่ในช่วง ${r[0]}–${r[1]} mg/kg/h`);

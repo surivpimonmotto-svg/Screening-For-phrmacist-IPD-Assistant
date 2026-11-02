@@ -234,6 +234,7 @@ function hadNote(k,h,o,cu,V){
    `  Rate    : ${rate} ml/h${+rate>0?` × 24 ชม. = ${fmtN(+rate*24)} ml/วัน`:''}`,
    `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
    `  Conc    : ${o.concTxt||fmtN(o.conc)+' '+cu}`,
+   ...(k==='kcl'?[`  K       : ${o.k!=null?o.k+' mEq/L':'– (ไม่มีค่า K)'}`]:[]),
    k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} ${h.pack||'amp'}/วัน${h.amps?` (${h.pack||'amp'} ${hadAmp(k).t})`:''}${h.neat&&o.volDay?` · ใช้ ${r0(o.volDay)} ml/วัน`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
    '','  ผลตรวจ',...o.checks.map(c=>`   ${ic[c.lvl]||'•'} ${c.txt}`)];
   if(S.usual||S.maxDose||S.maxConc) L.push('','  มาตรฐาน',`   Usual dose : ${S.usual||'ยังไม่มีข้อมูล'}`,`   Max dose   : ${S.maxDose||'ยังไม่มีข้อมูล'}`,`   Max conc   : ${S.maxConc||'ยังไม่มีข้อมูล'}`);
@@ -245,7 +246,7 @@ function renderHad(){
   $('hLineW').hidden=!(k==='kcl'||HAD[k].periph!=null); $('hLine').querySelector('[value=restrict]').hidden=k!=='kcl'; if(k!=='kcl'&&$('hLine').value==='restrict') $('hLine').value='peripheral'; $('hIndW').hidden=k!=='hep';
   const pt=getPt(); if(!$('hBw').value&&$('bw').value) $('hBw').value=$('bw').value;
   $('hDosesW').hidden=k!=='kcl';
-  const o=hadCalc(k,{doses:k==='kcl'?$('hDoses').value:null,bw:$('hBw').value,amt:$('hAmt').value,vol:$('hVol').value,rate:$('hRate').value,line:$('hLine').value,hepInd:$('hInd').value,crcl:pt.dial?0:pt.crcl,amp:hadAmp(k).v,ampTxt:hadAmp(k).t,dil:hadDil[k]||''});
+  const o=hadCalc(k,{k:k==='kcl'?pt.k:null,doses:k==='kcl'?$('hDoses').value:null,bw:$('hBw').value,amt:$('hAmt').value,vol:$('hVol').value,rate:$('hRate').value,line:$('hLine').value,hepInd:$('hInd').value,crcl:pt.dial?0:pt.crcl,amp:hadAmp(k).v,ampTxt:hadAmp(k).t,dil:hadDil[k]||''});
   if(o.conc==null){$('hOut').innerHTML='<div class="empty">กรอกปริมาณยา ปริมาตร และ rate</div>';return}
   const cu=h.u==='mcg'?'mcg/ml':h.u==='mEq'?'mEq/ml':h.u==='g'?'g/ml':h.u==='unit'?'unit/ml':'mg/ml';
   const kv=[['ความเข้มข้น',o.concTxt||`${fmtN(o.conc)} ${cu}`],['ต่อชั่วโมง',`${fmtN(o.perH)} ${h.u}/h`],['ต่อวัน (24 ชม.)',`${fmtN(o.perDay)} ${h.u}`],['สารน้ำต่อวัน',`${r0(o.volDay)} ml`]];
@@ -288,7 +289,7 @@ function hadFromText(t){ const rs=joinLines(String(t||'').split(/\n/)).map(parse
 // note ของยา HAD รายการอื่นที่อยู่ในคำสั่งเดียวกัน (คำนวณจากคำสั่ง ไม่ใช่จากช่องกรอก)
 function hadOtherNotes(){ if(hadList.length<2) return []; const pt=getPt(), bw=$('hBw').value||$('bw').value;
   return hadList.map((r,i)=>{ if(i===hadSel) return null; const x=r.had, H=HAD[x.key]; const ap=x.amp||H.amp;
-    const o=hadCalc(x.key,{doses:x.doses,bw,amt:x.amt,vol:x.vol,rate:x.rate,line:x.line||'peripheral',crcl:pt.dial?0:pt.crcl,amp:ap,ampTxt:x.ampTxt||H.ampTxt,dil:x.dil||''});
+    const o=hadCalc(x.key,{k:x.key==='kcl'?pt.k:null,doses:x.doses,bw,amt:x.amt,vol:x.vol,rate:x.rate,line:x.line||'peripheral',crcl:pt.dial?0:pt.crcl,amp:ap,ampTxt:x.ampTxt||H.ampTxt,dil:x.dil||''});
     if(o.conc==null) return {i,name:H.name,st:'อ่านไม่ครบ',txt:`■ ${H.name} — อ่านคำสั่งไม่ครบ (ยา ${x.amt||'–'} ${H.u} · สารน้ำ ${x.vol||'–'} ml · rate ${x.rate??'–'} ml/h) — กดปุ่มชื่อยาเพื่อกรอกเอง`};
     const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
     const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
@@ -399,7 +400,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

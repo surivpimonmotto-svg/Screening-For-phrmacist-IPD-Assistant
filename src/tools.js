@@ -148,11 +148,19 @@ const REF_FILES=[
  ['แนวทาง IPD','ipd-screening-guideline.pdf','การคัดกรองและทบทวนคำสั่งใช้ยาของห้องจ่ายยาผู้ป่วยในโดยเภสัชกร','screening ipd คัดกรอง'],
  ['แนวทาง IPD','di-warfarin-flow-ipd-2568.jpg','ผังปฏิบัติเมื่อพบอันตรกิริยา warfarin (DI-L1/L2/L3) ผู้ป่วยใน (MKH-PR-PHA พ.ค. 2568)','warfarin di interaction flow'],
  ['เครื่องคำนวณ (Excel)','opioid-dose-calculation.xlsx','Opioid Dose Calculation — ประเมิน/คำนวณขนาดยา (total oral morphine)','opioid morphine ome excel'],
+ ['ADR / แพ้ยา','adr-type-a-card-list.pdf','รายการ ADR Type A ที่ต้องลงบันทึกในคอมพิวเตอร์และออกบัตรแพ้ยา (รพ.มค)','adr type a บัตรแพ้ยา agranulocytosis'],
+ ['ADR / แพ้ยา','adr-type-a-academic.pdf','Type A ADR — อาการ · Lab · การจัดการ (academic in-service รพ.มค · 35 หน้า · 13 MB)','adr type a qt brady agranulocytosis mala rhabdo','big'],
+ ['ADR / แพ้ยา','drug-provocation-test-2017.pdf','Pro and Contra: Provocation Tests in Drug Hypersensitivity (Int J Mol Sci 2017, open access)','dpt provocation rechallenge แพ้ยา'],
+ ['ADR / แพ้ยา','mala-slides.pptx','Metformin-associated lactic acidosis (MALA) — สไลด์','mala metformin lactic'],
+ ['การบริหารยา','drugs-before-meal-2565.docx','รายการยาที่ควรรับประทานก่อนอาหารหรือท้องว่าง (2565 edit)','ก่อนอาหาร ท้องว่าง ac food'],
+ ['TB','tb-ltbi-cpg-2566.pdf','แนวทางเวชปฏิบัติวัณโรคระยะแฝง (TPT) กองวัณโรค ส.ค. 2566 — สรุป (78 หน้า)','ltbi tpt วัณโรคแฝง 3hp 1hp'],
+ ['TB','jc-truncate-tb.pdf','Journal club: TRUNCATE-TB — 8-week strategy for rifampin-susceptible TB','truncate tb journal club'],
+ ['เบาหวาน','dm-drugs-guideline-2568.pdf','Anti-diabetes drugs & update DM guideline (AC รพ.มค 2568 · 48 หน้า · 37 MB)','dm เบาหวาน sglt2 glp1 metformin insulin','big'],
  ['เครื่องคำนวณ (Excel)','calc-formulas.xlsx','สูตรคำนวณ: Colistin · Vancomycin level · Inotrope · Opioid · น้ำเกลือดูดออก/เติมเข้า (dextrose)','colistin vancomycin inotrope dextrose excel']];
 function refFilesHtml(q){ const L=REF_FILES.filter(f=>!q||(f.join(' ')).toLowerCase().includes(q)); if(!L.length) return '';
-  const ic=f=>/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
+  const ic=f=>/\.pptx$/.test(f)?'📽':/\.docx$/.test(f)?'📝':/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
   return `<details open style="margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700">📎 เอกสารต้นฉบับ รพ.มค (${L.length} ไฟล์) — คลิกเพื่อเปิด/ดาวน์โหลด</summary>
-   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.xlsx$|drtb-pmdt/.test(f[1])?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.xlsx$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
+   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.(xlsx|docx|pptx)$|drtb-pmdt/.test(f[1])||f[4]==='big'?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.(xlsx|docx|pptx)$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=refFilesHtml(q)+REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
     return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }

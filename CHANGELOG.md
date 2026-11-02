@@ -2,6 +2,12 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.31.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- แท็บ ADR: **5.2 ADR Type A ที่ต้องออกบัตรแพ้ยา + ลงคอม** (นโยบาย รพ.มค 25 รายการ) — เตือนอัตโนมัติเมื่อยาในข้อ 2 อยู่ในรายการ · กดดูอาการ/Lab/การจัดการแต่ละ ADR (QT, bradycardia, agranulocytosis, dystonia, MALA ฯลฯ จาก academic in-service)
+- แท็บ ADR: **5.3 Drug provocation test** — checklist ข้อห้าม (Sahiner 2017 Table 3)
+- หน้าคัดกรอง: ยาที่ควรกินก่อนอาหาร/ท้องว่าง (รายการ รพ.มค 2565, 33 ยา) แต่สั่ง pc → ขึ้น "ข้อมูล" พร้อมเหตุผล
+- คู่มือย่อ: เพิ่มเอกสาร 8 ไฟล์ (ADR type A, DPT, MALA, ยาก่อนอาหาร, LTBI CPG, JC TRUNCATE-TB, DM guideline)
+
 ## v0.30.5 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - เทียบตารางขนาดยาท้ายแบบฟอร์ม DUE ยาต้านจุลชีพควบคุม รพ.มค (Meropenem, Imipenem, Ertapenem, Pip/Tazo, Vancomycin) กับฐานกฎ — ขนาดผู้ใหญ่ตาม CrCl/HD/CAPD/CRRT ตรงกันแล้ว · **เพิ่มขนาดยาเด็กตามฟอร์ม DUE**: Meropenem 10-20 (severe 40) mg/kg/dose, Ertapenem 15 mg/kg q12h, Pip/Tazo 100 mg/kg/dose ของ pip, Vancomycin 45-60 mg/kg/day · Vanco CAPD 7.5 mg/kg q48-96h
 

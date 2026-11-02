@@ -1045,6 +1045,16 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <div id="m48Box"></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
+        <h2>5.2 ADR Type A ที่ต้องออกบัตรแพ้ยา + ลงคอมพิวเตอร์ (นโยบาย รพ.มค)</h2>
+        <label class="f" style="max-width:320px;margin-bottom:6px">ค้นหา<input id="adaQ" placeholder="เช่น agranulocytosis, clozapine"></label>
+        <div id="adaOut"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>5.3 Drug provocation test (DPT) — ทำได้หรือไม่</h2>
+        <p class="hint" style="margin:0 0 6px">ติ๊กข้อที่ตรงกับผู้ป่วย (Sahiner et al. Int J Mol Sci 2017, Table 3)</p>
+        <div id="dptBox" style="display:grid;gap:4px;max-width:820px"></div><div id="dptRes" style="margin-top:8px"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
         <h2>6. แบบประเมินเฉพาะ</h2>
         <div class="seg" style="margin-bottom:12px;max-width:820px;flex-wrap:wrap"><button type="button" data-asm="regi" aria-pressed="true">RegiSCAR (DRESS)</button><button type="button" data-asm="alden" aria-pressed="false">ALDEN (SJS/TEN)</button><button type="button" data-asm="scorten" aria-pressed="false">SCORTEN (SJS/TEN)</button><button type="button" data-asm="agep" aria-pressed="false">EuroSCAR (AGEP)</button><button type="button" data-asm="penfast" aria-pressed="false">PEN-FAST</button><button type="button" data-asm="mala" aria-pressed="false">MALA (metformin)</button><button type="button" data-asm="wc" aria-pressed="false">Chest wall rigidity</button><button type="button" data-asm="phleb" aria-pressed="false">Phlebitis</button></div>
         <div class="asm" id="asm-regi"><div id="aRegiBox"><div class="tlg" id="aRegi"></div><div id="aRegiRes" style="margin-top:10px"></div></div></div>
@@ -2749,6 +2759,50 @@ function chemoChk(row,pt,add){
   return true;
 }
 
+/* ===== foodac.js — รายการยาที่ควรรับประทานก่อนอาหาร/ท้องว่าง (กลุ่มงานเภสัชกรรม รพ.มค 2565 edit)
+ ถ้าคำสั่งระบุ "pc / หลังอาหาร / พร้อมอาหาร" กับยาในรายการ → ขึ้น "ข้อมูล" พร้อมเหตุผล (ไม่เปลี่ยนสถานะรายการ) */
+const SRC_FOODAC='รายการยาที่ควรรับประทานก่อนอาหารหรือท้องว่าง รพ.มค (2565)';
+const FOOD_AC=[
+ [/domperidone|motilium/i,'กรณีแก้อาเจียน ให้ก่อนอาหาร 15–30 นาที (ข้อบ่งใช้อื่น เช่น กระตุ้นน้ำนม ให้หลังอาหารได้)'],
+ [/mebeverine|duspatalin/i,'ดูดซึมดีที่สุดเมื่อกินก่อนอาหาร 20 นาที'],
+ [/metoclopramide|plasil/i,'กรณีแก้อาเจียน กินก่อนอาหาร 30 นาที'],
+ [/bismuth/i,'อาจรบกวนการดูดซึมยาอื่น ควรกินก่อนอาหาร'],
+ [/esomeprazole|nexium/i,'อาหารลด AUC 43–53% — กินก่อนอาหาร 1 ชม.'],
+ [/lansoprazole/i,'อาหารลด Cmax/AUC 50–70% — กินตอนท้องว่าง'],
+ [/omeprazole|miracid/i,'อาหารลด Cmax 63%, AUC 24% — กินก่อนอาหาร 1 ชม.'],
+ [/sucralfate|ulsanic/i,'ต้องเคลือบกระเพาะ — กินก่อนอาหาร 1 ชม. และก่อนนอน'],
+ [/captopril/i,'อาหารลดการดูดซึม 30–40% — กินก่อนอาหาร 1 ชม.'],
+ [/isosorbide\s*dinitrate|\bisdn\b|isordil/i,'กินก่อนอาหาร 30 นาที'],
+ [/cilostazol|pletaal/i,'อาหารไขมันสูงเพิ่มการดูดซึม — กินก่อนอาหาร 30 นาที หรือหลังอาหาร 2 ชม.'],
+ [/gemfibrozil/i,'อาหารลด AUC 14–44%, Cmax 50–60% — กินก่อนอาหาร 30 นาที'],
+ [/cyproheptadine/i,'กรณีกระตุ้นความอยากอาหาร ให้ก่อนอาหาร 30 นาที'],
+ [/madopar|vopar|levodopa/i,'อาหารลด AUC/Cmax และ Tmax นานขึ้น — กินก่อนอาหาร 30 นาที'],
+ [/dicloxacillin/i,'อาหารลดการดูดซึม — กินก่อนอาหาร 1 ชม. หรือหลังอาหาร 2 ชม.'],
+ [/penicillin\s*v|pen\s*v\b/i,'อาหารลด peak — ควรกินก่อนอาหาร 1 ชม. (จำเป็นอาจกินพร้อมอาหารได้)'],
+ [/azithromycin.*(cap|250)|zithromax\s*cap/i,'(แคปซูล) อาหารกระตุ้นกรดทำลายยา — กินก่อนอาหาร 1 ชม. หรือหลังอาหาร 2 ชม.'],
+ [/erythromycin/i,'ดูดซึมดีตอนท้องว่าง — กินก่อนอาหาร 0.5–1 ชม. หรือหลังอาหาร 2 ชม.'],
+ [/roxithromycin|rulid/i,'อาหารลดการดูดซึม 21% — กินก่อนอาหาร (ถ้าระคายเคืองทางเดินอาหาร กินหลังอาหารได้)'],
+ [/ciprofloxacin|levofloxacin|norfloxacin|ofloxacin|moxifloxacin|cravit|avelox/i,'จับกับ Ca²⁺/Fe²⁺/Mg²⁺/Al³⁺ ในอาหาร/ยา — กินห่างจากนม แคลเซียม เหล็ก antacid 2 ชม.'],
+ [/isoniazid|\binh\b|rifampicin|rifinah|rifafour|rimstar/i,'อาหารลด Cmax — กินตอนท้องว่าง (ก่อนอาหาร 1 ชม. หรือหลังอาหาร 2 ชม.) · ถ้าทน S/E ไม่ได้ ให้หลังอาหารได้'],
+ [/entecavir|baraclude/i,'อาหารลด Cmax 44–46%, AUC 18–20% — กินก่อนหรือหลังอาหาร 2 ชม.'],
+ [/ivermectin/i,'อาหารเพิ่มการดูดซึม 2.5 เท่า (เพิ่ม ADR) — กินตอนท้องว่าง'],
+ [/gliclazide|glipizide|minidiab|diamicron/i,'onset 15–60 นาที — กินก่อนอาหาร 30 นาที ให้ออกฤทธิ์ตรงกับน้ำตาลที่ขึ้นหลังอาหาร'],
+ [/levothyroxine|euthyrox|eltroxin|thyrox/i,'อาหารลดการดูดซึม — กินก่อนอาหาร 0.5–1 ชม. และห่างจาก Ca/Fe 4 ชม.'],
+ [/alendronate|fosamax/i,'อาหารลดการดูดซึม 60% — กินก่อนอาหาร 30 นาที กับน้ำเปล่าเต็มแก้ว ห้ามนอนหลังกิน 30 นาที'],
+ [/trospium|spasmo-?lyt/i,'อาหารไขมันสูงลด AUC/Cmax 70–80% — กินก่อนอาหาร 1 ชม.'],
+ [/melphalan|alkeran/i,'อาหารไขมันสูงลด AUC 36–54% — กินก่อนอาหาร 1 ชม. หรือหลังอาหาร 2 ชม.'],
+ [/nilotinib|tasigna/i,'อาหารไขมันสูงเพิ่ม AUC 80% — กินก่อนอาหาร 1 ชม. (และหลังอาหาร 2 ชม.)'],
+ [/mycophenolate|cellcept/i,'อาหารลด Cmax 40% — กินตอนท้องว่าง (stable แล้วกินพร้อมอาหารได้)'],
+ [/deferasirox|exjade/i,'อาหารเพิ่ม AUC — กินก่อนอาหาร 30 นาที'],
+];
+function foodAcCheck(row){ const raw=row.raw||'', mm=typeof masterOf==='function'?masterOf(row):null, t=raw+' '+(mm?mm[1]+' '+(mm[2]||''):'');
+  if(/\b(inj|iv|im|sc)\b|ฉีด/i.test(raw)) return null;
+  const hit=FOOD_AC.find(f=>f[0].test(t)); if(!hit) return null;
+  const pc=/\bp\.?c\.?\b|หลังอาหาร|พร้อมอาหาร|with\s*(food|meal)/i.test(raw), ac=/\ba\.?c\.?\b|ก่อนอาหาร|ท้องว่าง|empty/i.test(raw);
+  if(pc&&!ac) return {lvl:'info',txt:`ควรกินก่อนอาหาร/ท้องว่าง แต่คำสั่งระบุหลังอาหาร: ${hit[1]} (${SRC_FOODAC})`};
+  return null; }
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ const f=foodAcCheck(row); if(f&&r&&r.items&&!r.items.some(i=>i.txt===f.txt)) r.items.push(f); }catch(e){} return r; })(evaluate);
+
 /* ===== policy.js — มาตรการ/ระเบียบการสั่งยาของ รพ. ===== */
 
 /* ---------- ยาพ่น Asthma/COPD ---------- */
@@ -3327,7 +3381,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.31.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4050,11 +4104,19 @@ const REF_FILES=[
  ['แนวทาง IPD','ipd-screening-guideline.pdf','การคัดกรองและทบทวนคำสั่งใช้ยาของห้องจ่ายยาผู้ป่วยในโดยเภสัชกร','screening ipd คัดกรอง'],
  ['แนวทาง IPD','di-warfarin-flow-ipd-2568.jpg','ผังปฏิบัติเมื่อพบอันตรกิริยา warfarin (DI-L1/L2/L3) ผู้ป่วยใน (MKH-PR-PHA พ.ค. 2568)','warfarin di interaction flow'],
  ['เครื่องคำนวณ (Excel)','opioid-dose-calculation.xlsx','Opioid Dose Calculation — ประเมิน/คำนวณขนาดยา (total oral morphine)','opioid morphine ome excel'],
+ ['ADR / แพ้ยา','adr-type-a-card-list.pdf','รายการ ADR Type A ที่ต้องลงบันทึกในคอมพิวเตอร์และออกบัตรแพ้ยา (รพ.มค)','adr type a บัตรแพ้ยา agranulocytosis'],
+ ['ADR / แพ้ยา','adr-type-a-academic.pdf','Type A ADR — อาการ · Lab · การจัดการ (academic in-service รพ.มค · 35 หน้า · 13 MB)','adr type a qt brady agranulocytosis mala rhabdo','big'],
+ ['ADR / แพ้ยา','drug-provocation-test-2017.pdf','Pro and Contra: Provocation Tests in Drug Hypersensitivity (Int J Mol Sci 2017, open access)','dpt provocation rechallenge แพ้ยา'],
+ ['ADR / แพ้ยา','mala-slides.pptx','Metformin-associated lactic acidosis (MALA) — สไลด์','mala metformin lactic'],
+ ['การบริหารยา','drugs-before-meal-2565.docx','รายการยาที่ควรรับประทานก่อนอาหารหรือท้องว่าง (2565 edit)','ก่อนอาหาร ท้องว่าง ac food'],
+ ['TB','tb-ltbi-cpg-2566.pdf','แนวทางเวชปฏิบัติวัณโรคระยะแฝง (TPT) กองวัณโรค ส.ค. 2566 — สรุป (78 หน้า)','ltbi tpt วัณโรคแฝง 3hp 1hp'],
+ ['TB','jc-truncate-tb.pdf','Journal club: TRUNCATE-TB — 8-week strategy for rifampin-susceptible TB','truncate tb journal club'],
+ ['เบาหวาน','dm-drugs-guideline-2568.pdf','Anti-diabetes drugs & update DM guideline (AC รพ.มค 2568 · 48 หน้า · 37 MB)','dm เบาหวาน sglt2 glp1 metformin insulin','big'],
  ['เครื่องคำนวณ (Excel)','calc-formulas.xlsx','สูตรคำนวณ: Colistin · Vancomycin level · Inotrope · Opioid · น้ำเกลือดูดออก/เติมเข้า (dextrose)','colistin vancomycin inotrope dextrose excel']];
 function refFilesHtml(q){ const L=REF_FILES.filter(f=>!q||(f.join(' ')).toLowerCase().includes(q)); if(!L.length) return '';
-  const ic=f=>/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
+  const ic=f=>/\.pptx$/.test(f)?'📽':/\.docx$/.test(f)?'📝':/\.xlsx$/.test(f)?'📊':/\.jpg$|\.png$/.test(f)?'🖼':'📄', groups=[...new Set(L.map(f=>f[0]))];
   return `<details open style="margin-bottom:10px;border:1px solid var(--line);border-radius:10px;padding:8px 12px"><summary style="cursor:pointer;font-weight:700">📎 เอกสารต้นฉบับ รพ.มค (${L.length} ไฟล์) — คลิกเพื่อเปิด/ดาวน์โหลด</summary>
-   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.xlsx$|drtb-pmdt/.test(f[1])?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.xlsx$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
+   ${groups.map(g=>`<div style="margin-top:8px"><div class="hint" style="font-weight:700">${esc(g)}</div><ul style="margin:2px 0;padding-left:20px">${L.filter(f=>f[0]===g).map(f=>`<li style="margin:2px 0">${ic(f[1])} <a href="${/\.(xlsx|docx|pptx)$|drtb-pmdt/.test(f[1])||f[4]==='big'?REF_BASE:''}docs/ref/${f[1]}" target="_blank" rel="noopener">${esc(f[2])}</a> <span class="hint">${/\.(xlsx|docx|pptx)$/.test(f[1])?'(ดาวน์โหลด)':''}</span></li>`).join('')}</ul></div>`).join('')}</details>`; }
 function renderRef(){ const q=($('refQ').value||'').toLowerCase();
   $('refOut').innerHTML=refFilesHtml(q)+REF.map(r=>{ const txt=(r.t+' '+r.h).toLowerCase(); if(q&&!txt.includes(q)) return '';
     return `<details class="refbox"${q?' open':''}><summary>${esc(r.t)}</summary><div class="refbody">${r.h}<p class="hint">ที่มา: ${esc(r.src)}</p></div></details>`; }).join('')||'<div class="empty">ไม่พบหัวข้อ</div>'; }
@@ -6024,6 +6086,83 @@ function adrPrintHPVC(){ const pa=adrPrintMKH(true); const back=pa.innerHTML; co
   <td><b>ข้อมูลผู้รายงาน</b><br>ผู้แจ้ง/ผู้คัดกรอง ${[['md','แพทย์'],['ph','เภสัชกร'],['rn','พยาบาล'],['pt','ผู้ป่วย'],['oth','อื่นๆ']].map(([k,l])=>`${bx(f.repBy===k)} ${l}`).join(' ')}<br>ผู้วินิจฉัยอาการ ................ เป็น ${[['md','แพทย์'],['ph','เภสัชกร'],['rn','พยาบาล'],['oth','อื่นๆ']].map(([k,l])=>`${bx(f.dxBy===k)} ${l}`).join(' ')}<br>ผู้ประเมิน/บันทึกรายงาน ................ เป็น ☑ เภสัชกร<br>วันที่รายงาน ................ · โรงพยาบาลมหาสารคาม จ.มหาสารคาม โทร. 043 740993</td></tr></table></div>`;
   pa.innerHTML=front+`<div style="break-before:page">${back}</div>`; window.print(); }
 if($('aPrintHP')) $('aPrintHP').onclick=adrPrintHPVC;
+
+/* ===== adra.js — แท็บ ADR: (ก) ADR Type A ที่ต้องออกบัตรแพ้ยา + ลงคอมพิวเตอร์ (นโยบาย รพ.มค) พร้อมอาการ/Lab/การจัดการ
+   (ข) Drug provocation test (DPT) — ทำได้หรือไม่
+ แหล่ง: ประกาศรายการ ADR Type A ที่ต้องลงบันทึกและออกบัตรแพ้ยา รพ.มค · Academic in-service "Type A ADR" (นสภ. ม.มหาสารคาม, รพ.มค)
+        · Sahiner UM et al. Pro and Contra: Provocation Tests in Drug Hypersensitivity. Int J Mol Sci 2017;18:1437 (Table 3) */
+const ADRA=[
+ {g:'ยาจิตเวช',d:'Haloperidol inj',re:/haloperidol|haldol/i,adr:'Arrhythmia, AF, QT prolongation',k:'qt'},
+ {g:'ยาจิตเวช',d:'Clozapine',re:/clozapin|clozaril/i,adr:'Agranulocytosis, Seizure, Myocarditis',k:'agran|seiz|myo'},
+ {g:'ยาจิตเวช',d:'Chlorpromazine',re:/chlorpromazin|largactil/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'ยาจิตเวช',d:'Antipsychotic (haloperidol, fluphenazine, perphenazine ฯลฯ)',re:/haloperidol|fluphenazin|perphenazin|trifluoperazin|risperid|olanzap|quetiap|aripipraz|chlorpromazin|zuclopenth|flupent/i,adr:'Acute dystonia',k:'dyst'},
+ {g:'Palliative',d:'Fentanyl',re:/fentanyl|durogesic/i,adr:'Chest wall rigidity',k:'rigid'},
+ {g:'Anti-inflammatory',d:'Sulfasalazine',re:/sulfasalaz|salazopyrin/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Antithyroid',d:'Methimazole (MMI)',re:/methimazol|thiamazol|\bmmi\b/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Antithyroid',d:'Propylthiouracil (PTU)',re:/propylthio|\bptu\b/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Antiepileptic',d:'Phenytoin',re:/phenytoin|dilantin/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Antibiotic',d:'Co-trimoxazole',re:/cotrimox|co-trimox|bactrim|sulfameth|trimethoprim/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Antibiotic',d:'Dapsone',re:/dapsone/i,adr:'Agranulocytosis',k:'agran|methb'},
+ {g:'Oral chemotherapy',d:'Methotrexate (MTX)',re:/methotrex|\bmtx\b/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Oral chemotherapy',d:'Cyclophosphamide (Endoxan)',re:/cyclophosph|endoxan/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Oral chemotherapy',d:'Hydroxyurea',re:/hydroxyurea|hydrea/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'Iron chelator',d:'Deferiprone (GPO-L-ONE)',re:/deferipron|gpo-?l/i,adr:'Agranulocytosis',k:'agran'},
+ {g:'ARV',d:'Zidovudine (AZT)',re:/zidovud|\bazt\b|zilarvir/i,adr:'Anemia (bone marrow suppression)',k:'anemia'},
+ {g:'ARV',d:'Tenofovir disoproxil (TDF)',re:/tenofovir(?!.*alafen)|\btdf\b|teno-?em|acriptega|\btld\b|gpovir/i,adr:'Fanconi syndrome',k:'fanconi'},
+ {g:'Antimalarial',d:'Chloroquine / Hydroxychloroquine',re:/chloroquin|plaquenil/i,adr:'Maculopathy',k:'macul'},
+ {g:'ยาวัณโรค',d:'Isoniazid / Rifampicin / Pyrazinamide',re:/isoniazid|\binh\b|rifamp|pyrazinam|rifinah|rifafour|rimstar/i,adr:'Hepatitis (DILI)',k:'hep'},
+ {g:'ยาวัณโรค',d:'Ethambutol',re:/ethambut/i,adr:'Optic neuritis',k:'optic'},
+ {g:'Antihyperlipidemic',d:'Statins',re:/statin\b|simvast|atorvast|rosuvast|pravast|pitavast/i,adr:'Rhabdomyolysis',k:'rhabdo'},
+ {g:'Aminoglycoside',d:'Amikacin',re:/amikac|amikin/i,adr:'Ototoxicity',k:'oto'},
+ {g:'Diuretic',d:'Furosemide',re:/furosem|lasix/i,adr:'Ototoxicity',k:'oto'},
+ {g:'Antidiabetic',d:'Metformin',re:/metformin/i,adr:'Lactic acidosis (MALA)',k:'mala'},
+ {g:'Cardiovascular',d:'Digoxin, Beta-blocker, CCB (verapamil/diltiazem), Amiodarone, Ivabradine ฯลฯ',re:/digoxin|olol\b|verapamil|diltiazem|amiodaron|cordarone|ivabradin/i,adr:'Bradycardia / Heart block',k:'brady'},
+];
+// การจัดการ (สรุปจาก academic in-service Type A ADR รพ.มค)
+const ADRA_MX={
+ qt:['QT prolongation','ใจสั่น เวียนศีรษะ เป็นลม หัวใจหยุดเต้นเฉียบพลัน','EKG: QTc ปกติ ชาย <440, หญิง <470 ms · >500 ms หรือเพิ่ม >25% จาก baseline → เสี่ยง TdP · K, Mg, Ca, TSH','แก้ปัจจัยเสี่ยง (K/Mg/Ca ต่ำ, ยาเสริม QT) · QTc ยาวแต่ไม่มี TdP/หมดสติ อาจใช้ยาต่อพร้อมเฝ้าระวัง · QTc >500 หรือเพิ่ม >25% ควรหยุดยา · TdP: MgSO4 2 g (50% 4 ml เจือจาง D5W ≥10 ml) IV แล้วพิจารณา overdrive pacing'],
+ brady:['Bradycardia / Heart block','HR <50 ขณะตื่น เวียนศีรษะ เป็นลม เหนื่อยง่าย สับสน เจ็บหน้าอก BP ต่ำ','ECG (PR >200 ms, Mobitz II, CHB) · ระดับยา digoxin · electrolyte · ไต','หยุด/ลดยา · มีอาการ: Atropine IV → ไม่ตอบสนองให้ dopamine/epinephrine · Mobitz II/CHB: temporary pacing'],
+ myo:['Myocarditis (clozapine)','เจ็บหน้าอก เหนื่อย ใจสั่น ไข้ (มักใน 4–8 สัปดาห์แรก)','Troponin, CRP, EKG, Echo (LV function)','หยุด clozapine · ไม่มีอาการ LV ปกติ: รักษาตามอาการ · มี LV dysfunction/arrhythmia/HF/hemodynamic ไม่คงที่: ICU, IV steroid/IVIG, mechanical support'],
+ agran:['Agranulocytosis','ไข้ เจ็บคอ กลืนเจ็บ แผลในปาก','ANC <500/mm³ โดย Hb/plt ไม่ลดมาก · เกิดระหว่างใช้ยาหรือภายใน 7 วันหลังหยุด และฟื้น ANC >1,500 ภายใน 1 เดือนหลังหยุดยา · แยกโรค: ไวรัส, เคมีบำบัด, โรคเลือด','หยุดยาทันที · มีไข้: เริ่ม empirical ATB (pip/tazo, cefepime หรือ carbapenem) · พิจารณา G-CSF (filgrastim) 5 mcg/kg/day SC · oral care, สารน้ำ, โภชนาการ'],
+ anemia:['Anemia / bone marrow suppression (AZT)','ซีด อ่อนเพลีย ใจสั่น เหนื่อยง่าย','Hb↓ (WBC/plt↓) · MCV↑ (macrocytosis) · reticulocyte↓ · folate/B12 ปกติ','หยุด AZT เปลี่ยนสูตร ARV · รายงาน ADR · PRC เมื่อ Hb <7 g/dL'],
+ methb:['Methemoglobinemia (dapsone)','cyanosis เหนื่อย SpO2 ต่ำไม่ตอบสนอง O2','Co-oximetry (MetHb) · SpO2 − SaO2 >5%','O2, สารน้ำ · Methylene blue เมื่อมีอาการขาด O2 หรือ MetHb สูง — ห้ามใน G6PD deficiency'],
+ seiz:['Seizure (clozapine)','ชักเกร็งกระตุก myoclonus','ระดับ clozapine >1,000 ng/mL เสี่ยงสูง · electrolyte, glucose','hold clozapine · benzodiazepine PRN · กลับมาใช้ขนาดต่ำลง · พิจารณา valproate ป้องกันชัก'],
+ dyst:['Acute dystonia','ตาเหลือก (oculogyric crisis) คอบิด ขากรรไกรเกร็ง หลังแอ่น laryngospasm','ไม่มี lab เฉพาะ (CK, electrolyte เพื่อแยกโรค)','Benztropine 1–2 mg IV/IM หรือ Diphenhydramine 25–50 mg IV/IM (ซ้ำได้) · ให้ anticholinergic กินต่อ 7 วัน (trihexyphenidyl/benztropine) · ไม่ดีขึ้นหลัง 2 ครั้ง ทบทวนการวินิจฉัย'],
+ rigid:['Chest wall rigidity (fentanyl)','กล้ามเนื้อทรวงอกแข็ง ช่วยหายใจไม่ได้ (มักฉีดเร็ว/ขนาดสูง)','—','หยุด/ลดอัตราการให้ · naloxone · ถ้าจำเป็นให้ neuromuscular blocker + ช่วยหายใจ · ให้ fentanyl IV ช้า ๆ'],
+ fanconi:['Fanconi syndrome (TDF)','อ่อนเพลีย ปวดกระดูก กล้ามเนื้ออ่อนแรง ปัสสาวะมาก','PO4↓ K↓ uric acid↓ metabolic acidosis (HCO3↓) Cr↑ glycosuria/proteinuria','หยุด TDF เปลี่ยนเป็น TAF (หรือยาอื่น) · ทดแทน PO4/K/bicarbonate'],
+ macul:['Maculopathy (HCQ/CQ)','ระยะแรกไม่มีอาการ ตามัว ดวงมืดกลางลานสายตา','ลานสายตา, OCT, mfERG (คัดกรองตามระยะ)','หยุดยา (ไม่มียารักษา · การดำเนินโรคอาจไม่หยุดหลังหยุดยา)'],
+ hep:['Hepatitis / DILI (ยา TB)','คลื่นไส้ อาเจียน เบื่ออาหาร ปวดท้องขวาบน ดีซ่าน','ALT ≥5×ULN หรือ ALP ≥2×ULN หรือ ALT ≥3×ULN + bilirubin >2×ULN','Grade 1 ติดตาม LFT · Grade 2 hold ยา · Grade 3–4 หยุดยา แล้ว reintroduce ทีละตัวตามแนวทาง TB'],
+ optic:['Optic neuritis (ethambutol)','มองเห็นลดลง central scotoma แยกสีแดง-เขียวผิดปกติ (มักสองข้าง)','ตรวจตา (visual acuity, color vision)','หยุด ethambutol · ปรับสูตร TB (เช่น HRZ + levofloxacin/moxifloxacin)'],
+ rhabdo:['Rhabdomyolysis (statin)','ปวด/อ่อนแรง/บวมกล้ามเนื้อ ปัสสาวะสีเข้ม','CPK >10×ULN · Cr, K, Ca, PO4','หยุด statin · NSS 10–15 ml/kg/h ให้ UO >2 ml/kg/h · แก้ K สูง · พิจารณา HD ตามข้อบ่งชี้'],
+ oto:['Ototoxicity','หูอื้อ เวียนศีรษะ บ้านหมุน การได้ยินลดลง ทรงตัวไม่ได้','Pure tone audiometry (เสียงความถี่สูงเสียก่อน)','ติดตามการได้ยิน · หยุด/ลดยา (ไม่รุนแรงอาจดีขึ้น) · รุนแรง: เครื่องช่วยฟัง/ประสาทหูเทียม'],
+ mala:['Lactic acidosis (MALA)','อ่อนเพลีย หายใจเร็วลึก คลื่นไส้ ปวดท้อง ซึม ช็อก','lactate ≥5 mmol/L, pH <7.35, HCO3↓, AG↑ (มักมี CKD/hypoxia/sepsis)','หยุด metformin · supportive · NaHCO3 เฉพาะ pH <7.1 หรือ hemodynamic ไม่คงที่ · HD เมื่อ lactate >15, pH ≤7.0, ไตวาย หรือไม่ตอบสนอง (ดูแบบประเมิน MALA ข้อ 6)'],
+};
+function adraFind(name){ return ADRA.filter(x=>x.re.test(name||'')); }
+function adraRender(){ const box=$('adaOut'); if(!box) return; const q=($('adaQ').value||'').trim().toLowerCase();
+  const ds=(typeof ADR!=='undefined'&&ADR.drugs?ADR.drugs.filter(d=>d.name):[]), hits=[];
+  ds.forEach(d=>adraFind(d.name).forEach(a=>hits.push([d,a])));
+  const mx=k=>k.split('|').map(x=>ADRA_MX[x]).filter(Boolean).map(m=>`<div style="margin:4px 0 6px;padding:6px 8px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent);border-radius:4px"><b>${m[0]}</b><div class="hint" style="margin:2px 0">อาการ: ${esc(m[1])}</div><div class="hint" style="margin:2px 0">Lab/เกณฑ์: ${esc(m[2])}</div><div style="font-size:13px">การจัดการ: ${esc(m[3])}</div></div>`).join('');
+  const alert=hits.length?`<ul class="msgs">${hits.map(([d,a])=>`<li><span class="tag ${d.role==='S'?'flag':'warn'}">${d.role==='S'?'ต้องทำ':'เฝ้าระวัง'}</span><span><b>${esc(d.name)}</b> (${d.role==='S'?'ยาที่สงสัย':'ยาร่วม'}) อยู่ในรายการ ADR Type A ของ รพ. — <b>${esc(a.adr)}</b>${d.role==='S'?' · ถ้าเกิดอาการนี้: <b>ออกบัตรแพ้ยา + ลงบันทึกในคอมพิวเตอร์</b>':''}</span></li>`).join('')}</ul>`:'<p class="hint" style="margin:0 0 6px">ยังไม่พบยาในข้อ 2 ที่อยู่ในรายการ — ใส่ยาที่สงสัยแล้วจะเตือนอัตโนมัติ</p>';
+  const rows=ADRA.filter(a=>!q||(a.g+a.d+a.adr).toLowerCase().includes(q));
+  box.innerHTML=`${alert}<table class="ctbl"><thead><tr><th>กลุ่มยา</th><th>ยา</th><th>อาการ (ADR Type A)</th></tr></thead><tbody>${rows.map(a=>`<tr><td class="hint">${esc(a.g)}</td><td><b>${esc(a.d)}</b></td><td><details><summary>${esc(a.adr)}</summary>${mx(a.k)}</details></td></tr>`).join('')}</tbody></table>
+   <p class="hint" style="margin-top:6px"><b>ADR type A อื่น ๆ:</b> ออกบัตร + ลงคอม เมื่อแพทย์วินิจฉัยว่าใช้ยาต่อไม่ได้ หรือผู้ป่วยปฏิเสธการใช้ยาเพราะอาการข้างเคียง · ที่มา: ประกาศรายการ ADR Type A ที่ต้องออกบัตรแพ้ยา รพ.มค · การจัดการสรุปจาก academic in-service Type A ADR (รพ.มค)</p>`; }
+// ---- DPT
+const DPT_C=[
+ ['p','ผู้ป่วย','Asthma ที่ยังควบคุมไม่ได้'],['p','ผู้ป่วย','โรคเรื้อรังที่ยังควบคุมไม่ได้ (หัวใจ ปอด ติดเชื้อ จิตเวช)'],['p','ผู้ป่วย','ตั้งครรภ์'],['p','ผู้ป่วย','ใช้ β-blocker (หรือ ACEI)'],['p','ผู้ป่วย','โรคหัวใจที่ห้ามใช้ adrenaline'],
+ ['r','ปฏิกิริยาเดิม','Vasculitis'],['r','ปฏิกิริยาเดิม','ผื่นตุ่มน้ำ: SJS / TEN / bullous FDE'],['r','ปฏิกิริยาเดิม','AGEP'],['r','ปฏิกิริยาเดิม','Drug-induced autoimmune (SLE, pemphigus)'],['r','ปฏิกิริยาเดิม','DRESS / drug hypersensitivity syndrome'],['r','ปฏิกิริยาเดิม','อวัยวะภายใน: ตับอักเสบ ไตอักเสบ เม็ดเลือดผิดปกติ'],['r','ปฏิกิริยาเดิม','Anaphylaxis รุนแรง'],
+ ['d','ตัวยา','ไม่จำเป็นต้องใช้ยานี้ และมียาทางเลือกโครงสร้างต่างกันหลายตัว'],
+];
+function dptRender(){ const out=$('dptRes'); if(!out) return; const on=[...document.querySelectorAll('#dptBox input:checked')].map(x=>DPT_C[+x.value]);
+  const abs=on.filter(c=>c[0]==='r'&&!/Anaphylaxis/.test(c[2])), rel=on.filter(c=>c[0]!=='r'||/Anaphylaxis/.test(c[2]));
+  out.innerHTML=abs.length?`<div class="rflag"><b>ไม่ควรทำ DPT</b> — ปฏิกิริยาเดิมรุนแรง (${abs.map(c=>esc(c[2])).join(', ')}) · หลีกเลี่ยงยาเดิม/ยาโครงสร้างใกล้เคียงตลอดไป ออกบัตรแพ้ยา</div>`
+   :rel.length?`<ul class="msgs"><li><span class="tag warn">ทบทวน</span><span>มีข้อห้าม/ไม่เหมาะ: ${rel.map(c=>esc(c[2])).join(', ')} — เลื่อนหรือใช้ยาทางเลือก · ถ้าจำเป็นต้องทำ ให้แพทย์ภูมิแพ้ประเมิน ทำในที่ที่พร้อมกู้ชีพ</span></li></ul>`
+   :`<ul class="msgs"><li><span class="tag ok">OK</span><span>ไม่พบข้อห้ามจากรายการ — DPT ทำได้โดยแพทย์ (ภูมิแพ้) ในหน่วยที่พร้อมกู้ชีพ · เว้น ≥4–6 สัปดาห์หลังหายจากปฏิกิริยา · หยุด antihistamine ก่อนตามกำหนด · เริ่มขนาดต่ำแล้วเพิ่มทีละขั้นพร้อมเฝ้าระวัง</span></li></ul>`; }
+(function(){ if(!$('adaOut')) return;
+  $('dptBox').innerHTML=DPT_C.map((c,i)=>`<label class="rchk"><input type="checkbox" value="${i}"><span><span class="hint">${c[1]}:</span> ${esc(c[2])}</span></label>`).join('');
+  $('dptBox').addEventListener('change',dptRender); $('adaQ').addEventListener('input',adraRender);
+  let t=0; const p=$('p-adr'); ['input','change','click'].forEach(ev=>p.addEventListener(ev,e=>{ if(e.target.closest&&e.target.closest('#adaOut,#dptBox')) return; clearTimeout(t); t=setTimeout(adraRender,300); }));
+  $('t-adr').addEventListener('click',()=>setTimeout(adraRender,50));
+  adraRender(); dptRender(); })();
 
 /* ===== ocr.js — วางรูป (Snipping Tool / Print Screen) ลงช่องวางข้อความ → อ่านตัวอักษรด้วย Tesseract.js ในเบราว์เซอร์ =====
  ภาพไม่ถูกส่งออกจากเครื่อง · ไฟล์ OCR อยู่ใน vendor/ocr/ ของ repo (GitHub Pages) — ถ้าเปิดจากที่อื่นใช้ CDN jsdelivr แทน

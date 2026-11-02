@@ -1045,6 +1045,16 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <div id="m48Box"></div>
       </div>
       <div class="panel sec" style="margin:0 0 14px">
+        <h2>5.2 ADR Type A ที่ต้องออกบัตรแพ้ยา + ลงคอมพิวเตอร์ (นโยบาย รพ.มค)</h2>
+        <label class="f" style="max-width:320px;margin-bottom:6px">ค้นหา<input id="adaQ" placeholder="เช่น agranulocytosis, clozapine"></label>
+        <div id="adaOut"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>5.3 Drug provocation test (DPT) — ทำได้หรือไม่</h2>
+        <p class="hint" style="margin:0 0 6px">ติ๊กข้อที่ตรงกับผู้ป่วย (Sahiner et al. Int J Mol Sci 2017, Table 3)</p>
+        <div id="dptBox" style="display:grid;gap:4px;max-width:820px"></div><div id="dptRes" style="margin-top:8px"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
         <h2>6. แบบประเมินเฉพาะ</h2>
         <div class="seg" style="margin-bottom:12px;max-width:820px;flex-wrap:wrap"><button type="button" data-asm="regi" aria-pressed="true">RegiSCAR (DRESS)</button><button type="button" data-asm="alden" aria-pressed="false">ALDEN (SJS/TEN)</button><button type="button" data-asm="scorten" aria-pressed="false">SCORTEN (SJS/TEN)</button><button type="button" data-asm="agep" aria-pressed="false">EuroSCAR (AGEP)</button><button type="button" data-asm="penfast" aria-pressed="false">PEN-FAST</button><button type="button" data-asm="mala" aria-pressed="false">MALA (metformin)</button><button type="button" data-asm="wc" aria-pressed="false">Chest wall rigidity</button><button type="button" data-asm="phleb" aria-pressed="false">Phlebitis</button></div>
         <div class="asm" id="asm-regi"><div id="aRegiBox"><div class="tlg" id="aRegi"></div><div id="aRegiRes" style="margin-top:10px"></div></div></div>

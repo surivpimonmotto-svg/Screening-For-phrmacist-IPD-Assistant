@@ -706,7 +706,9 @@ function hadCalc(key,inp){
     // ห้องยาเลือกถุงที่มีจริง (100 / 250 ml) ให้พอใช้ 24 ชม. แล้วใส่ยาให้ได้ความเข้มข้นเท่าคำสั่ง
     // ยาที่เปิดแล้วไม่แบ่งข้ามถุง → ปัด amp ขึ้นต่อถุง · เลือกชุดถุง (250/100 ml ผสมกันได้) ที่ใช้ยาน้อยที่สุด
     const ampPer=bag=>{let p=bag*conc/per1; return h.tenth?Math.ceil(p/10-1e-9)*10:Math.ceil(p-1e-9);};
-    const cands=[]; for(let a=0;a<=12;a++) for(let b=0;b<=12;b++){ const v=a*250+b*100; if(!(a+b)||v<out.volDay-1e-9) continue;
+    // ถุงต้องไม่เล็กกว่าปริมาตรที่แพทย์สั่ง — สั่ง 125 ml (ไม่มีผลิตภัณฑ์) → ใช้ถุง 250 ml แทน ไม่ลดเป็น 100 ml
+    const no100=vol>100+1e-9; if(no100&&vol!==250&&vol<=250) add('info',`ไม่มีถุง ${fmtN(vol)} ml — ใช้ถุง 250 ml ความเข้มข้นเท่าคำสั่ง (${fmtN(conc)} ${h.u}/ml)`);
+    const cands=[]; for(let a=0;a<=12;a++) for(let b=0;b<=12;b++){ const v=a*250+b*100; if(!(a+b)||v<out.volDay-1e-9||(no100&&b)) continue;
       cands.push({a,b,v,amp:a*ampPer(250)+b*ampPer(100),bags:a+b}); }
     cands.sort((x,y)=>x.amp-y.amp||x.bags-y.bags||x.v-y.v);
     const best=cands[0]||{a:0,b:1,v:100,amp:ampPer(100),bags:1};

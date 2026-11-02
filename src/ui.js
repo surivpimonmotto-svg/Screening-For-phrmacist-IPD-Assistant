@@ -215,10 +215,11 @@ function hadAmpSel(k,want){ const h=HAD[k], el=$('hAmpSz'); $('hAmpSzW').hidden=
 $('hInd').innerHTML=HEP_IND.map((x,i)=>`<option value="${i}">${x[0]}</option>`).join('');
 const HAD_EX={amio:[900,500,33],ntg:[50,250,6],propofol:[500,50,10],cisatra:[100,50,3],dexmed:[200,50,10],ne:[8,125,15],adr:[10,100,10],dopa:[250,250,10],dobu:[250,250,10],nica:[10,100,25],fenta:[500,100,5],kcl:[40,1000,80],mg:[20,460,25],hep:[10000,100,10]};
 function loadHadEx(){const k=$('hDrug').value,e=HAD_EX[k]; $('hAmt').value=e[0];$('hVol').value=e[1];$('hRate').value=e[2];$('hAmp').value=+(e[0]/hadAmp(k).v).toFixed(2);}
-function hadNote(k,h,o,cu){
+function hadNote(k,h,o,cu,V){
   const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
-  const amt=$('hAmt').value, amp=$('hAmp').value, vol=$('hVol').value, rate=$('hRate').value, bw=$('hBw').value;
-  const lineSel=$('hLine'), line=lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'';
+  const lineSel=$('hLine');
+  const amt=V?V.amt:$('hAmt').value, amp=V?V.amp:$('hAmp').value, vol=V?V.vol:$('hVol').value, rate=V?V.rate:$('hRate').value, bw=V?V.bw:$('hBw').value;
+  const line=V?V.line:(lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'');
   const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
   const L=[`■ ${h.name} — ผล: ${st}`,
    `  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
@@ -247,16 +248,19 @@ function renderHad(){
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
   if(k==='kcl') kv.push(['จ่ายยา',`${o.ampDispense} amp (${o.kclDoses} ครั้ง × ${o.ampPerDose} amp)${o.kclDefault?' · ไม่ระบุจำนวนครั้ง = 1 dose':''}`]); else kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
-  $('hOut').innerHTML=`<h2>ผลคำนวณ</h2>
+  const oth=hadOtherNotes(), allNote=[hadNote(k,h,o,cu),...oth.map(x=>x.txt)].join('\n\n');
+  const multi=oth.length?`<div class="band w" style="margin-bottom:10px"><b>คำสั่งนี้มียา HAD ${oth.length+1} รายการ</b> — ด้านล่างแสดงรายละเอียด ${esc(h.name)} · รายการอื่น: ${oth.map(x=>`<button type="button" class="btn sm" data-ho="${x.i}">${esc(x.name)} · ${esc(x.st)}</button>`).join(' ')} · note ด้านล่างรวมทุกรายการแล้ว</div>`:'';
+  $('hOut').innerHTML=multi+`<h2>ผลคำนวณ</h2>
    <div class="big" style="margin-bottom:12px"><span class="n">${fmtN(o.dose)}</span><span class="u">${esc(o.doseU||'')}</span></div>
    <dl class="kv" style="margin-bottom:12px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
    <ul class="msgs">${o.checks.map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>
    <p class="hint" style="margin:12px 0 4px">ข้อความ note</p>
    <div class="inrow" style="justify-content:flex-end;margin:-26px 0 4px"><button class="btn sm pri" id="hCopy" type="button">คัดลอก</button><span class="toast" id="hToast"></span></div>
-   <div class="note" id="hNote" style="min-height:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.6">${esc(hadNote(k,h,o,cu))}</div>`;
-  $('hCopy').onclick=()=>copyRich('',hadNote(k,h,o,cu),$('hToast'));
+   <div class="note" id="hNote" style="min-height:auto;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.6">${esc(allNote)}</div>`;
+  $('hCopy').onclick=()=>copyRich('',allNote,$('hToast'));
+  $('hOut').querySelectorAll('[data-ho]').forEach(b=>b.onclick=()=>{ hadSel=+b.dataset.ho; hadFill(hadList[hadSel]); });
 }
-$('hDrug').addEventListener('change',()=>{hadDil={}; $('hDoses').value='';hadAmpSel($('hDrug').value);loadHadEx();renderHad();});
+$('hDrug').addEventListener('change',()=>{hadDil={}; hadList=[]; $('hDoses').value='';hadAmpSel($('hDrug').value);loadHadEx();renderHad();});
 $('hAmpSz').addEventListener('change',()=>{const a=+$('hAmt').value;$('hAmp').value=a>0?+(a/hadAmp($('hDrug').value).v).toFixed(2):'';renderHad();});
 $('hAmp').addEventListener('input',()=>{const a=+$('hAmp').value;if(a>0)$('hAmt').value=+(a*hadAmp($('hDrug').value).v).toFixed(3);renderHad();});
 ['hAmt','hVol','hRate','hBw','hDoses'].forEach(id=>$(id).addEventListener('input',()=>{if(id==='hAmt'){const a=+$('hAmt').value;$('hAmp').value=a>0?+(a/hadAmp($('hDrug').value).v).toFixed(2):'';}renderHad();}));
@@ -268,12 +272,21 @@ function hadFill(r){ const h=r.had; hadDil={[h.key]:h.dil||''}; $('hDrug').value
   $('hLine').value=h.line||'peripheral'; if(!$('hBw').value&&$('bw').value) $('hBw').value=$('bw').value; renderHad();
   const miss=[!(h.amt>0)&&'ปริมาณยา',!(h.vol>0)&&'สารน้ำ (ml)',h.rate==null&&'rate (ml/h)'].filter(Boolean);
   hMsg(miss.length?`อ่านได้บางส่วน — กรอกเพิ่ม: ${miss.join(', ')}`:`อ่านแล้ว: ${HAD[h.key].name} ${h.amt} ${HAD[h.key].u} / ${h.vol} ml · ${h.rate} ml/h${h.how==='conc'?` (สูตร ${fmtN(h.amt/h.vol)} mg/ml · ใช้ ${fmtN(h.rate*24)} ml/วัน → ถุง ${h.vol} ml${Math.ceil(h.rate*24/h.vol)>1?` × ${Math.ceil(h.rate*24/h.vol)} ถุง/วัน`:''})`:''}${h.line?'':' · ไม่ระบุสาย ตั้งเป็น Peripheral (เปลี่ยนได้)'}`); }
-function hadFromText(t){ const rs=joinLines(String(t||'').split(/\n/)).map(parseLine).filter(r=>r&&r.had), pk=$('hPick');
+var hadList=[], hadSel=0, hadLastT='';
+function hadFromText(t){ const rs=joinLines(String(t||'').split(/\n/)).map(parseLine).filter(r=>r&&r.had), pk=$('hPick'); const same=t===hadLastT&&hadSel<rs.length; hadLastT=t; hadList=rs; if(!same) hadSel=0;
   if(!rs.length){ pk.innerHTML=''; hMsg('ไม่พบยา HAD ที่คำนวณได้ในข้อความ (เช่น Norepinephrine, Dopamine, Adrenaline, KCl, MgSO4, Heparin, Insulin)'); return; }
   pk.innerHTML=rs.length>1?'<span class="hint">พบ '+rs.length+' รายการ เลือก:</span>'+rs.map((r,i)=>`<button type="button" class="btn sm" data-hp="${i}">${esc(HAD[r.had.key].name)} ${r.had.amt||''}/${r.had.vol||''}</button>`).join(''):'';
-  pk.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>hadFill(rs[+b.dataset.hp])); hadFill(rs[0]); }
+  pk.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{ hadSel=+b.dataset.hp; hadFill(rs[hadSel]); }); hadFill(rs[hadSel]); }
+// note ของยา HAD รายการอื่นที่อยู่ในคำสั่งเดียวกัน (คำนวณจากคำสั่ง ไม่ใช่จากช่องกรอก)
+function hadOtherNotes(){ if(hadList.length<2) return []; const pt=getPt(), bw=$('hBw').value||$('bw').value;
+  return hadList.map((r,i)=>{ if(i===hadSel) return null; const x=r.had, H=HAD[x.key]; const ap=x.amp||H.amp;
+    const o=hadCalc(x.key,{doses:x.doses,bw,amt:x.amt,vol:x.vol,rate:x.rate,line:x.line||'peripheral',crcl:pt.dial?0:pt.crcl,amp:ap,ampTxt:x.ampTxt||H.ampTxt,dil:x.dil||''});
+    if(o.conc==null) return {i,name:H.name,st:'อ่านไม่ครบ',txt:`■ ${H.name} — อ่านคำสั่งไม่ครบ (ยา ${x.amt||'–'} ${H.u} · สารน้ำ ${x.vol||'–'} ml · rate ${x.rate??'–'} ml/h) — กดปุ่มชื่อยาเพื่อกรอกเอง`};
+    const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
+    const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
+    return {i,name:H.name,st,o,txt:hadNote(x.key,H,o,cu,{amt:x.amt,amp:+(x.amt/ap).toFixed(2),vol:x.vol,rate:x.rate,bw,line:x.line==='central'?'Central':'Peripheral'})}; }).filter(Boolean); }
 { let t=0; $('hPaste').addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(()=>{ if($('hPaste').value.trim()) hadFromText($('hPaste').value); },700); });
-  $('hRead').onclick=()=>hadFromText($('hPaste').value); $('hClr').onclick=()=>{ $('hPaste').value=''; $('hPick').innerHTML=''; };
+  $('hRead').onclick=()=>hadFromText($('hPaste').value); $('hClr').onclick=()=>{ $('hPaste').value=''; $('hPick').innerHTML=''; hadList=[]; renderHad(); };
   $('hFromScr').onclick=()=>{ const rs=(typeof rows!=='undefined'?rows:[]).filter(r=>r.had); if(!rs.length){ hMsg('หน้าคัดกรองไม่มียา HAD'); return; } $('hPaste').value=rs.map(r=>r.raw).join('\n'); hadFromText($('hPaste').value); }; }
 
 
@@ -378,7 +391,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

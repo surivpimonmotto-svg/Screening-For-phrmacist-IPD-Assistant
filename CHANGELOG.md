@@ -9,6 +9,9 @@
 
 ---
 
+## v0.29.8 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- แก้อ่าน rate ผิด: "GLYCERYL TRINITRATE 25 MG/5ML … rate 12 ml/hr" อ่าน "TRINITRATE 25" เป็น rate 25 · ตอนนี้ใช้ "xx ml/hr" ก่อน และคำว่า rate ต้องเป็นคำแยก → rate 12 ml/h ถูกต้อง
+
 ## v0.29.7 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - ยา HAD: บรรทัด Rate ใน note ต่อท้ายปริมาตรต่อวัน เช่น "Rate : 5 ml/h × 24 ชม. = 120 ml/วัน" (หน้าคัดกรองก็แสดง) ไม่ต้องคูณเอง
 

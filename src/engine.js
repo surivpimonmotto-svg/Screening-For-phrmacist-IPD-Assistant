@@ -208,7 +208,8 @@ function parseLine(raw){
   if(!form&&strength!=null&&!row.mlMg){row.unitMg=strength;}
   if(drug&&HADKEY[drug.id]){ const L=line;
     const ratio=L.match(/(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)/);
-    const rate=L.match(/(\d+(?:\.\d+)?)\s*(?:cc|ml|mcd|µd|ud)\s*\/\s*(?:hr|h|ชม|min)|rate\s*(\d+(?:\.\d+)?)/i);
+    // ใช้ "xx ml/hr" ก่อน แล้วค่อย "rate xx" (ต้องเป็นคำ rate แยก — กัน "TRINITRATE 25" อ่านเป็น rate 25)
+    const rate=L.match(/(\d+(?:\.\d+)?)\s*(?:cc|ml|mcd|µd|ud)\s*\/\s*(?:hr|h|ชม|min)()/i)||L.match(/()\brate\s*(\d+(?:\.\d+)?)/i);
     const dil=(L.match(/\b(nss|0\.9\s*%?\s*nss|ns|d5w|d5s|d5|d10w|swfi|sterile water|nss\/2)\b/i)||[])[1]||'';
     const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*)?(?:nss|ns|d5w|d5s|d5|swfi)?\s*(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i)||L.match(/\b(?:nss|d5w|d5s|swfi)\s*\(\s*(\d+)\s*(?:ml)?\s*\)/i);
     let amt=null,vol=null,how='';

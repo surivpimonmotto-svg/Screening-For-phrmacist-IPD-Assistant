@@ -403,7 +403,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <textarea class="paste" id="paste" spellcheck="false" aria-label="ข้อความคำสั่งใช้ยา"></textarea>
           <div class="inrow" style="margin-top:8px;justify-content:space-between">
             <span class="hint">1 บรรทัด = 1 รายการ · รองรับ 2x2, ครั้งละ 1 เม็ด วันละ 3 ครั้ง, 2 g iv q 8 hr, 1 ช้อนชา, 3 ครั้ง/สัปดาห์</span>
-            <div class="inrow"><button class="btn" id="parseAdd" type="button">เพิ่มต่อท้าย</button><button class="btn pri" id="parseRep" type="button">แยกรายการ</button></div>
+            <div class="inrow"><button class="btn" id="parseAdd" type="button" title="วิเคราะห์ข้อความที่วาง แล้วเพิ่มต่อจากรายการยาที่มีอยู่ (ไม่ลบของเดิม)">+ วิเคราะห์เพิ่ม (ต่อจากรายการเดิม)</button><button class="btn pri" id="parseRep" type="button" title="วิเคราะห์ข้อความที่วางใหม่ทั้งหมด (แทนรายการเดิม)">🔍 วิเคราะห์ใบสั่งยา</button></div>
           </div>
         </div>
         <div id="keyBox" hidden>
@@ -2949,10 +2949,13 @@ function freqOpts(F){const has=FREQ_OPTS.some(([v])=>F!=null&&Math.abs(+v-F)<0.0
   return (F==null?'<option value="" selected>? ความถี่</option>':'')+(has||F==null?'':`<option value="${F}" selected>${esc(freqLabel(F))}</option>`)+FREQ_OPTS.map(([v,l])=>`<option value="${v}"${F!=null&&Math.abs(+v-F)<0.002?' selected':''}>${l}</option>`).join('');}
 function drugOpts(id){return `<option value=""${!id?' selected':''}>— ไม่พบในฐาน —</option>`+SORTED.map(d=>`<option value="${d.id}"${d.id===id?' selected':''}>${esc(d.name)}</option>`).join('')}
 
+// ลำดับข้อความแบบแท็บ HAD: ผลคำนวณ → เหมาะสม → ต้อง consult → ทบทวน → ข้อมูลเพิ่มเติม
+const MSG_RANK={ok:1,flag:2,warn:3,info:4};
+function msgOrder(items){ return items.map((m,i)=>({m,i,r:m.lvl==='info'&&/^คำนวณได้|^=|^จ่าย/.test(m.txt)?(/^จ่าย/.test(m.txt)?4.5:0):(MSG_RANK[m.lvl]??4)})).sort((a,b)=>a.r-b.r||a.i-b.i).map(x=>x.m); }
 function renderRows(){
   const pt=getPt(); renderCalc(pt);
   const host=$('rows');
-  if(!rows.length){host.innerHTML='<div class="empty">ยังไม่มีรายการยา — วางข้อความคำสั่งใช้ยาแล้วกด "แยกรายการ" หรือคีย์จาก scan order</div>';$('sum').innerHTML='';buildNote([],pt);return;}
+  if(!rows.length){host.innerHTML='<div class="empty">ยังไม่มีรายการยา — วางข้อความคำสั่งใช้ยาแล้วกด "🔍 วิเคราะห์ใบสั่งยา" หรือคีย์จาก scan order</div>';$('sum').innerHTML='';buildNote([],pt);return;}
   const evs=rows.map(r=>evaluate(r,pt,rows));
   const cnt={flag:0,warn:0,ok:0,none:0}; evs.forEach(e=>cnt[e.status]++);
   $('sum').innerHTML=`<span class="pill flag">ต้อง consult ${cnt.flag}</span><span class="pill warn">ทบทวน ${cnt.warn}</span><span class="pill ok">OK ${cnt.ok}</span><span class="pill none">ไม่มีกฎ ${cnt.none}</span>`;
@@ -2970,7 +2973,7 @@ function renderRows(){
         <select class="ctl" data-i="${i}" data-k="F" aria-label="ความถี่">${freqOpts(r.F)}</select>
         <button class="x" type="button" data-del="${i}" aria-label="ลบรายการ">✕</button>
       </div>
-      ${e.items.length?`<ul class="msgs">${e.items.map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>`:''}
+      ${e.items.length?`<ul class="msgs">${msgOrder(e.items).map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>`:''}
     </article>`}).join('');
   buildNote(evs,pt);
 }
@@ -3281,7 +3284,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.9 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

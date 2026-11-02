@@ -559,6 +559,17 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         </div>
         <div class="panel sec hres" style="margin:0" id="jOut"></div>
         <div class="panel sec" style="margin:0">
+          <h2>ผ่าตัด/หัตถการ — หยุดและเริ่มยาต้านการแข็งตัวของเลือด</h2>
+          <div class="grid2">
+            <label class="f">ยา<select id="poDrug"><option value="warf">Warfarin</option><option value="dabi">Dabigatran</option><option value="riva">Rivaroxaban</option><option value="apix">Apixaban</option><option value="edox">Edoxaban</option><option value="ap">ยาต้านเกล็ดเลือด (aspirin, P2Y12)</option></select></label>
+            <label class="f">วันผ่าตัด/หัตถการ<input id="poDate" placeholder="dd/mm/yy"></label>
+            <label class="f" style="grid-column:1/-1">ความเสี่ยงเลือดออกของหัตถการ<select id="poBld"></select></label>
+            <label class="f" style="grid-column:1/-1" id="poThrW">ความเสี่ยงลิ่มเลือด (ข้อบ่งใช้ warfarin)<select id="poThr"></select></label>
+          </div>
+          <p class="hint" style="margin:4px 0 0">CrCl ใช้จากแผงผู้ป่วย (สำหรับ DOAC และ enoxaparin)</p>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="poOut"></div>
+        <div class="panel sec" style="margin:0">
           <h2>Methylprednisolone inj — ขนาด · vial · การผสม</h2>
           <div class="grid2">
             <label class="f" style="grid-column:1/-1">แบบการให้<select id="mReg"></select></label>

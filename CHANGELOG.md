@@ -2,6 +2,10 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.33.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- แท็บคำนวณ HAD: **ผ่าตัด/หัตถการ — หยุดและเริ่มยาต้านการแข็งตัว**: warfarin ตาม thrombotic risk × bleeding risk (วันหยุด, ตรวจ INR, bridging LMWH ขนาดป้องกัน/รักษา, เริ่มยาใหม่) · DOAC ตาม CrCl (EHRA 2021) · ยาต้านเกล็ดเลือด · คำนวณเป็นวันที่จากวันผ่าตัด
+- คู่มือย่อ: เพิ่ม periop warfarin (WA Health), HLA-B*57:01 abacavir, angioedema
+
 ## v0.32.9 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - Atlas ผื่น: เพิ่มการ์ด **Seborrheic dermatitis** (ตำแหน่งต่อมไขมัน, Malassezia, ปัจจัยกระตุ้น, แยกจากผื่นแพ้สัมผัส/psoriasis, การรักษาหนังศีรษะ/หน้า/ลำตัว)
 

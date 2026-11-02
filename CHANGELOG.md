@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.30.5 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- เทียบตารางขนาดยาท้ายแบบฟอร์ม DUE ยาต้านจุลชีพควบคุม รพ.มค (Meropenem, Imipenem, Ertapenem, Pip/Tazo, Vancomycin) กับฐานกฎ — ขนาดผู้ใหญ่ตาม CrCl/HD/CAPD/CRRT ตรงกันแล้ว · **เพิ่มขนาดยาเด็กตามฟอร์ม DUE**: Meropenem 10-20 (severe 40) mg/kg/dose, Ertapenem 15 mg/kg q12h, Pip/Tazo 100 mg/kg/dose ของ pip, Vancomycin 45-60 mg/kg/day · Vanco CAPD 7.5 mg/kg q48-96h
+
 ## vX.Y.Z — วันที่ — ผู้แก้
 - แก้อะไร  (ที่มา: เอกสาร/ใบ DUE/ป้าย)
 - ผู้ตรวจทาน: …

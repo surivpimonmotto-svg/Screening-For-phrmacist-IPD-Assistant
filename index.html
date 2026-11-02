@@ -1106,6 +1106,7 @@ const MKH_SEAL='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACdCAIAAAC8Se
 const B=(lo,hi,txt,d,t,x={})=>({lo,hi,txt,d,t,...x});
 const M=(txt,d,t,x={})=>({txt,d,t,...x});
 const SRC_RENAL='คู่มือขนาดยาไตบกพร่อง DIS 2568 (Sanford 2023)';
+const SRC_DUE='ตารางขนาดยาต้านจุลชีพชนิดควบคุม (แบบฟอร์ม DUE รพ.มหาสารคาม)';
 const SRC_HD='สรุปการบริหารยาผู้ป่วย HD (เม.ย. 2566)';
 const SRC_TB='ตารางขนาดยา TB ≥15 ปี (มาตรฐาน คกก. รพ.มค. แก้ไข 10/4/2566 ตามแนวทาง TB 2564) / TB เด็ก 21/3/2566';
 const SRC_PED='ขนาดยาที่ใช้บ่อยในเด็ก DIS 2568';
@@ -1159,7 +1160,7 @@ const KB=[
    HD:M('2.25 g q12h (+ extra 0.75 g AD)',2250,4500),CAPD:M('2.25 g q12h',2250,4500),CRRT:M('2.25 g q6h',2250,9000)},
   {name:'Pseudomonas',bands:[B(40,999,'4.5 g q6h (over 30 min)',4500,18000),B(20,40,'3.375 g q6h',3375,13500),B(0,20,'2.25 g q6h',2250,9000)],
    HD:M('2.25 g q8h (+ extra 0.75 g AD)',2250,6750),CAPD:M('2.25 g q8h',2250,6750),CRRT:M('MIC<16: 3.375 g q6h / MIC 16-64: 4.5 g (over 4 h) q8h',4500,13500)}],
- hdNote:HDN.extra,src:SRC_RENAL},
+ hdNote:HDN.extra,peds:{type:'dose',kg:[90,112.5],max:18000,note:'DUE รพ.: 100 mg/kg/dose ของ piperacillin (= 112.5 mg/kg ของ pip/tazo) · ทั่วไป 80-100 mg/kg pip q6-8h',src:SRC_DUE},src:SRC_RENAL},
 
 /* ---------------- Cephalosporins ---------------- */
 {id:'cefazolin',name:'Cefazolin IV',match:/cefa.?zolin/i,fam:'cephalosporin',unit:'mg',forms:[[/1\s*g/i,'1 g vial',1000,'vial']],
@@ -1198,7 +1199,7 @@ const KB=[
 {id:'ertapenem',name:'Ertapenem',match:/ertapenem|invanz/i,fam:'carbapenem',cls:'carbapenem',unit:'mg',forms:[[/1\s*g/i,'1 g vial',1000,'vial']],
  renal:{bands:[B(30,999,'1 g q24h',1000,1000),B(0,30,'0.5 g q24h',500,500)],
   HD:M('0.5 g q24h (+ extra 150 mg AD ถ้าให้ยา <6 ชม.ก่อนฟอก) หรือ 0.5 g 3 ครั้ง/สัปดาห์ AD',650,650),CAPD:M('0.5 g q24h',500,500),CRRT:M('0.5-1 g q24h',1000,1000),
-  hdNote:'HD: ให้ตามรอบปกติ ถ้าให้ยาก่อนฟอกไม่ถึง 6 ชม. ให้เพิ่ม 150 mg หลังฟอก ถ้ารอบตรงเวลาฟอกให้เลื่อนมาหลังฟอก'},src:SRC_RENAL},
+  hdNote:'HD: ให้ตามรอบปกติ ถ้าให้ยาก่อนฟอกไม่ถึง 6 ชม. ให้เพิ่ม 150 mg หลังฟอก ถ้ารอบตรงเวลาฟอกให้เลื่อนมาหลังฟอก'},peds:{type:'dose',kg:[15,15],max:1000,note:'DUE รพ.: 15 mg/kg/dose q12h (max 1 g/วัน)',src:SRC_DUE},src:SRC_RENAL},
 
 {id:'imipenem',name:'Imipenem/cilastatin',match:/imipenem|tienam/i,fam:'carbapenem',cls:'carbapenem',unit:'mg',forms:[[/500/,'500 mg vial',500,'vial']],
  variants:[{name:'Usual dose',bands:[B(90,999,'500 mg q6h หรือ 1 g q8h',1000,[2000,3000]),B(60,90,'500 mg q6h',500,2000),B(30,60,'500 mg q8h',500,1500),B(15,30,'500 mg q12h',500,1000),B(0,15,'ไม่มีข้อมูล',null,null,{nodata:true})],
@@ -1212,7 +1213,7 @@ const KB=[
    HD:M('0.5 g q24h (วันฟอกให้หลังฟอก)',500,500),CAPD:M('0.5 g q24h',500,500),CRRT:M('750 mg q8h',750,2250)},
   {name:'Severe / meningitis',bands:[B(50,999,'2 g q8h',2000,6000),B(25,50,'2 g q12h',2000,4000),B(10,25,'1 g q12h',1000,2000),B(0,10,'1 g q24h',1000,1000)],
    HD:M('1 g q24h (วันฟอกให้หลังฟอก)',1000,1000),CAPD:M('1 g q24h',1000,1000),CRRT:M('1.5 g q8h',1500,4500)}],
- hdNote:HDN.shift,src:SRC_RENAL},
+ hdNote:HDN.shift,peds:{type:'dose',kg:[10,20],kgHi:40,max:6000,note:'DUE รพ.: mild-moderate 10-20 mg/kg/dose q6-8h · severe/meningitis 40 mg/kg/dose q8h (max 2 g/dose)',src:SRC_DUE},src:SRC_RENAL},
 
 /* ---------------- Macrolides / others ---------------- */
 {id:'clari',name:'Clarithromycin',match:/clarithro|klacid/i,unit:'mg',forms:[[/500/,'500 mg tab',500],[/250/,'250 mg tab',250]],
@@ -1277,8 +1278,8 @@ const KB=[
 
 {id:'vanco',name:'Vancomycin',match:/vanco/i,unit:'mg',kgDose:true,forms:[[/500/,'500 mg vial',500,'vial'],[/1\s*g/i,'1 g vial',1000,'vial']],
  renal:{bands:[B(51,999,'15-20 mg/kg q12h (ไม่เกิน 2 g/dose)',20,40,{kg:true,dmax:2000}),B(20,51,'15-20 mg/kg q24h',20,20,{kg:true,dmax:2000}),B(0,20,'15-20 mg/kg q48h หรือนานกว่า',20,10,{kg:true,dmax:2000})],
-  HD:M('MD 7.5-10 mg/kg หลังฟอก เฉพาะวันที่ฟอก',10,10,{kg:true}),CAPD:M('q48-96h หรือ 1 g q7days',null,null,{nodata:true}),CRRT:M('7.5-10 mg/kg q12h',10,20,{kg:true})},
- note:'LD 20-30 mg/kg (ABW, max 3 g) ในการติดเชื้อรุนแรง — แนะนำ TDM',hdNote:'HD: ให้ยาหลังฟอก เฉพาะวันที่ฟอกไต',src:SRC_RENAL},
+  HD:M('MD 7.5-10 mg/kg หลังฟอก เฉพาะวันที่ฟอก',10,10,{kg:true}),CAPD:M('7.5 mg/kg q48-96h หรือ 1 g q7days',null,null,{nodata:true}),CRRT:M('7.5-10 mg/kg q12h',10,20,{kg:true})},
+ note:'LD 20-30 mg/kg (ABW, max 3 g) ในการติดเชื้อรุนแรง — แนะนำ TDM',hdNote:'HD: ให้ยาหลังฟอก เฉพาะวันที่ฟอกไต',peds:{type:'day',kg:[45,60],note:'DUE รพ.: 45-60 mg/kg/day แบ่ง q6-8h · ติดตามระดับยา',src:SRC_DUE},src:SRC_RENAL},
 
 /* ---------------- Antiviral / antifungal ---------------- */
 {id:'acyiv',name:'Acyclovir IV',match:/acyclovir.*(inj|\biv\b|250)/i,unit:'mg',kgDose:true,forms:[[/250/,'250 mg vial',250,'vial']],
@@ -3326,7 +3327,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

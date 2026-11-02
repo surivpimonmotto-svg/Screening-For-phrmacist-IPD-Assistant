@@ -67,6 +67,15 @@ textarea.paste{width:100%;min-height:140px;font-family:var(--mono);font-size:.85
 .btn.sm{padding:4px 10px;font-size:.82rem}
 .hint{font-size:.8rem;color:var(--muted)}
 .sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.rxg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,460px),1fr));gap:12px}
+.rxc{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel)}
+@media (max-width:560px){.rxc{grid-template-columns:1fr}}
+.rxpic img{width:100%;border-radius:10px;display:block}.rxcap{font-size:.72rem;color:var(--muted);text-align:center;margin-top:3px}
+.rxdl{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;margin:4px 0;font-size:.9rem}.rxdl dt{font-weight:700;color:var(--muted);white-space:nowrap}.rxdl dd{margin:0}
+.rxmg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.rxm{margin:0;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--panel)}.rxmp{display:grid;grid-auto-flow:column;gap:6px}.rxm figcaption{margin-top:6px;font-size:.88rem;display:grid;gap:2px}.rxm figcaption span{color:var(--muted)}
+.rx2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:12px}.rxh{margin:0 0 6px;font-size:1rem}
+.rxredbox{border:2px solid var(--flag);border-radius:10px;padding:8px 12px;background:var(--flag-bg)}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;padding:3px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
 .pill.flag{background:var(--flag-bg);color:var(--flag)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.none{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
 .rows{display:grid;gap:10px}
@@ -395,6 +404,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-iou" aria-selected="false">ใบค้างยา</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
+      <button role="tab" id="t-rash" aria-selected="false">Atlas ผื่น</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
       <button role="tab" id="t-ref" aria-selected="false">คู่มือย่อ</button>
       <button role="tab" id="t-kb" aria-selected="false">ฐานกฎยา</button>
@@ -989,6 +999,23 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <div style="display:flex;gap:6px;align-items:center;margin-top:8px"><button type="button" class="btn sm" id="wdFromScr">ดึงคู่ยาจากหน้าคัดกรอง</button><span class="hint" id="wdFormTxt"></span><span class="toast" id="wdMsg0"></span></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="wdOut"></div>
+      </div>
+    </section>
+
+    <section id="p-rash" hidden>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>Atlas ผื่น — ลักษณะรอยโรค · ผื่นแพ้ยา · โรคที่ต้องแยก</h2>
+        <p class="hint" style="margin:0 0 8px">ภาพในหน้านี้เป็น<b>ภาพวาดแผนผัง</b>เพื่อการเรียนรู้ ไม่ใช่ภาพผู้ป่วย · ปุ่ม "ดูรูปจริง" เปิดค้นภาพ DermNet ในแท็บใหม่ · "เพิ่มรูปของฉัน" เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น (ห้ามมีหน้า/ชื่อ/HN) · ใช้ประกอบการเรียนรู้ ไม่ใช่การวินิจฉัย — ประเมินจริงในแท็บ ADR</p>
+        <div class="rx2"><div><h3 class="rxh">วิธีบรรยายผื่น</h3><div id="rxDesc"></div></div><div class="rxredbox"><h3 class="rxh">🚩 สัญญาณผื่นแพ้ยารุนแรง</h3><div id="rxRed"></div></div></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>1. ลักษณะรอยโรค (Morphology)</h2>
+        <div id="rxMorph" class="rxmg"></div>
+      </div>
+      <div class="panel sec" style="margin:0 0 14px">
+        <h2>2. ชนิดผื่น / โรค</h2>
+        <div class="inrow" style="margin-bottom:10px;gap:8px;flex-wrap:wrap"><label class="f" style="min-width:260px">ค้นหา<input id="rxQ" placeholder="เช่น ตุ่มหนอง, allopurinol, เยื่อบุ, ขา"></label><label class="f">กลุ่ม<select id="rxCat"><option value="all">ทั้งหมด</option><option value="drug">ผื่นแพ้ยา / จากยา</option><option value="ddx">โรคที่ต้องแยก (ไม่ใช่ยา)</option><option value="sev">รุนแรง / ฉุกเฉิน</option></select></label><span class="toast" id="rxMsg"></span></div>
+        <div id="rxOut"></div>
       </div>
     </section>
 

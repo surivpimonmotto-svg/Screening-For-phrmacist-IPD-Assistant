@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.31.1 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- นำสไลด์ academic Type A ADR ออกจากคู่มือย่อ (มีชื่อ/รหัสนิสิต) — สรุปการจัดการในแท็บ ADR ยังอยู่
+
 ## v0.31.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - แท็บ ADR: **5.2 ADR Type A ที่ต้องออกบัตรแพ้ยา + ลงคอม** (นโยบาย รพ.มค 25 รายการ) — เตือนอัตโนมัติเมื่อยาในข้อ 2 อยู่ในรายการ · กดดูอาการ/Lab/การจัดการแต่ละ ADR (QT, bradycardia, agranulocytosis, dystonia, MALA ฯลฯ จาก academic in-service)
 - แท็บ ADR: **5.3 Drug provocation test** — checklist ข้อห้าม (Sahiner 2017 Table 3)

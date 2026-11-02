@@ -149,7 +149,6 @@ const REF_FILES=[
  ['แนวทาง IPD','di-warfarin-flow-ipd-2568.jpg','ผังปฏิบัติเมื่อพบอันตรกิริยา warfarin (DI-L1/L2/L3) ผู้ป่วยใน (MKH-PR-PHA พ.ค. 2568)','warfarin di interaction flow'],
  ['เครื่องคำนวณ (Excel)','opioid-dose-calculation.xlsx','Opioid Dose Calculation — ประเมิน/คำนวณขนาดยา (total oral morphine)','opioid morphine ome excel'],
  ['ADR / แพ้ยา','adr-type-a-card-list.pdf','รายการ ADR Type A ที่ต้องลงบันทึกในคอมพิวเตอร์และออกบัตรแพ้ยา (รพ.มค)','adr type a บัตรแพ้ยา agranulocytosis'],
- ['ADR / แพ้ยา','adr-type-a-academic.pdf','Type A ADR — อาการ · Lab · การจัดการ (academic in-service รพ.มค · 35 หน้า · 13 MB)','adr type a qt brady agranulocytosis mala rhabdo','big'],
  ['ADR / แพ้ยา','drug-provocation-test-2017.pdf','Pro and Contra: Provocation Tests in Drug Hypersensitivity (Int J Mol Sci 2017, open access)','dpt provocation rechallenge แพ้ยา'],
  ['ADR / แพ้ยา','mala-slides.pptx','Metformin-associated lactic acidosis (MALA) — สไลด์','mala metformin lactic'],
  ['การบริหารยา','drugs-before-meal-2565.docx','รายการยาที่ควรรับประทานก่อนอาหารหรือท้องว่าง (2565 edit)','ก่อนอาหาร ท้องว่าง ac food'],

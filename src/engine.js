@@ -217,7 +217,9 @@ function parseLine(raw){
       vol=dvol?+dvol[1]:(need?(need<=100?100:need<=750?250:1000):250); amt=Math.round(c*vol*100)/100; how='conc'; }
     else if(ratio){ amt=+ratio[1]; vol=+ratio[2]; how='ratio'; }
     else { const t=[...L.matchAll(DOSE_RE)].filter(x=>!/^\s*$/.test(x[0])); const tk=t.length>=2?t[t.length-1]:t[0]; if(tk) amt=toUnit(+tk[1],tk[2],drug); if(dvol) vol=+dvol[1]; }
-    row.had={key:HADKEY[drug.id],amt,vol,rate:rate?+(rate[1]||rate[2]):null,dil:dil.toUpperCase(),line:/central|cvc|cvp|central line/i.test(L)?'central':/periph|\bpl\b|เส้นเลือดส่วนปลาย/i.test(L)?'peripheral':null,how,dvol:dvol?+dvol[1]:null};
+    // KCl: จำนวนครั้ง/ขวดที่สั่ง เช่น "x 2 ครั้ง", "*2", "2 ขวด" — ไม่ระบุ = dose เดียว (นโยบาย HAD รพ.)
+    let doses=null; if(HADKEY[drug.id]==='kcl'){ const dm=L.match(/[x×*]\s*(\d+)\s*(?:ครั้ง|ขวด|ถุง|doses?|bags?|รอบ)?(?!\s*(?:\d|ml|cc|mg|meq|hr|h\b|ชม|amp))/i)||L.match(/(?:จำนวน|ให้|ต่อ|ทั้งหมด)\s*(\d+)\s*(?:ครั้ง|ขวด|ถุง|doses?|bags?|รอบ)/i)||L.match(/(?<![\d.])(\d+)\s*(?:ขวด|ถุง|doses|bags)(?!ที่)/i); if(dm&&+dm[1]>0&&+dm[1]<=10) doses=+dm[1]; }
+    row.had={doses,key:HADKEY[drug.id],amt,vol,rate:rate?+(rate[1]||rate[2]):null,dil:dil.toUpperCase(),line:/central|cvc|cvp|central line/i.test(L)?'central':/periph|\bpl\b|เส้นเลือดส่วนปลาย/i.test(L)?'peripheral':null,how,dvol:dvol?+dvol[1]:null};
     { const H=HAD[row.had.key], am=line.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?)\s*\/\s*(\d+(?:\.\d+)?)\s*ml/i);
       if(am){ const u=am[2].toLowerCase(), hu=H.u.toLowerCase(); let v=+am[1];
         if(u===hu||(u.startsWith('unit')&&hu==='unit')) row.had.amp=v; else if(u==='mg'&&hu==='mcg') row.had.amp=v*1000; else if(u==='g'&&hu==='mg') row.had.amp=v*1000; else if(u==='mcg'&&hu==='mg') row.had.amp=v/1000;
@@ -343,9 +345,10 @@ function evaluate(row,pt,rows){
     res.D=h.amt; res.T=null;
     if(!(h.amt>0&&h.vol>0)) add('warn',`HAD: อ่านคำสั่งไม่ครบ — อ่านได้ ยา ${h.amt>0?h.amt+' '+H.u:'–'} · สารน้ำ ${h.vol>0?h.vol+' ml':'–'} · rate ${h.rate!=null?h.rate+' ml/h':'–'} (ต้องมีครบ 3 ค่าจึงคำนวณ dose/conc ได้ เช่น 4:250 rate 10 หรือ 8 mg + D5W 250 ml rate 10 cc/hr) — กรอกในแท็บ "คำนวณ HAD"`);
     else if(h.rate==null){ if(h.key==='kcl'){ const c=h.amt/h.vol*1000; add(c>150?'flag':c>80?'warn':'ok',`KCl ${fmtN(h.amt)} mEq ในสารน้ำ ${fmtN(h.vol)} ml = ${fmtN(c)} mEq/L (peripheral ≤80 · central ≤150 mEq/L)`);
-        add('warn',`KCl: คำสั่งไม่ระบุ rate — ถามหอผู้ป่วย/แพทย์ (peripheral ≤10 mEq/h = ใช้เวลาอย่างน้อย ${fmtN(h.amt/10)} ชม. สำหรับ ${fmtN(h.amt)} mEq)`); }
+        add('warn',`KCl: คำสั่งไม่ระบุ rate — ถามหอผู้ป่วย/แพทย์ (peripheral ≤10 mEq/h = ใช้เวลาอย่างน้อย ${fmtN(h.amt/10)} ชม. สำหรับ ${fmtN(h.amt)} mEq)`);
+        { const pb=Math.ceil(h.amt/H.amp-1e-9); add('info',h.doses?`KCl: คำสั่งระบุ ${h.doses} ครั้ง → จ่าย ${h.doses} × ${pb} = ${h.doses*pb} amp`:`KCl: คำสั่งไม่ระบุจำนวนครั้ง → จ่าย 1 dose = ${pb} amp (นโยบาย HAD รพ.) · ต่อหลาย dose ต้องระบุ เช่น "× 2 ครั้ง"`); } }
       else add('warn','HAD: ไม่พบ rate (เช่น 10 cc/hr) — ตรวจ dose ไม่ได้'); }
-    else { const o=hadCalc(h.key,{bw,dil:h.dil,amt:h.amt,vol:h.vol,rate:h.rate,line:h.line,crcl:pt.dial?0:pt.crcl,amp:h.amp,ampTxt:h.ampTxt});
+    else { const o=hadCalc(h.key,{doses:h.doses,bw,dil:h.dil,amt:h.amt,vol:h.vol,rate:h.rate,line:h.line,crcl:pt.dial?0:pt.crcl,amp:h.amp,ampTxt:h.ampTxt});
       const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
       const S=(typeof HAD_STD!=='undefined'&&HAD_STD[h.key])||{};
       // 1) ค่าที่คำนวณได้
@@ -362,7 +365,7 @@ function evaluate(row,pt,rows){
       const miss=[!S.usual&&'usual dose',!S.maxDose&&'max dose/rate',!S.maxConc&&'max conc'].filter(Boolean);
       if(miss.length) add('info',`ยังไม่มีข้อมูล ${miss.join(', ')} ในฐาน — ประเมินส่วนนี้ไม่ได้ (เติมได้ใน kb.js → HAD_STD)`);
       // 4) การจ่าย
-      add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} amp/วัน (amp ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
+      if(h.key==='kcl') add('info',`จ่าย: ${o.ampDispense} amp · ${o.prep}`); else add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} amp/วัน (amp ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
       res.hadOut=o; }
     if(h.how==='ratio'&&h.dvol&&h.dvol<=h.vol) add('info',`คิด conc ตามอัตราส่วน ${h.amt}:${h.vol} (ยา ${h.amt} ${H.u} ในสารน้ำรวม ${h.vol} ml) — สารน้ำ ${h.dvol} ml คือถุงที่ใช้ผสม`);
     else if(h.how==='ratio'&&h.dvol&&h.dvol>h.vol) add('warn',`คำสั่งระบุทั้ง ${h.amt}:${h.vol} และสารน้ำ ${h.dvol} ml — ตรวจว่าความเข้มข้นจริงคือ ${h.amt}/${h.vol} หรือ ${h.amt}/${h.dvol} ${H.u}/ml (ใช้ ${h.amt}:${h.vol} ในการคำนวณ)`);
@@ -715,7 +718,11 @@ function hadCalc(key,inp){
     out.prep=`ประหยัดยาสุด: สารน้ำ ${main.label} + ${h.name} ${main.amp} amp (${fmtN(conc)} ${h.u}/ml เท่าคำสั่ง)`;
     out.prepAlt=alt?`เทียบ: ${alt}`:'';
     if(vol===500) add('info','สารน้ำ 500 ml มีน้อย — พิจารณาเตรียม 250 ml × 2');
-  } else out.ampDispense=Math.ceil(out.ampDay-1e-9);
+  } else if(key==='kcl'&&amt>0){ const perBag=Math.ceil(amt/per1-1e-9), n=+inp.doses>0?+inp.doses:1;
+    out.kclDoses=n; out.kclDefault=!(+inp.doses>0); out.ampPerDose=perBag; out.ampDispense=perBag*n; out.bagHr=rate>0&&vol>0?vol/rate:null;
+    out.prep=`${n} ครั้ง × ${perBag} amp${out.bagHr?` (1 ขวดหมด ~${fmtN(out.bagHr)} ชม.)`:''}`;
+    add('info',out.kclDefault?`KCl: คำสั่งไม่ระบุจำนวนครั้ง → จ่าย 1 dose = ${perBag} amp (นโยบาย HAD รพ. ป้องกันยาเกิน) · ถ้าต้องการต่อหลาย dose แพทย์ต้องระบุ เช่น "× 2 ครั้ง"`:`KCl: คำสั่งระบุ ${n} ครั้ง → จ่าย ${n} × ${perBag} = ${out.ampDispense} amp`); }
+  else out.ampDispense=Math.ceil(out.ampDay-1e-9);
   if(key==='fenta'&&out.ampDispense>30) add('warn','เกิน 30 amp — ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ');
   return out;
 }

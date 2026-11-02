@@ -514,6 +514,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
               <label class="f">ปริมาตรสารน้ำ (ml)<input id="hVol" type="number" step="any" inputmode="decimal"></label>
               <label class="f">Rate (ml/h)<input id="hRate" type="number" step="any" inputmode="decimal"></label>
               <label class="f">น้ำหนัก (kg)<input id="hBw" type="number" step="any" inputmode="decimal"></label>
+              <label class="f" id="hDosesW" hidden>จำนวนครั้งที่สั่ง (KCl)<input id="hDoses" type="number" min="1" step="1" inputmode="numeric" placeholder="ไม่ระบุ = 1"></label>
               <label class="f" id="hLineW">สายให้ยา<select id="hLine"><option value="peripheral">Peripheral</option><option value="central">Central</option><option value="restrict">จำกัดน้ำ (ICU)</option></select></label>
             </div>
             <label class="f" id="hIndW" hidden>ข้อบ่งใช้ Heparin<select id="hInd"></select></label>

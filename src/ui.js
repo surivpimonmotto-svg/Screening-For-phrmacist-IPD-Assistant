@@ -62,6 +62,11 @@ function drugOpts(id){return `<option value=""${!id?' selected':''}>— ไม�
 // ลำดับข้อความแบบแท็บ HAD: ผลคำนวณ → เหมาะสม → ต้อง consult → ทบทวน → ข้อมูลเพิ่มเติม
 const MSG_RANK={ok:1,flag:2,warn:3,info:4};
 function msgOrder(items){ return items.map((m,i)=>({m,i,r:m.lvl==='info'&&/^คำนวณได้|^=|^จ่าย/.test(m.txt)?(/^จ่าย/.test(m.txt)?4.5:0):(MSG_RANK[m.lvl]??4)})).sort((a,b)=>a.r-b.r||a.i-b.i).map(x=>x.m); }
+// หัวข้อแบ่งกลุ่มแบบแท็บ HAD
+const MSG_GRP=[['calc','ผลคำนวณ'],['ok','✓ เหมาะสมเพราะ'],['flag','✗ ต้อง consult เพราะ'],['warn','⚠ ต้องทบทวนเพราะ'],['info','• ข้อมูลเพิ่มเติม']];
+function msgGroups(items){ if(!items.length) return '';
+  const g={}; msgOrder(items).forEach(m=>{ const k=m.lvl==='info'&&/^คำนวณได้|^=/.test(m.txt)?'calc':m.lvl; const t=m.txt.replace(/^(เหมาะสมเพราะ|ไม่เหมาะสม\/ต้องทบทวนเพราะ)\s*:\s*/,''); (g[k]=g[k]||[]).push({...m,txt:t}); });
+  return `<div class="msgs-g">${MSG_GRP.filter(([k])=>g[k]).map(([k,lab])=>`<div class="mg mg-${k}"><div class="mgh">${lab}</div><ul class="msgs">${g[k].map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul></div>`).join('')}</div>`; }
 function renderRows(){
   const pt=getPt(); renderCalc(pt);
   const host=$('rows');
@@ -83,7 +88,7 @@ function renderRows(){
         <select class="ctl" data-i="${i}" data-k="F" aria-label="ความถี่">${freqOpts(r.F)}</select>
         <button class="x" type="button" data-del="${i}" aria-label="ลบรายการ">✕</button>
       </div>
-      ${e.items.length?`<ul class="msgs">${msgOrder(e.items).map(m=>`<li><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>`:''}
+      ${msgGroups(e.items)}
     </article>`}).join('');
   buildNote(evs,pt);
 }
@@ -394,7 +399,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

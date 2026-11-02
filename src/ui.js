@@ -223,7 +223,7 @@ function hadNote(k,h,o,cu,V){
   const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
   const L=[`■ ${h.name} — ผล: ${st}`,
    h.neat?`  สูตรผสม : ไม่เจือจาง (${fmtN(o.conc)} ${cu})${line?` · สาย ${line}`:''}`:`  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
-   `  Rate    : ${rate} ml/h`,
+   `  Rate    : ${rate} ml/h${+rate>0?` × 24 ชม. = ${fmtN(+rate*24)} ml/วัน`:''}`,
    `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
    `  Conc    : ${o.concTxt||fmtN(o.conc)+' '+cu}`,
    k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} ${h.pack||'amp'}/วัน${h.amps?` (${h.pack||'amp'} ${hadAmp(k).t})`:''}${h.neat&&o.volDay?` · ใช้ ${r0(o.volDay)} ml/วัน`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
@@ -391,7 +391,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

@@ -357,7 +357,7 @@ function evaluate(row,pt,rows){
       const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
       const S=(typeof HAD_STD!=='undefined'&&HAD_STD[h.key])||{};
       // 1) ค่าที่คำนวณได้
-      add('info',`คำนวณได้: Conc ${o.concTxt||fmtN(o.conc)+' '+cu} (${H.name} ${h.amt} ${H.u} ใน ${h.vol} ml) · Rate ${h.rate} ml/h = ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${o.doseKg!=null?` (${fmtN(o.doseKg)} mcg/kg/h)`:''}${bw?` · BW ${bw} kg`:''}`);
+      add('info',`คำนวณได้: Conc ${o.concTxt||fmtN(o.conc)+' '+cu} (${H.name} ${h.amt} ${H.u} ใน ${h.vol} ml) · Rate ${h.rate} ml/h (× 24 = ${fmtN(h.rate*24)} ml/วัน) = ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${o.doseKg!=null?` (${fmtN(o.doseKg)} mcg/kg/h)`:''}${bw?` · BW ${bw} kg`:''}`);
       // 2) ค่ามาตรฐาน
       const nd='ยังไม่มีข้อมูล';
       add('info',`มาตรฐาน: Usual dose ${S.usual||nd} · Max dose/rate ${S.maxDose?S.maxDose+(o.maxRate?` (ขอบบนช่วงปกติ = ${r1(o.maxRate)} ml/h ที่ความเข้มข้นนี้)`:''):nd+(o.maxRate?` (ขอบบน usual dose = ${r1(o.maxRate)} ml/h ที่ความเข้มข้นนี้)`:'')} · Max conc ${S.maxConc||nd}${S.src?` — ที่มา: ${S.src}`:''}`);

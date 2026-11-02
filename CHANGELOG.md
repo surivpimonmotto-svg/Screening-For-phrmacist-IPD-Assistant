@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.32.9 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- Atlas ผื่น: เพิ่มการ์ด **Seborrheic dermatitis** (ตำแหน่งต่อมไขมัน, Malassezia, ปัจจัยกระตุ้น, แยกจากผื่นแพ้สัมผัส/psoriasis, การรักษาหนังศีรษะ/หน้า/ลำตัว)
+
 ## v0.32.8 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - Atlas ผื่น: เพิ่มการ์ด **Lichen simplex chronicus** (itch-scratch cycle, lichenification, histopathology, การรักษา, ข้อควรระวัง antihistamine ในผู้สูงอายุ)
 

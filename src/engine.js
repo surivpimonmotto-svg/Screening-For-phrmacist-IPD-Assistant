@@ -163,6 +163,8 @@ function parseLine(raw){
   if(sigTok.length){explicit=+sigTok[0][1];expUnit=sigTok[0][2];}
   else if(nameTok.length>=2){const t=nameTok[nameTok.length-1];explicit=+t[1];expUnit=t[2];}
   if(/^mu$/i.test(expUnit||'')) {explicit=null;}
+  // "480 กรัม" / "480 g" ต่อครั้ง เป็นไปไม่ได้ → น่าจะหมายถึง mg (เตือนให้ยืนยันหน่วย)
+  if(explicit!=null&&/^(g|gm|กรัม)$/i.test(expUnit||'')&&explicit>=50&&(!drug||/^mg/.test(drug.unit||'mg'))){ row.issues.push(`เขียน "${explicit} ${expUnit}" ต่อครั้ง เป็นไปไม่ได้ — น่าจะหมายถึง ${explicit} mg (คำนวณเป็น mg) · ยืนยันหน่วยกับแพทย์`); expUnit='mg'; }
   // ขนาดที่แพทย์ระบุเป็น mg/kg (ต่อครั้ง/ต่อวัน) — ใช้คำนวณกลับ
   const stm=line.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|units?|iu|u)?\s*\/\s*kg\s*\/?\s*(day|d|วัน|dose|ครั้ง)?(?![a-z\/])|(\d+(?:\.\d+)?)\s*(mkd|mkday|mk\s*\/\s*day|mk\s*\/\s*d|mkdose|mk\s*\/\s*dose|mk)(?![a-z])/i);
   if(stm){ let v=+(stm[1]||stm[4]); const tok=(stm[3]||stm[5]||'').toLowerCase().replace(/\s/g,'');

@@ -1124,6 +1124,7 @@ const KB=[
 
 {id:'augiv',name:'Amoxicillin/clavulanate IV (Augmentin 1.2 g)',match:/(augmentin|cavumox|amoxy?.{0,4}clav|amoxiclav).*(inj|\biv\b|1\.2\s*g)/i,fam:'penicillin',cls:'blbi',unit:'mg',
  forms:[[/1\.2/,'1.2 g vial',1200,'vial']],
+ peds:{type:'dose',kg:[25,30],kgHi:30,max:3600,note:'30 mg/kg/ครั้ง (คิดรวม amox+clav ตามขวด 1.2 g) q8h · max 1.2 g/ครั้ง · ทารก <3 เดือน: q12h (แรกเกิด) – q8h',src:'⚑ BNFc (co-amoxiclav IV) — ไม่มีในคู่มือขนาดยาเด็ก รพ. 2568 รอยืนยัน'},
  renal:{bands:[B(30,999,'1.2 g (1 ขวด) IV q8h (ไม่ต้องปรับ)',1200,3600),B(10,30,'1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q12h',1200,1200),B(0,10,'1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q24h',1200,600)],
   HD:M('1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q24h (+ extra dose AD) [ต้นฉบับพิมพ์ "1.2 mg" น่าจะเป็น g]',1200,600),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:{txt:'ไม่มีข้อมูล',nodata:true},hdNote:HDN.extra},src:SRC_RENAL},
 
@@ -1947,6 +1948,8 @@ function parseLine(raw){
   if(sigTok.length){explicit=+sigTok[0][1];expUnit=sigTok[0][2];}
   else if(nameTok.length>=2){const t=nameTok[nameTok.length-1];explicit=+t[1];expUnit=t[2];}
   if(/^mu$/i.test(expUnit||'')) {explicit=null;}
+  // "480 กรัม" / "480 g" ต่อครั้ง เป็นไปไม่ได้ → น่าจะหมายถึง mg (เตือนให้ยืนยันหน่วย)
+  if(explicit!=null&&/^(g|gm|กรัม)$/i.test(expUnit||'')&&explicit>=50&&(!drug||/^mg/.test(drug.unit||'mg'))){ row.issues.push(`เขียน "${explicit} ${expUnit}" ต่อครั้ง เป็นไปไม่ได้ — น่าจะหมายถึง ${explicit} mg (คำนวณเป็น mg) · ยืนยันหน่วยกับแพทย์`); expUnit='mg'; }
   // ขนาดที่แพทย์ระบุเป็น mg/kg (ต่อครั้ง/ต่อวัน) — ใช้คำนวณกลับ
   const stm=line.match(/(\d+(?:\.\d+)?)\s*(mg|mcg|units?|iu|u)?\s*\/\s*kg\s*\/?\s*(day|d|วัน|dose|ครั้ง)?(?![a-z\/])|(\d+(?:\.\d+)?)\s*(mkd|mkday|mk\s*\/\s*day|mk\s*\/\s*d|mkdose|mk\s*\/\s*dose|mk)(?![a-z])/i);
   if(stm){ let v=+(stm[1]||stm[4]); const tok=(stm[3]||stm[5]||'').toLowerCase().replace(/\s/g,'');
@@ -3291,7 +3294,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

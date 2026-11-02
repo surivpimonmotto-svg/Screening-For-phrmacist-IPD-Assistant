@@ -143,6 +143,11 @@ textarea.paste{background:var(--surface);border:1.5px dashed var(--accent);min-h
 .row>.rh{padding-block:10px;background:var(--hdr);border-bottom:1px solid var(--line2)}
 .row>:last-child{padding-bottom:12px}
 .row>.raw{padding-top:8px}
+.rlab{margin:6px 14px 0;font-size:.85rem;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rl{padding:2px 10px;border-radius:999px;background:var(--sunk);border:1px solid var(--line)}
+.rl.low,.rl.high{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);font-weight:700}
+.rl.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.rl small{font-weight:400;opacity:.8}
 .row>.ed,.row>.calcline,.row>ul.msgs{margin-top:8px}
 .row>ul.msgs{margin-inline:14px;padding:0 0 12px}
 .row>.msgs-g{margin:8px 14px 0;padding:0 0 12px;display:grid;gap:8px}
@@ -1916,7 +1921,27 @@ const masterOf=row=>row.master&&typeof DM!=='undefined'?DM_IDX.byCode[row.master
 // คำสั่งจาก paperless บางรายการขึ้นวิธีใช้เป็นบรรทัดใหม่ใต้ชื่อยา — ต่อเข้ากับบรรทัดยาก่อนหน้า
 const SIG_START=/^(?:รับประทาน|กิน|ครั้งละ|ฉีด|ทา|เช็ด|ล้าง|แช่|ป้าย|บ้วน|กลั้ว|ประคบ|สวน|แปะ|ติด|อาบ|เคี้ยว|หยด|พ่น|สูด|อม|เหน็บ|ใช้|ให้|ผสม|เวลา|ก่อน|หลัง|วันละ|ทุก|หยุด|day\s*\d|sig\b|rate\b|q\s*\d|(?:iv|im|sc|po|prn|continuous|one\s*day|home\s*med)\b|\d+(?:\.\d+)?\s*(?:x|×|\*|ml|cc|ซีซี|tab|cap|เม็ด|ช้อน)|[½¼¾])/i;
 // ข้อความเกินจากตาราง paperless: "4Database ID: 3", ". . . ." — ไม่ใช่รายการยา
-const PL_JUNK=/^\s*\d*\s*Database\s*ID\s*:?\s*\d*\s*$/i;
+const PL_JUNK=/^\s*\d*\s*Database\s*ID\s*:?\s*\d*\s*$|^\s*verify\s+#?\s*drug\s*name\b|^\s*#?\s*drug\s*name\s+(drug\s*)?usage\b/i;
+// ยาที่เกี่ยวกับค่า Lab/electrolyte → ดึงค่าล่าสุดมาแสดงในการ์ดยา (ช่วงปกติผู้ใหญ่)
+const REL_LAB=[
+ [/kalimate|kayexalate|polystyrene|sorbisterit/i,['k']],
+ [/potassium|pot\.?\s*chlor|\bkcl\b|k[\s-]?citrate|k-?phos|dipotassium/i,['k']],
+ [/phosphate|\bphos\b|k2hpo4|na2hpo4|sevelamer|lanthanum/i,['phos','ca']],
+ [/calcium|\bcacl|caco3|ca\s*gluc|calcitriol|alfacalcidol/i,['ca','phos','alb']],
+ [/magnes|\bmag\.?\s*sulf|mgso4|\bmg\s*oxide|\bmgo\b/i,['mg']],
+ [/bicarb|nahco3|sodamint/i,['hco3','ph','na']],
+ [/3\s*%\s*(nacl|nss|sodium)|hypertonic|nacl\s*tab|sodium\s*chloride\s*(tab|300|3\s*%)|tolvaptan/i,['na']],
+ [/albumin/i,['alb']],
+ [/vit(amin)?\.?\s*k\s*1?\b|phytomenadione|phytonadione|konakion/i,['inr']]];
+const LAB_NORM={k:['K',3.5,5.0,'mEq/L'],na:['Na',135,145,'mEq/L'],ca:['Ca',8.5,10.5,'mg/dL'],phos:['Phos',2.5,4.5,'mg/dL'],mg:['Mg',1.7,2.4,'mg/dL'],hco3:['HCO3',22,28,'mEq/L'],ph:['pH',7.35,7.45,''],alb:['Albumin',3.5,5.0,'g/dL'],inr:['INR',0.8,1.2,'']};
+function relLabs(row,pt){ if(!row) return []; const d=row.drugId&&KB.find(k=>k.id===row.drugId), m=masterOf(row);
+  const s=[row.raw,d&&d.name,m&&m[1]].filter(Boolean).join(' '); const keys=[];
+  for(const [re,ks] of REL_LAB){ if(re.test(s)){ ks.forEach(k=>{ if(!keys.includes(k)) keys.push(k); }); if(re===REL_LAB[0][0]) break; } }
+  if(!keys.length) return []; const L=pt.lab||{};
+  const val={k:pt.k,mg:pt.mg,inr:pt.inr};
+  return keys.map(k=>{ const n=LAB_NORM[k], v=val[k]!==undefined?val[k]:L[k]; const o={k,name:n[0],v:v==null||v===''||isNaN(v)?null:+v,lo:n[1],hi:n[2],u:n[3]};
+    o.st=o.v==null?'none':o.v<n[1]?'low':o.v>n[2]?'high':'ok';
+    if(k==='ca'&&L.cacorr!=null) o.corr=L.cacorr; return o; }); }
 function joinLines(lines){ const out=[];
   for(const raw0 of lines){ const raw=raw0.replace(/\s*\d*\s*Database\s*ID\s*:?\s*\d+\s*$/i,''); if(PL_JUNK.test(raw0)) continue;
     const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;
@@ -2979,6 +3004,7 @@ function renderRows(){
     return `<article class="row ${e.status}">
       <div class="rh"><span class="pill ${e.status}">${ST_TXT[e.status]}</span><span class="nm">${esc(d?d.name:e.master?e.master[1]:'ไม่พบยาในฐาน')}</span>${e.master?`<span class="code" title="รหัสยา HIS">${esc(e.master[0])}</span>`:''}<span class="calcline">${calc}</span></div>
       ${r.raw?`<div class="raw">${esc(r.raw)}</div>`:''}
+      ${(()=>{ const rl=relLabs(r,pt); if(!rl.length) return ''; return `<div class="rlab"><b>Lab ที่เกี่ยวข้อง:</b> ${rl.map(x=>`<span class="rl ${x.st}">${esc(x.name)} ${x.v==null?'– (ยังไม่มีค่า)':fmtN(x.v)+(x.st==='low'?' ↓ ต่ำ':x.st==='high'?' ↑ สูง':' ปกติ')}${x.corr!=null?` (corrected ${fmtN(Math.round(x.corr*100)/100)})`:''} <small>[${x.lo}–${x.hi}${x.u?' '+x.u:''}]</small></span>`).join('')}</div>`; })()}
       <div class="ed">
         <select class="ctl drugsel" data-i="${i}" data-k="drugId" aria-label="ยา">${drugOpts(r.drugId)}</select>
         ${forms}
@@ -3014,7 +3040,8 @@ function buildNote(evs,pt){
     const why=e.items.filter(m=>noteAll?m.lvl!=='info':(m.lvl==='flag'||m.lvl==='warn')).map(m=>m.txt);
     const rec=e.sugg&&(e.sugg.rx||e.sugg.txt)?`${e.sugg.where?e.sugg.where.replace(/\s+/g,' ')+': ':''}${e.sugg.rx||e.sugg.txt}`:'';
     const alt=e.items.some(m=>/^ประวัติแพ้/.test(m.txt)&&m.lvl!=='info')&&typeof xaAlt==='function'?xaAlt($('allergy').value,nm+' '+r.raw):null;
-    probs.push({nm,req,lvl:e.status,raw:r.raw,dose,why,rec,src:d&&d.src?d.src:'',alt:alt&&alt.txt}); });
+    const rl=relLabs(r,pt).filter(x=>x.v!=null).map(x=>`${x.name} ${fmtN(x.v)}${x.st==='low'?' (ต่ำ)':x.st==='high'?' (สูง)':''}${x.corr!=null?` corrected ${fmtN(Math.round(x.corr*100)/100)}`:''} [${x.lo}–${x.hi}]`).join(' · ');
+    probs.push({nm,req,lvl:e.status,raw:r.raw,dose,why,rec,lab:rl,src:d&&d.src?d.src:'',alt:alt&&alt.txt}); });
   // แจ้งเพื่อทราบ: ประวัติแพ้ยาที่ประเมินแล้วใช้ได้ (แพ้ข้ามต่ำ)
   const infos=[]; rows.forEach((r,i)=>{ const e=evs[i]; const al=e.items.filter(m=>m.lvl==='info'&&/^ประวัติแพ้/.test(m.txt)); if(!al.length||['flag'].includes(e.status)) return;
     const d=e.drug, mm=e.master, nm=d?d.name:mm?mm[1]:r.raw.slice(0,50);
@@ -3024,7 +3051,7 @@ function buildNote(evs,pt){
   const ask=probs.some(p=>p.lvl==='flag')?'จึงเรียนมาเพื่อโปรดพิจารณาปรับขนาด/ทบทวนคำสั่งใช้ยาตามข้อเสนอข้างต้น':probs.some(p=>p.lvl==='warn')?'จึงเรียนมาเพื่อโปรด confirm คำสั่งใช้ยาดังกล่าว':infos.length?'จึงเรียนมาเพื่อโปรดทราบ':'ทุกรายการผ่านเกณฑ์ในฐานกฎ';
   const LN='━'.repeat(34);
   const T=[LN,'ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)',`${ward?'หอผู้ป่วย '+ward+' · ':''}วันที่ ${dt}`,LN,'','■ ข้อมูลผู้ป่วย',...ptl.map(x=>'  • '+x),'',`■ ปัญหาที่พบ (${probs.length} รายการ)`];
-  probs.forEach((p,i)=>{ T.push('',`${i+1}) ${p.nm} — ${p.req}`); T.push(`   คำสั่งยา   : ${p.raw}`); if(p.dose) T.push(`   ขนาดที่สั่ง : ${p.dose}`);
+  probs.forEach((p,i)=>{ T.push('',`${i+1}) ${p.nm} — ${p.req}`); T.push(`   คำสั่งยา   : ${p.raw}`); if(p.dose) T.push(`   ขนาดที่สั่ง : ${p.dose}`); if(p.lab) T.push(`   Lab        : ${p.lab}`);
     p.why.forEach((w,j)=>T.push(`   ${j?'          ':'เหตุผล     '}: ${w}`)); if(p.rec) T.push(`   ข้อเสนอ    : ${p.rec}`); if(p.alt) T.push(`   ทางเลือก   : ${p.alt}`); if(p.src) T.push(`   อ้างอิง     : ${p.src}`); });
   if(!probs.length) T.push(infos.length?'  ไม่พบปัญหาขนาดยา':'  ทุกรายการผ่านเกณฑ์ในฐานกฎ');
   if(infos.length){ T.push('',`■ แจ้งเพื่อทราบ — ประวัติแพ้ยา (${infos.length} รายการ)`);
@@ -3040,7 +3067,7 @@ function buildNote(evs,pt){
 <div style="font-weight:700;margin-top:10px">ข้อมูลผู้ป่วย</div><ul style="margin:2px 0 6px 18px;padding:0">${ptl.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
 <div style="font-weight:700">ปัญหาที่พบ (${probs.length} รายการ)</div>
 ${probs.map((p,i)=>`<div style="border-left:4px solid ${C[p.lvl]};padding:4px 10px;margin:8px 0;background:#f8fafc"><div><b>${i+1}) ${esc(p.nm)}</b> — <b style="color:${C[p.lvl]}">${esc(p.req)}</b></div>
-<table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b></td></tr>`:''}${p.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">${esc(p.alt)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
+<table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.lab?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">Lab</td><td>${esc(p.lab)}</td></tr>`:''}${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b></td></tr>`:''}${p.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">${esc(p.alt)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
 ${infos.length?`<div style="font-weight:700;margin-top:10px">แจ้งเพื่อทราบ — ประวัติแพ้ยา</div>${infos.map((x,i)=>`<div style="border-left:4px solid #1d4ed8;padding:4px 10px;margin:8px 0;background:#eff6ff"><div><b>${i+1}) ${esc(x.nm)}</b> — <b style="color:#1d4ed8">แจ้งเพื่อทราบ (ไม่ต้องเปลี่ยนยา)</b></div><table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ประวัติแพ้</td><td>${esc(allergyTxt||x.a)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(x.raw)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">การประเมิน</td><td>${esc(x.why)}</td></tr>${x.bl?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>การแพ้ข้ามระหว่าง penicillin กับ cephalosporin ขึ้นกับความคล้ายของ side chain (R1) มากกว่า beta-lactam ring เมื่อ R1 ต่างกัน อุบัติการณ์แพ้ข้าม &lt;1–2% · ผู้ที่แพ้ penicillin แบบไม่รุนแรง (ไม่ใช่ anaphylaxis/SCAR) ใช้ cephalosporin ที่ R1 ต่างได้โดยไม่ต้องทดสอบก่อน <span style="font-size:12.5px">(AAAAI/ACAAI Drug Allergy Practice Parameter 2022)</span></td></tr>`:''}<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">ให้ยาได้ตามคำสั่ง · เฝ้าระวังอาการแพ้หลังให้ยาครั้งแรก (ผื่น คัน บวม หายใจลำบาก) หากเกิดอาการให้หยุดยาและแจ้งแพทย์</b></td></tr>${x.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">(หากแพทย์ต้องการเปลี่ยน) ${esc(x.alt)}</b></td></tr>`:''}</table></div>`).join('')}`:''}<p style="margin:10px 0">${esc(ask)}</p><div style="text-align:right">ลงชื่อ ${esc(who)}<br><span style="font-size:13px;color:#475569">เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+esc(tel):''}</span></div></div>`;
 }
 function copyRich(html,text,okEl){ const done=m=>{ if(okEl){ okEl.textContent=m; setTimeout(()=>okEl.textContent='',2200);} };
@@ -3299,7 +3326,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.30.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.30.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

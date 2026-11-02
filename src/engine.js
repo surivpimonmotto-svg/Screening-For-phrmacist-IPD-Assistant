@@ -131,7 +131,27 @@ const masterOf=row=>row.master&&typeof DM!=='undefined'?DM_IDX.byCode[row.master
 // คำสั่งจาก paperless บางรายการขึ้นวิธีใช้เป็นบรรทัดใหม่ใต้ชื่อยา — ต่อเข้ากับบรรทัดยาก่อนหน้า
 const SIG_START=/^(?:รับประทาน|กิน|ครั้งละ|ฉีด|ทา|เช็ด|ล้าง|แช่|ป้าย|บ้วน|กลั้ว|ประคบ|สวน|แปะ|ติด|อาบ|เคี้ยว|หยด|พ่น|สูด|อม|เหน็บ|ใช้|ให้|ผสม|เวลา|ก่อน|หลัง|วันละ|ทุก|หยุด|day\s*\d|sig\b|rate\b|q\s*\d|(?:iv|im|sc|po|prn|continuous|one\s*day|home\s*med)\b|\d+(?:\.\d+)?\s*(?:x|×|\*|ml|cc|ซีซี|tab|cap|เม็ด|ช้อน)|[½¼¾])/i;
 // ข้อความเกินจากตาราง paperless: "4Database ID: 3", ". . . ." — ไม่ใช่รายการยา
-const PL_JUNK=/^\s*\d*\s*Database\s*ID\s*:?\s*\d*\s*$/i;
+const PL_JUNK=/^\s*\d*\s*Database\s*ID\s*:?\s*\d*\s*$|^\s*verify\s+#?\s*drug\s*name\b|^\s*#?\s*drug\s*name\s+(drug\s*)?usage\b/i;
+// ยาที่เกี่ยวกับค่า Lab/electrolyte → ดึงค่าล่าสุดมาแสดงในการ์ดยา (ช่วงปกติผู้ใหญ่)
+const REL_LAB=[
+ [/kalimate|kayexalate|polystyrene|sorbisterit/i,['k']],
+ [/potassium|pot\.?\s*chlor|\bkcl\b|k[\s-]?citrate|k-?phos|dipotassium/i,['k']],
+ [/phosphate|\bphos\b|k2hpo4|na2hpo4|sevelamer|lanthanum/i,['phos','ca']],
+ [/calcium|\bcacl|caco3|ca\s*gluc|calcitriol|alfacalcidol/i,['ca','phos','alb']],
+ [/magnes|\bmag\.?\s*sulf|mgso4|\bmg\s*oxide|\bmgo\b/i,['mg']],
+ [/bicarb|nahco3|sodamint/i,['hco3','ph','na']],
+ [/3\s*%\s*(nacl|nss|sodium)|hypertonic|nacl\s*tab|sodium\s*chloride\s*(tab|300|3\s*%)|tolvaptan/i,['na']],
+ [/albumin/i,['alb']],
+ [/vit(amin)?\.?\s*k\s*1?\b|phytomenadione|phytonadione|konakion/i,['inr']]];
+const LAB_NORM={k:['K',3.5,5.0,'mEq/L'],na:['Na',135,145,'mEq/L'],ca:['Ca',8.5,10.5,'mg/dL'],phos:['Phos',2.5,4.5,'mg/dL'],mg:['Mg',1.7,2.4,'mg/dL'],hco3:['HCO3',22,28,'mEq/L'],ph:['pH',7.35,7.45,''],alb:['Albumin',3.5,5.0,'g/dL'],inr:['INR',0.8,1.2,'']};
+function relLabs(row,pt){ if(!row) return []; const d=row.drugId&&KB.find(k=>k.id===row.drugId), m=masterOf(row);
+  const s=[row.raw,d&&d.name,m&&m[1]].filter(Boolean).join(' '); const keys=[];
+  for(const [re,ks] of REL_LAB){ if(re.test(s)){ ks.forEach(k=>{ if(!keys.includes(k)) keys.push(k); }); if(re===REL_LAB[0][0]) break; } }
+  if(!keys.length) return []; const L=pt.lab||{};
+  const val={k:pt.k,mg:pt.mg,inr:pt.inr};
+  return keys.map(k=>{ const n=LAB_NORM[k], v=val[k]!==undefined?val[k]:L[k]; const o={k,name:n[0],v:v==null||v===''||isNaN(v)?null:+v,lo:n[1],hi:n[2],u:n[3]};
+    o.st=o.v==null?'none':o.v<n[1]?'low':o.v>n[2]?'high':'ok';
+    if(k==='ca'&&L.cacorr!=null) o.corr=L.cacorr; return o; }); }
 function joinLines(lines){ const out=[];
   for(const raw0 of lines){ const raw=raw0.replace(/\s*\d*\s*Database\s*ID\s*:?\s*\d+\s*$/i,''); if(PL_JUNK.test(raw0)) continue;
     const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;

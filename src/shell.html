@@ -361,7 +361,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
       </div></fieldset>
       <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
-      <details class="labbox"><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
+      <details class="labbox" open><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
         <textarea id="labPaste" rows="5" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
         <div id="labGrid" hidden></div>

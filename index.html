@@ -361,7 +361,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
       </div></fieldset>
       <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
-      <details class="labbox"><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
+      <details class="labbox" open><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
         <textarea id="labPaste" rows="5" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
         <div id="labGrid" hidden></div>
@@ -1517,7 +1517,7 @@ const HAD={
  fenta:{name:'Fentanyl',neat:true,amp:100,ampTxt:'100 mcg/2 ml',amps:[[100,'100 mcg/2 ml'],[500,'500 mcg/10 ml']],u:'mcg',dose:'mcgh',dil:'',note:'ใบ ยส.5 เบิกได้สูงสุด 30 amp/ใบ — ไม่ใช้ตารางสารน้ำ',rangeKgH:[0.7,10],maxConcMcg:50},
  ntg:{name:'Nitroglycerin (NTG)',amp:25,ampTxt:'25 mg/5 ml',u:'mg',dose:'mcgmin',rangeMin:[5,200],max:400,maxConc:0.4,dil:'D5W หรือ NSS · ขวดแก้ว/ถุงและสาย non-PVC (ยาจับกับ PVC)',note:'เริ่ม 5–10 mcg/min เพิ่มครั้งละ 5–10 mcg/min ทุก 3–5 นาทีตามความดัน'},
  amio:{name:'Amiodarone (Cordarone)',amp:150,ampTxt:'150 mg/3 ml',u:'mg',dose:'mgmin',rangeMgMin:[0.5,1],maxDay:2200,periph:2,maxConc:6,minConc:0.6,d5wOnly:true,dil:'D5W เท่านั้น (ห้าม NSS — ตกตะกอน) · ≥0.6 mg/ml (เจือจางกว่านี้ไม่คงตัว) · peripheral ≤2 mg/ml · ให้ >2 ชม. ใช้ถุง/สาย non-PVC',note:'มาตรฐาน: Loading 150 mg + D5W 100 ml ใน 10 นาที → 900 mg (6 amp) + D5W 500 ml (1.8 mg/ml): 33 ml/h × 6 ชม. (1 mg/min) แล้ว 17 ml/h × 18 ชม. (0.5 mg/min) · max 2.2 g/24 ชม.'},
- propofol:{name:'Propofol 1%',neat:true,amp:200,ampTxt:'200 mg/20 ml',amps:[[200,'200 mg/20 ml'],[500,'500 mg/50 ml']],u:'mg',dose:'mgkgh',rangeKgH:[0.3,3],max:4,maxConcMg:10,noBag:true,dil:'ใช้ไม่เจือจาง 10 mg/ml (หรือเจือจาง D5W ไม่ต่ำกว่า 2 mg/ml)',note:'เปลี่ยนขวด/สายทุก 12 ชม. · >4 mg/kg/h นาน >48 ชม. เสี่ยง PRIS — ติดตาม TG, CK, lactate · ไขมัน 1.1 kcal/ml'},
+ propofol:{name:'Propofol 1%',neat:true,neatConc:10,fixPack:true,pack:'ขวด',amp:500,ampTxt:'500 mg/50 ml',amps:[[500,'500 mg/50 ml'],[200,'200 mg/20 ml']],u:'mg',dose:'mgkgh',rangeKgH:[0.3,3],max:4,maxConcMg:10,noBag:true,dil:'ใช้ไม่เจือจาง 10 mg/ml (หรือเจือจาง D5W ไม่ต่ำกว่า 2 mg/ml)',note:'เปลี่ยนขวด/สายทุก 12 ชม. · >4 mg/kg/h นาน >48 ชม. เสี่ยง PRIS — ติดตาม TG, CK, lactate · ไขมัน 1.1 kcal/ml'},
  cisatra:{name:'Cisatracurium (Nimbex)',neat:true,amp:10,ampTxt:'10 mg/5 ml',amps:[[10,'10 mg/5 ml'],[150,'150 mg/30 ml']],u:'mg',dose:'mcgkgmin',range:[1,3],max:10,maxConc:5,noBag:true,dil:'ใช้ไม่เจือจาง 2 mg/ml หรือเจือจาง NSS/D5W 0.1–0.4 mg/ml',note:'ต้องให้ร่วมกับยา sedation/analgesia เสมอ · เก็บตู้เย็น 2–8°C · ติดตาม TOF'},
  dexmed:{name:'Dexmedetomidine',amp:200,ampTxt:'200 mcg/2 ml',u:'mcg',dose:'mcgh',rangeKgH:[0.2,1.4],max:1.5,maxConcMcg:8,maxConcTxt:'มาตรฐาน 4 mcg/ml (200 mcg ใน NSS รวม 50 ml) หรือ 8 mcg/ml',noBag:true,dil:'เจือจาง NSS ให้ได้ 4 mcg/ml (200 mcg + NSS 48 ml) หรือ 8 mcg/ml',note:'Loading 1 mcg/kg ใน 10 นาที (มักงดใน ICU — หัวใจเต้นช้า/ความดันต่ำ) · ติดตาม HR, BP'},
  kcl:{name:'Potassium chloride',amp:20,ampTxt:'20 mEq/amp',u:'mEq',dose:'meqh',dil:'ห้าม IV push / IM'},
@@ -2008,7 +2008,11 @@ function parseLine(raw){
         if(u===hu||(u.startsWith('unit')&&hu==='unit')) row.had.amp=v; else if(u==='mg'&&hu==='mcg') row.had.amp=v*1000; else if(u==='g'&&hu==='mg') row.had.amp=v*1000; else if(u==='mcg'&&hu==='mg') row.had.amp=v/1000;
         if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; }
       // ยาที่ให้แบบไม่เจือจาง (เช่น Propofol 500 mg/50 ml) — ไม่มีสารน้ำ → ปริมาตร = ปริมาณยา ÷ ความเข้มข้นของขวด
-      if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; } }
+      if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
+      // ไม่เจือจางและไม่ระบุปริมาณ (เช่น "Propofol 1% rate 5 ml/h") → ใช้ความเข้มข้นมาตรฐานของยา
+      if(H.neat&&H.neatConc&&!(row.had.amt>0&&row.had.vol>0)){ row.had.amt=H.neatConc; row.had.vol=1; row.had.how='undiluted'; }
+      // ห้องยามีขนาดเดียว (Propofol 10 mg/ml 50 ml/ขวด) — จ่ายตามขวดของห้องยา ไม่ใช่ขนาดที่เขียนในชื่อยา
+      if(H.fixPack){ row.had.amp=null; row.had.ampTxt=null; } }
     row.issues=[]; row.parsed=true; row.F=null; row.doseVal=amt??''; row.doseUnit=['mcg','mEq','unit','g'].includes(HAD[row.had.key].u)?HAD[row.had.key].u:'mg';
     return row; }
   const wk=parseWeekly(sig);
@@ -2148,7 +2152,7 @@ function evaluate(row,pt,rows){
       const miss=[!S.usual&&'usual dose',!S.maxDose&&'max dose/rate',!S.maxConc&&'max conc'].filter(Boolean);
       if(miss.length) add('info',`ยังไม่มีข้อมูล ${miss.join(', ')} ในฐาน — ประเมินส่วนนี้ไม่ได้ (เติมได้ใน kb.js → HAD_STD)`);
       // 4) การจ่าย
-      if(h.key==='kcl') add('info',`จ่าย: ${o.ampDispense} amp · ${o.prep}`); else add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} amp/วัน (amp ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
+      if(h.key==='kcl') add('info',`จ่าย: ${o.ampDispense} amp · ${o.prep}`); else add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} ${H.pack||'amp'}/วัน (${H.pack||'amp'} ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
       res.hadOut=o; }
     if(h.how==='ratio'&&h.dvol&&h.dvol<=h.vol) add('info',`คิด conc ตามอัตราส่วน ${h.amt}:${h.vol} (ยา ${h.amt} ${H.u} ในสารน้ำรวม ${h.vol} ml) — สารน้ำ ${h.dvol} ml คือถุงที่ใช้ผสม`);
     else if(h.how==='ratio'&&h.dvol&&h.dvol>h.vol) add('warn',`คำสั่งระบุทั้ง ${h.amt}:${h.vol} และสารน้ำ ${h.dvol} ml — ตรวจว่าความเข้มข้นจริงคือ ${h.amt}/${h.vol} หรือ ${h.amt}/${h.dvol} ${H.u}/ml (ใช้ ${h.amt}:${h.vol} ในการคำนวณ)`);
@@ -3104,11 +3108,11 @@ function hadNote(k,h,o,cu,V){
   const line=V?V.line:(lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'');
   const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
   const L=[`■ ${h.name} — ผล: ${st}`,
-   `  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
+   h.neat?`  สูตรผสม : ไม่เจือจาง (${fmtN(o.conc)} ${cu})${line?` · สาย ${line}`:''}`:`  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
    `  Rate    : ${rate} ml/h`,
    `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
    `  Conc    : ${o.concTxt||fmtN(o.conc)+' '+cu}`,
-   k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} amp/วัน${h.amps?` (amp ${hadAmp(k).t})`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
+   k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} ${h.pack||'amp'}/วัน${h.amps?` (${h.pack||'amp'} ${hadAmp(k).t})`:''}${h.neat&&o.volDay?` · ใช้ ${r0(o.volDay)} ml/วัน`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
    '','  ผลตรวจ',...o.checks.map(c=>`   ${ic[c.lvl]||'•'} ${c.txt}`)];
   if(S.usual||S.maxDose||S.maxConc) L.push('','  มาตรฐาน',`   Usual dose : ${S.usual||'ยังไม่มีข้อมูล'}`,`   Max dose   : ${S.maxDose||'ยังไม่มีข้อมูล'}`,`   Max conc   : ${S.maxConc||'ยังไม่มีข้อมูล'}`);
   L.push('','  ผู้ตรวจ ............................ (check2)');
@@ -3129,7 +3133,7 @@ function renderHad(){
   if(o.maxRate) kv.push([h.dose==='mgmin'?`Rate ที่ ${h.rangeMgMin[1]} mg/min`:h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
-  if(k==='kcl') kv.push(['จ่ายยา',`${o.ampDispense} amp (${o.kclDoses} ครั้ง × ${o.ampPerDose} amp)${o.kclDefault?' · ไม่ระบุจำนวนครั้ง = 1 dose':''}`]); else kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
+  if(k==='kcl') kv.push(['จ่ายยา',`${o.ampDispense} amp (${o.kclDoses} ครั้ง × ${o.ampPerDose} amp)${o.kclDefault?' · ไม่ระบุจำนวนครั้ง = 1 dose':''}`]); else kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} ${h.pack||'amp'}${h.amps?` (${hadAmp(k).t})`:''}`]);
   const oth=hadOtherNotes(), allNote=[hadNote(k,h,o,cu),...oth.map(x=>x.txt)].join('\n\n');
   const multi=oth.length?`<div class="band w" style="margin-bottom:10px"><b>คำสั่งนี้มียา HAD ${oth.length+1} รายการ</b> — ด้านล่างแสดงรายละเอียด ${esc(h.name)} · รายการอื่น: ${oth.map(x=>`<button type="button" class="btn sm" data-ho="${x.i}">${esc(x.name)} · ${esc(x.st)}</button>`).join(' ')} · note ด้านล่างรวมทุกรายการแล้ว</div>`:'';
   $('hOut').innerHTML=multi+`<h2>ผลคำนวณ</h2>
@@ -3273,7 +3277,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

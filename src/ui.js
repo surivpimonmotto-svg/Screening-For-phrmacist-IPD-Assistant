@@ -222,11 +222,11 @@ function hadNote(k,h,o,cu,V){
   const line=V?V.line:(lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'');
   const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
   const L=[`■ ${h.name} — ผล: ${st}`,
-   `  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
+   h.neat?`  สูตรผสม : ไม่เจือจาง (${fmtN(o.conc)} ${cu})${line?` · สาย ${line}`:''}`:`  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
    `  Rate    : ${rate} ml/h`,
    `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
    `  Conc    : ${o.concTxt||fmtN(o.conc)+' '+cu}`,
-   k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} amp/วัน${h.amps?` (amp ${hadAmp(k).t})`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
+   k==='kcl'?`  จ่าย     : ${o.ampDispense??'–'} amp (${o.kclDoses||1} ครั้ง × ${o.ampPerDose??'–'} amp${o.kclDefault?' — คำสั่งไม่ระบุจำนวนครั้ง จ่าย dose เดียว':''})`:`  จ่าย     : ${o.ampDispense??'–'} ${h.pack||'amp'}/วัน${h.amps?` (${h.pack||'amp'} ${hadAmp(k).t})`:''}${h.neat&&o.volDay?` · ใช้ ${r0(o.volDay)} ml/วัน`:''}${o.bottle&&o.bottle[0]?` (${o.bottle[0]})`:''}`,
    '','  ผลตรวจ',...o.checks.map(c=>`   ${ic[c.lvl]||'•'} ${c.txt}`)];
   if(S.usual||S.maxDose||S.maxConc) L.push('','  มาตรฐาน',`   Usual dose : ${S.usual||'ยังไม่มีข้อมูล'}`,`   Max dose   : ${S.maxDose||'ยังไม่มีข้อมูล'}`,`   Max conc   : ${S.maxConc||'ยังไม่มีข้อมูล'}`);
   L.push('','  ผู้ตรวจ ............................ (check2)');
@@ -247,7 +247,7 @@ function renderHad(){
   if(o.maxRate) kv.push([h.dose==='mgmin'?`Rate ที่ ${h.rangeMgMin[1]} mg/min`:h.dose==='mcgmin'?`Rate สูงสุดที่ ${h.rangeMin[1]} mcg/min`:h.dose==='mgkgh'?`Rate สูงสุดที่ ${h.rangeKgH[1]} mg/kg/h`:h.range?`Rate สูงสุดที่ ${h.range[1]} mcg/kg/min`:h.rangeKgH?`Rate สูงสุดที่ ${h.rangeKgH[1]} mcg/kg/h`:'Rate สูงสุด',`${r1(o.maxRate)} ml/h`]);
   if(o.bottle) kv.push(['เตรียมต่อวัน (ประหยัดยาสุด)',o.bottle[0]]);
   if(o.alt) kv.push(['เทียบ',o.alt.txt]);
-  if(k==='kcl') kv.push(['จ่ายยา',`${o.ampDispense} amp (${o.kclDoses} ครั้ง × ${o.ampPerDose} amp)${o.kclDefault?' · ไม่ระบุจำนวนครั้ง = 1 dose':''}`]); else kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} amp`]);
+  if(k==='kcl') kv.push(['จ่ายยา',`${o.ampDispense} amp (${o.kclDoses} ครั้ง × ${o.ampPerDose} amp)${o.kclDefault?' · ไม่ระบุจำนวนครั้ง = 1 dose':''}`]); else kv.push(['จ่ายยาต่อวัน',`${o.ampDispense} ${h.pack||'amp'}${h.amps?` (${hadAmp(k).t})`:''}`]);
   const oth=hadOtherNotes(), allNote=[hadNote(k,h,o,cu),...oth.map(x=>x.txt)].join('\n\n');
   const multi=oth.length?`<div class="band w" style="margin-bottom:10px"><b>คำสั่งนี้มียา HAD ${oth.length+1} รายการ</b> — ด้านล่างแสดงรายละเอียด ${esc(h.name)} · รายการอื่น: ${oth.map(x=>`<button type="button" class="btn sm" data-ho="${x.i}">${esc(x.name)} · ${esc(x.st)}</button>`).join(' ')} · note ด้านล่างรวมทุกรายการแล้ว</div>`:'';
   $('hOut').innerHTML=multi+`<h2>ผลคำนวณ</h2>
@@ -391,7 +391,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

@@ -226,7 +226,11 @@ function parseLine(raw){
         if(u===hu||(u.startsWith('unit')&&hu==='unit')) row.had.amp=v; else if(u==='mg'&&hu==='mcg') row.had.amp=v*1000; else if(u==='g'&&hu==='mg') row.had.amp=v*1000; else if(u==='mcg'&&hu==='mg') row.had.amp=v/1000;
         if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; }
       // ยาที่ให้แบบไม่เจือจาง (เช่น Propofol 500 mg/50 ml) — ไม่มีสารน้ำ → ปริมาตร = ปริมาณยา ÷ ความเข้มข้นของขวด
-      if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; } }
+      if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
+      // ไม่เจือจางและไม่ระบุปริมาณ (เช่น "Propofol 1% rate 5 ml/h") → ใช้ความเข้มข้นมาตรฐานของยา
+      if(H.neat&&H.neatConc&&!(row.had.amt>0&&row.had.vol>0)){ row.had.amt=H.neatConc; row.had.vol=1; row.had.how='undiluted'; }
+      // ห้องยามีขนาดเดียว (Propofol 10 mg/ml 50 ml/ขวด) — จ่ายตามขวดของห้องยา ไม่ใช่ขนาดที่เขียนในชื่อยา
+      if(H.fixPack){ row.had.amp=null; row.had.ampTxt=null; } }
     row.issues=[]; row.parsed=true; row.F=null; row.doseVal=amt??''; row.doseUnit=['mcg','mEq','unit','g'].includes(HAD[row.had.key].u)?HAD[row.had.key].u:'mg';
     return row; }
   const wk=parseWeekly(sig);
@@ -366,7 +370,7 @@ function evaluate(row,pt,rows){
       const miss=[!S.usual&&'usual dose',!S.maxDose&&'max dose/rate',!S.maxConc&&'max conc'].filter(Boolean);
       if(miss.length) add('info',`ยังไม่มีข้อมูล ${miss.join(', ')} ในฐาน — ประเมินส่วนนี้ไม่ได้ (เติมได้ใน kb.js → HAD_STD)`);
       // 4) การจ่าย
-      if(h.key==='kcl') add('info',`จ่าย: ${o.ampDispense} amp · ${o.prep}`); else add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} amp/วัน (amp ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
+      if(h.key==='kcl') add('info',`จ่าย: ${o.ampDispense} amp · ${o.prep}`); else add('info',`จ่าย: ต่อวัน ${fmtN(o.perDay)} ${H.u} · ${o.ampDispense} ${H.pack||'amp'}/วัน (${H.pack||'amp'} ${o.ampTxt})${o.prep?` — ${o.prep}${o.prepAlt?` (${o.prepAlt})`:''}`:''}`);
       res.hadOut=o; }
     if(h.how==='ratio'&&h.dvol&&h.dvol<=h.vol) add('info',`คิด conc ตามอัตราส่วน ${h.amt}:${h.vol} (ยา ${h.amt} ${H.u} ในสารน้ำรวม ${h.vol} ml) — สารน้ำ ${h.dvol} ml คือถุงที่ใช้ผสม`);
     else if(h.how==='ratio'&&h.dvol&&h.dvol>h.vol) add('warn',`คำสั่งระบุทั้ง ${h.amt}:${h.vol} และสารน้ำ ${h.dvol} ml — ตรวจว่าความเข้มข้นจริงคือ ${h.amt}/${h.vol} หรือ ${h.amt}/${h.dvol} ${H.u}/ml (ใช้ ${h.amt}:${h.vol} ในการคำนวณ)`);

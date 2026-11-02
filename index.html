@@ -319,6 +319,8 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
  *{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
 .wdform table,.wdform tr,.wdform td,.wdform th{color:inherit;font-family:inherit}
+.trialnote{max-width:1360px;margin:0 auto 14px;box-sizing:border-box;padding:10px 16px;border:1px solid #f0b429;border-left:6px solid #d97706;border-radius:10px;background:#fff8e6;color:#7a3e00;font-size:.95rem;line-height:1.45}
+@media print{.trialnote{display:none}}
 </style>
 
 <header class="top">
@@ -326,6 +328,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
   <span class="sub">คัดกรองใบสั่งยาก่อนคีย์ · ห้องยาผู้ป่วยใน รพ.มหาสารคาม</span>
   <span class="ver" id="ver">ต้นแบบ v0.1</span>
 </header>
+<div class="trialnote" role="note">⚠️ <b>ฉบับทดลอง</b> — ห้ามใช้แทนการตรวจของเภสัชกร · ผล “OK” ไม่ได้แปลว่าคำสั่งถูกต้อง ต้องตรวจซ้ำทุกครั้ง</div>
 
 <div class="wrap">
   <aside class="panel pt" aria-label="ข้อมูลผู้ป่วย">
@@ -3225,7 +3228,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

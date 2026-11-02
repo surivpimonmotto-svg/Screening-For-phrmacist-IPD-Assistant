@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.32.6 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- Atlas ผื่น: เพิ่มการ์ด **Bullous pemphigoid** (2 ระยะ, tense bullae, Nikolsky ลบ, biopsy/DIF/anti-BP180, การรักษา, drug-induced BP จาก DPP-4 inhibitors) และ **Pemphigus vulgaris** (แผลปาก, flaccid bullae, Nikolsky บวก, drug-induced จาก thiol drugs)
+
 ## v0.32.5 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - Atlas ผื่น: ขยาย **Cutaneous candidiasis** (satellite lesions, maceration, แยกจากกลาก/ผื่นแพ้สัมผัส/inverse psoriasis, ปัจจัยเสี่ยง, การรักษา)
 

@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.32.3 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- Atlas ผื่น: ขยาย **Steroid acne** (monomorphic/comedone-free, กลไก, taper steroid, doxycycline/BPO/clindamycin gel, คำถามซักประวัติ "ยาทาตลับ", ตัวอย่างเคส) · เพิ่มการ์ด **Malassezia folliculitis**
+
 ## v0.32.2 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - Atlas ผื่น: ขยายการ์ด **Scabies** (ตำแหน่งที่พบ, nodular/crusted scabies, วิธีทา permethrin 5%, รักษาคนใกล้ชิด, ซักผ้า ≥60°C / ถุง 72 ชม., IC ในโรงพยาบาล)
 

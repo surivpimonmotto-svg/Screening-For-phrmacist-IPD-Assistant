@@ -721,7 +721,10 @@ function hadCalc(key,inp){
     const lab=c=>[c.a?`250 ml × ${c.a}`:'',c.b?`100 ml × ${c.b}`:''].filter(Boolean).join(' + ');
     const only250=cands.find(c=>c.b===0), only100=cands.find(c=>c.a===0);
     const main={bag:best.a&&!best.b?250:!best.a?100:'mix',n:best.bags,amp:best.amp,mg:best.v*conc,label:lab(best)};
-    const alt=[only250,only100].filter(c=>c&&lab(c)!==lab(best)).map(c=>`${lab(c)} = ${c.amp} amp`).join(' · ');
+    const altL=[only250,only100].filter(c=>c&&lab(c)!==lab(best)).map(c=>`${lab(c)} = ${c.amp} amp`);
+    // ถุงเดียวพอใช้ 24 ชม. (พยาบาลสะดวก ไม่ต้องเปลี่ยนถุง) — ไว้เทียบ ไม่ใช่ค่าเริ่มต้น
+    { const one=[100,250,500].find(v=>v>=out.volDay-1e-9&&!(no100&&v===100)); if(one&&!(best.bags===1&&best.v===one)) altL.push(`ถุงเดียวพอ 24 ชม.: ${one} ml × 1 = ${ampPer(one)} amp`); }
+    const alt=altL.join(' · ');
     out.bottle=[main.label,'']; out.ampDispense=main.amp; out.alt=alt?{txt:alt}:null;
     out.prep=`ประหยัดยาสุด: สารน้ำ ${main.label} + ${h.name} ${main.amp} amp (${fmtN(conc)} ${h.u}/ml เท่าคำสั่ง)`;
     out.prepAlt=alt?`เทียบ: ${alt}`:'';

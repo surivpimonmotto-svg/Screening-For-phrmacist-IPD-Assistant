@@ -1789,6 +1789,8 @@ function calcPatient(p){
   const o={...p};
   const age=+p.age, bw=+p.bw, ht=+p.ht, scr=+p.scr, fem=p.sex==='F';
   o.isPed = age>0 && age<15; o.pna=age>0?Math.round(age*365):null; o.neo=age>0&&age*365<28; o.infant=age>0&&age<1;
+  // HIS แสดงอายุทารก <1 ปีเป็น "0 ปี" — ถือเป็นทารก (ไม่ทราบอายุเป็นวัน) ไม่ใช่ผู้ใหญ่
+  if(p.age!==''&&p.age!=null&&+p.age===0){o.isPed=true;o.infant=true;o.ageUnk=true;}
   if(ht>0){const inch=ht/2.54; o.ibw = (fem?45.5:50)+2.3*(inch-60); if(o.ibw<0)o.ibw=null;}
   if(o.isPed && age>0) o.ibw = age<=6 ? 2*age+8 : (7*age-5)/2;
   if(bw>0&&ht>0){o.bmi=bw/((ht/100)**2); o.bsa=Math.sqrt(ht*bw/3600);}
@@ -1898,7 +1900,7 @@ function parseFreq(s){
   return null;
 }
 
-const DOSE_RE=/(?<![\/\d])(?<!\d\.)(\d+(?:\.\d+)?)\s*(mg|gm|g|mcg|µg|meq|units?|iu|mu)(?![a-z])(?!\s*\/\s*kg)/gi;
+const DOSE_RE=/(?<![\/\d])(?<!\d\.)(\d+(?:\.\d+)?)\s*(mg|gm|g|mcg|µg|meq|units?|iu|mu|กรัม)(?![a-z])(?!\s*\/\s*kg)/gi;
 let DM_IDX=null;
 function findMaster(line){ if(typeof DM==='undefined') return null;
   if(!DM_IDX){DM_IDX={byCode:{},list:DM.map(m=>[m[1].toUpperCase().replace(/\s+/g,' '),m]).sort((a,b)=>b[0].length-a[0].length)};DM.forEach(m=>DM_IDX.byCode[m[0].toUpperCase()]=m);}
@@ -1908,9 +1910,13 @@ function findMaster(line){ if(typeof DM==='undefined') return null;
   return null;}
 const masterOf=row=>row.master&&typeof DM!=='undefined'?DM_IDX.byCode[row.master.toUpperCase()]:null;
 // คำสั่งจาก paperless บางรายการขึ้นวิธีใช้เป็นบรรทัดใหม่ใต้ชื่อยา — ต่อเข้ากับบรรทัดยาก่อนหน้า
-const SIG_START=/^(?:รับประทาน|กิน|ครั้งละ|ฉีด|ทา|หยด|พ่น|สูด|อม|เหน็บ|ใช้|ให้|ผสม|เวลา|ก่อน|หลัง|วันละ|ทุก|หยุด|day\s*\d|sig\b|rate\b|q\s*\d|(?:iv|im|sc|po|prn)\b|\d+(?:\.\d+)?\s*(?:x|×|\*|ml|cc|ซีซี|tab|cap|เม็ด|ช้อน)|[½¼¾])/i;
+const SIG_START=/^(?:รับประทาน|กิน|ครั้งละ|ฉีด|ทา|เช็ด|ล้าง|แช่|ป้าย|บ้วน|กลั้ว|ประคบ|สวน|แปะ|ติด|อาบ|เคี้ยว|หยด|พ่น|สูด|อม|เหน็บ|ใช้|ให้|ผสม|เวลา|ก่อน|หลัง|วันละ|ทุก|หยุด|day\s*\d|sig\b|rate\b|q\s*\d|(?:iv|im|sc|po|prn|continuous|one\s*day|home\s*med)\b|\d+(?:\.\d+)?\s*(?:x|×|\*|ml|cc|ซีซี|tab|cap|เม็ด|ช้อน)|[½¼¾])/i;
+// ข้อความเกินจากตาราง paperless: "4Database ID: 3", ". . . ." — ไม่ใช่รายการยา
+const PL_JUNK=/^\s*\d*\s*Database\s*ID\s*:?\s*\d*\s*$/i;
 function joinLines(lines){ const out=[];
-  for(const raw of lines){ const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;
+  for(const raw0 of lines){ const raw=raw0.replace(/\s*\d*\s*Database\s*ID\s*:?\s*\d+\s*$/i,''); if(PL_JUNK.test(raw0)) continue;
+    const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;
+    if(!/[A-Za-z\u0E01-\u0E2E]/.test(l)) continue; // มีแต่จุด/ตัวเลข/สัญลักษณ์
     // บรรทัดวิธีใช้ของ paperless: ย่อหน้า หรือขึ้นต้นด้วยตัวเลข (เช่น "  2 g + NSS 100 ml IV q24hr", "7.6 (24-10-69)")
     const cont=/^[ \t\u00a0]{2,}\S/.test(raw)||(/^\d/.test(l)&&!findMaster(l)&&!findDrug(l));
     const isSig=cont||(SIG_START.test(l)&&!findMaster(l)&&!findDrug(l));
@@ -2020,13 +2026,14 @@ function parseLine(raw){
   } else {
     row.F=parseFreq(sig)??parseFreq(line);
   }
+  if(row.F==null&&/\bone\s*day\b/i.test(line)&&!/\bprn\b|เมื่อ/i.test(line)){row.F=1;row.once=true;}
   if(row.F==null){row.issues.push('อ่านความถี่ไม่ได้');row.parsed=false;}
   if(row.fromStated&&row.stated.per==='day'&&row.F) row.doseVal=Math.round(row.stated.v/row.F*1000)/1000;
   if(/\bprn\b|as\s*need|(?:เวลา|เมื่อ|ถ้า|หาก)\s*(?:มี)?\s*(?:ปวด|ไข้|อาการ|ไอ|คัน|คลื่นไส้|อาเจียน|นอนไม่หลับ|ท้องเสีย|น้ำมูก|เจ็บ|แน่น|หอบ|ชัก)/i.test(line)) row.prn=true;
   if(!drug){row.parsed=false;}
   return row;
 }
-function toUnit(v,u,drug){u=(u||'mg').toLowerCase();const du=drug?drug.unit:'mg';
+function toUnit(v,u,drug){u=(u||'mg').toLowerCase(); if(u==='กรัม')u='g'; else if(u==='มก'||u==='มก.')u='mg';const du=drug?drug.unit:'mg';
   if(du==='g'){if(u==='mg')return v/1000;return v;}
   if(du==='unit'||du==='mEq')return v;
   if(du==='mcg') return u==='mg'?v*1000:u==='g'?v*1e6:v;
@@ -2116,7 +2123,9 @@ function evaluate(row,pt,rows){
   if(row.had){ const h=row.had, H=HAD[h.key]; const bw=+pt.bw||null;
     res.D=h.amt; res.T=null;
     if(!(h.amt>0&&h.vol>0)) add('warn',`HAD: อ่านคำสั่งไม่ครบ — อ่านได้ ยา ${h.amt>0?h.amt+' '+H.u:'–'} · สารน้ำ ${h.vol>0?h.vol+' ml':'–'} · rate ${h.rate!=null?h.rate+' ml/h':'–'} (ต้องมีครบ 3 ค่าจึงคำนวณ dose/conc ได้ เช่น 4:250 rate 10 หรือ 8 mg + D5W 250 ml rate 10 cc/hr) — กรอกในแท็บ "คำนวณ HAD"`);
-    else if(h.rate==null) add('warn','HAD: ไม่พบ rate (เช่น 10 cc/hr) — ตรวจ dose ไม่ได้');
+    else if(h.rate==null){ if(h.key==='kcl'){ const c=h.amt/h.vol*1000; add(c>150?'flag':c>80?'warn':'ok',`KCl ${fmtN(h.amt)} mEq ในสารน้ำ ${fmtN(h.vol)} ml = ${fmtN(c)} mEq/L (peripheral ≤80 · central ≤150 mEq/L)`);
+        add('warn',`KCl: คำสั่งไม่ระบุ rate — ถามหอผู้ป่วย/แพทย์ (peripheral ≤10 mEq/h = ใช้เวลาอย่างน้อย ${fmtN(h.amt/10)} ชม. สำหรับ ${fmtN(h.amt)} mEq)`); }
+      else add('warn','HAD: ไม่พบ rate (เช่น 10 cc/hr) — ตรวจ dose ไม่ได้'); }
     else { const o=hadCalc(h.key,{bw,dil:h.dil,amt:h.amt,vol:h.vol,rate:h.rate,line:h.line,crcl:pt.dial?0:pt.crcl,amp:h.amp,ampTxt:h.ampTxt});
       const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
       const S=(typeof HAD_STD!=='undefined'&&HAD_STD[h.key])||{};
@@ -2140,11 +2149,13 @@ function evaluate(row,pt,rows){
     else if(h.how==='ratio'&&h.dvol&&h.dvol>h.vol) add('warn',`คำสั่งระบุทั้ง ${h.amt}:${h.vol} และสารน้ำ ${h.dvol} ml — ตรวจว่าความเข้มข้นจริงคือ ${h.amt}/${h.vol} หรือ ${h.amt}/${h.dvol} ${H.u}/ml (ใช้ ${h.amt}:${h.vol} ในการคำนวณ)`);
     if(h.key==='ne'&&!h.dil) add('info','คำสั่งไม่ระบุชนิดสารน้ำ — Norepinephrine ผสมใน D5W เท่านั้น (คู่มือ HAD รพ.: ห้าม NSS) ห้องยาจ่าย D5W');
     if(h.key==='ne'&&h.dil&&!/^D5/.test(h.dil)) add('flag',`Norepinephrine ต้องผสมใน D5W เท่านั้น (คู่มือ HAD รพ.: incompatible กับ NSS) — คำสั่งระบุ ${h.dil}`);
-    if(h.key==='kcl'&&pt.k!=null&&pt.k>=5) add('flag',`K ${pt.k} — ยืนยันข้อบ่งใช้ KCl`);
+    if(h.key==='kcl'){ if(pt.k==null) add('warn','KCl: ไม่มีค่า K — วางผล Lab จาก HIS หรือกรอก K'); else if(pt.k>=5) add('flag',`K ${pt.k} — ยืนยันข้อบ่งใช้ KCl`); else if(pt.k<3) add('warn',`K ${pt.k} ต่ำมาก (<3) — ยืนยันแผนทดแทน K และนัดเจาะ K ซ้ำ`); else add('info',`K ${pt.k}`);
+      if(pt.dial||(pt.crcl!=null&&pt.crcl<30)) add('warn',`ไตบกพร่อง (${pt.dial||'CrCl '+r0(pt.crcl)}) — ขับ K ได้น้อย เสี่ยง hyperkalemia: ให้ช้า และติดตาม K ใกล้ชิด`); }
     if(h.key==='mg'&&(pt.dial||(pt.crcl!=null&&pt.crcl<25))) add('flag','MgSO4: ห้ามใช้เมื่อ CrCl <25');
     add('info','HAD (ยาความเสี่ยงสูง): เภสัชกรตรวจข้อบ่งใช้ dose conc rate ตามคู่มือ HAD รพ. แล้วบันทึก "ok (check2)" = ผ่านการตรวจซ้ำคนที่ 2 · รายละเอียดในแท็บ "คำนวณ HAD"');
     const lv=items.filter(i=>i.lvl!=='info').reduce((m,i)=>Math.max(m,LV[i.lvl]),-1); res.status=lv===3?'flag':lv===2?'warn':'ok'; return res; }
   row.issues&&row.issues.forEach(x=>add('warn','อ่านคำสั่ง: '+x,'parse'));
+  if(row.once) add('info','One Day ไม่ระบุความถี่ — ถือเป็นให้ 1 ครั้ง (stat)');
   if(row.weekly){const w=row.weekly, mu=w.mgU;
     { const wu=w.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0), dp=dispOf(row.raw);
       const tabs=d=>Math.ceil(wu*d/7-1e-9);
@@ -2177,7 +2188,9 @@ function evaluate(row,pt,rows){
   // ---- TB
   if(useTB && D!=null && F!=null){hit=true; evalTB(d,D,F,pt,add,res);}
   // ---- pediatrics
-  else if(pt.isPed){ if(pt.neo) add('warn',`ทารกแรกเกิด (อายุ ${pt.pna} วัน): ขนาดยาเด็กในฐานกฎเป็นของเด็กโต ไม่ครอบคลุมทารกแรกเกิด — ขนาดและช่วงห่างขึ้นกับ GA (อายุครรภ์) และ PNA (อายุหลังคลอด) ตรวจที่แท็บ "ยาทารกแรกเกิด" (ตาราง NeoFax ตาม GA/PNA) หรือแนวทางกุมารเวช`);
+  else if(pt.isPed){ if(pt.ageUnk) add('warn','อายุ 0 ปี (ทารก <1 ปี) — ระบุอายุเป็นวัน/เดือนในช่องอายุ · ถ้า <28 วัน ตรวจขนาดและช่วงห่างที่แท็บ "ยาทารกแรกเกิด" (ตาม GA/PNA)');
+    if(!(+pt.bw>0)&&(d.peds||d.kgDose||d.renal||d.variants||d.adult)) add('warn','ผู้ป่วยเด็ก: ยังไม่มีน้ำหนัก — ใส่น้ำหนักเพื่อตรวจขนาด mg/kg');
+    if(pt.neo) add('warn',`ทารกแรกเกิด (อายุ ${pt.pna} วัน): ขนาดยาเด็กในฐานกฎเป็นของเด็กโต ไม่ครอบคลุมทารกแรกเกิด — ขนาดและช่วงห่างขึ้นกับ GA (อายุครรภ์) และ PNA (อายุหลังคลอด) ตรวจที่แท็บ "ยาทารกแรกเกิด" (ตาราง NeoFax ตาม GA/PNA) หรือแนวทางกุมารเวช`);
     if(d.peds&&D!=null&&F!=null){hit=true;evalPed(d,row,D,F,pt,add,res);}
     else if(d.renal||d.variants||d.adult) add('info','ผู้ป่วยเด็ก: ไม่มีกฎขนาดยาเด็กสำหรับยานี้ในฐาน');
     if((d.renal||d.variants)&&pt.schwartz!=null&&pt.schwartz<50){ if(pt.neo) add('info',`ทารกแรกเกิด eGFR Schwartz ${r0(pt.schwartz)} — ค่าปกติของทารกแรกเกิดต่ำกว่าเด็กโต (สูตร Schwartz ไม่เหมาะกับ neonate) ดูแนวโน้ม SCr/urine output แทน`); else add('warn',`เด็กไตบกพร่อง (eGFR Schwartz ${r0(pt.schwartz)}) — ปรับขนาดตามแหล่งอ้างอิงเด็ก`); }
@@ -2233,7 +2246,9 @@ function evaluate(row,pt,rows){
   alChk(d.name); extChk();
   // ---- duplication
   const others=rows.filter(r=>r!==row&&r.drugId).map(r=>KB.find(x=>x.id===r.drugId)).filter(Boolean);
-  if(others.some(o=>o.id===d.id)) add('warn','สั่งยาตัวเดียวกันซ้ำ');
+  if(others.some(o=>o.id===d.id)){ const same=rows.filter(r=>r.drugId===d.id), od=same.filter(r=>/\bone\s*day\b/i.test(r.raw)).length, ct=same.filter(r=>/\bcontinuous\b/i.test(r.raw)).length;
+    if(same.length===2&&od===1&&ct===1) add('info','สั่งแบบ One Day + Continuous (มักเป็น dose แรกทันที แล้วให้ต่อเนื่อง) — ตรวจว่าเวลาให้ไม่ซ้ำในวันเดียวกัน');
+    else add('warn','สั่งยาตัวเดียวกันซ้ำ'); }
   else if(d.cls&&others.some(o=>o.cls===d.cls)&&!['metro','clinda'].includes(d.cls)) add('warn',`ยากลุ่มเดียวกันซ้ำซ้อน (${CLS_NAME[d.cls]||d.cls}): ${others.filter(o=>o.cls===d.cls).map(o=>o.name).join(', ')}`);
   for(const [a,b,msg] of DUP_PAIRS){ if((d.cls===a&&others.some(o=>o.cls===b))||(d.cls===b&&others.some(o=>o.cls===a))) add('warn',msg); }
   if(d.comp){ for(const o of others.filter(o=>o.comp)){ const sh=d.comp.filter(c=>o.comp.includes(c));
@@ -3228,7 +3243,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.29.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.29.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4027,7 +4042,7 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
 (function(){ if(!$('ptParse')) return;
   $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; const o=ptParse(raw), got=[];
     if(o.sex){ setSex(o.sex); got.push(o.sex==='F'?'หญิง':'ชาย'); }
-    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`); }
+    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`+(o.age.u==='y'&&+o.age.v===0?' (ทารก — แก้เป็นวัน/เดือน และใส่น้ำหนัก)':'')); }
     if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
     if(o.ht){ $('ht').value=o.ht; got.push(`สูง ${o.ht}`); }
     if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }

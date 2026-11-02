@@ -224,7 +224,7 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
 (function(){ if(!$('ptParse')) return;
   $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; const o=ptParse(raw), got=[];
     if(o.sex){ setSex(o.sex); got.push(o.sex==='F'?'หญิง':'ชาย'); }
-    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`); }
+    if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`+(o.age.u==='y'&&+o.age.v===0?' (ทารก — แก้เป็นวัน/เดือน และใส่น้ำหนัก)':'')); }
     if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
     if(o.ht){ $('ht').value=o.ht; got.push(`สูง ${o.ht}`); }
     if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }

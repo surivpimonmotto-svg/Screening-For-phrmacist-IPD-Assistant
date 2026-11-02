@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.32.4 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- Atlas ผื่น: ขยาย **Psoriasis** (nail pitting/oil-drop, Auspitz/Koebner, 5 ชนิด, ยาที่กระตุ้น, การรักษา, ประเด็นเภสัชกร MTX/acitretin/ciclosporin/calcipotriol)
+
 ## v0.32.3 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - Atlas ผื่น: ขยาย **Steroid acne** (monomorphic/comedone-free, กลไก, taper steroid, doxycycline/BPO/clindamycin gel, คำถามซักประวัติ "ยาทาตลับ", ตัวอย่างเคส) · เพิ่มการ์ด **Malassezia folliculitis**
 

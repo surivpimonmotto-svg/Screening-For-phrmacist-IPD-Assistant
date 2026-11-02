@@ -2,6 +2,13 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.34.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- แท็บคำนวณ HAD: **ยาต้านพิษ — Protamine** (ตามเวลาหลัง heparin / enoxaparin, max 50 mg) + ขนาดย่อ naloxone, benztropine, diphenhydramine, leucovorin, metoclopramide เด็ก
+- หน้าคัดกรอง: metoclopramide เด็กเกินขนาดตามอายุ · metoclopramide + ยาต้านโรคจิต (EPS/NMS) · ยาต้านโรคจิตฉีด high-potency ไม่มียาป้องกัน EPS · naloxone + fentanyl patch (ถอดแผ่น) · MTX ≥500 mg ไม่มี leucovorin
+- แท็บ ARV: **ตาราง OI** (PCP, toxo, crypto, candida, talaro/histo, CMV, MAC, TB) — ป้องกัน รักษา หยุดยาป้องกัน เวลาเริ่ม ART
+- ตั้งครรภ์: ข้อความ warfarin ตามไตรมาส/ลิ้นหัวใจเทียม (ESC 2018) · DOAC ห้ามใช้ในตั้งครรภ์/ให้นม
+- คู่มือย่อ: ACS 2025 ยาหลัง ACS · cancer pain morphine titration
+
 ## v0.33.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - แท็บคำนวณ HAD: **ผ่าตัด/หัตถการ — หยุดและเริ่มยาต้านการแข็งตัว**: warfarin ตาม thrombotic risk × bleeding risk (วันหยุด, ตรวจ INR, bridging LMWH ขนาดป้องกัน/รักษา, เริ่มยาใหม่) · DOAC ตาม CrCl (EHRA 2021) · ยาต้านเกล็ดเลือด · คำนวณเป็นวันที่จากวันผ่าตัด
 - คู่มือย่อ: เพิ่ม periop warfarin (WA Health), HLA-B*57:01 abacavir, angioedema

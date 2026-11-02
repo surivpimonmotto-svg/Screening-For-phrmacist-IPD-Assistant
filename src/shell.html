@@ -570,6 +570,16 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         </div>
         <div class="panel sec hres" style="margin:0" id="poOut"></div>
         <div class="panel sec" style="margin:0">
+          <h2>ยาต้านพิษ — Protamine (แก้ heparin / enoxaparin)</h2>
+          <div class="grid2">
+            <label class="f">ยาที่ต้องแก้ฤทธิ์<select id="atAg"><option value="hep">Heparin (UFH)</option><option value="enox">Enoxaparin</option></select></label>
+            <label class="f">ปริมาณ (heparin unit / enoxaparin mg)<input id="atAmt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">เวลาหลังให้ยาครั้งล่าสุด (ชม.)<input id="atHr" type="number" step="any" inputmode="decimal" placeholder="ว่าง = เพิ่งให้"></label>
+          </div>
+          <div id="atRef"></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="atOut"></div>
+        <div class="panel sec" style="margin:0">
           <h2>Methylprednisolone inj — ขนาด · vial · การผสม</h2>
           <div class="grid2">
             <label class="f" style="grid-column:1/-1">แบบการให้<select id="mReg"></select></label>
@@ -841,6 +851,10 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="pOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>โรคติดเชื้อฉวยโอกาส (OI) — ป้องกัน · รักษา · เวลาเริ่ม ART</h2>
+          <div id="oiOut"></div>
+        </div>
       </div>
     </section>
 

@@ -570,6 +570,16 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
         </div>
         <div class="panel sec hres" style="margin:0" id="poOut"></div>
         <div class="panel sec" style="margin:0">
+          <h2>ยาต้านพิษ — Protamine (แก้ heparin / enoxaparin)</h2>
+          <div class="grid2">
+            <label class="f">ยาที่ต้องแก้ฤทธิ์<select id="atAg"><option value="hep">Heparin (UFH)</option><option value="enox">Enoxaparin</option></select></label>
+            <label class="f">ปริมาณ (heparin unit / enoxaparin mg)<input id="atAmt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">เวลาหลังให้ยาครั้งล่าสุด (ชม.)<input id="atHr" type="number" step="any" inputmode="decimal" placeholder="ว่าง = เพิ่งให้"></label>
+          </div>
+          <div id="atRef"></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="atOut"></div>
+        <div class="panel sec" style="margin:0">
           <h2>Methylprednisolone inj — ขนาด · vial · การผสม</h2>
           <div class="grid2">
             <label class="f" style="grid-column:1/-1">แบบการให้<select id="mReg"></select></label>
@@ -841,6 +851,10 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           </div>
         </div>
         <div class="panel sec hres" style="margin:0" id="pOut"></div>
+        <div class="panel sec" style="margin:0">
+          <h2>โรคติดเชื้อฉวยโอกาส (OI) — ป้องกัน · รักษา · เวลาเริ่ม ART</h2>
+          <div id="oiOut"></div>
+        </div>
       </div>
     </section>
 
@@ -1430,8 +1444,8 @@ const KB=[
 
 /* ---------------- Anticoagulant ---------------- */
 {id:'warfarin',name:'Warfarin',match:/warfarin|orfarin|^\s*w\s*\(?\s*\d/i,unit:'mg',forms:[[/5/,'5 mg',5],[/3/,'3 mg',3],[/2/,'2 mg',2]],special:'warfarin',
- elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin ห้ามใช้ในหญิงตั้งครรภ์',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
-{id:'dabigatran',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
+ elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin category X (embryopathy เสี่ยงสูงสุดอายุครรภ์ 6–12 สัปดาห์) — VTE: เปลี่ยนเป็น enoxaparin/heparin ตลอดการตั้งครรภ์ · ลิ้นหัวใจเทียมโลหะ (ESC 2018): warfarin ≤5 mg/วัน ให้ต่อได้ทั้งครรภ์ หรือเปลี่ยน LMWH/UFH สัปดาห์ 6–12 · >5 mg/วัน เปลี่ยน LMWH bid (ติดตาม anti-Xa) หรือ UFH (aPTT ≥2× control) ช่วงไตรมาสแรก · 36 สัปดาห์ เปลี่ยนเป็น LMWH/UFH · 36 ชม.ก่อนคลอด UFH · หยุด 4–6 ชม.ก่อนคลอด เริ่มใหม่ 4–6 ชม.หลังคลอดถ้าไม่มีเลือดออก · ให้นมบุตรใช้ warfarin ได้',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
+{id:'dabigatran',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
  renal:{bands:[B(50,999,'150 mg bid (เสี่ยงเลือดออก 110 mg bid)',150,300),B(30,50,'150/110 mg bid — ใช้ร่วม dronedarone/ketoconazole: 75 mg (US: 75 mg bid)',150,300),B(15,30,'VTE: ไม่แนะนำ (CrCl ≤30) · AF: ตรวจข้อบ่งใช้ ระวังสูง',110,220),B(0,15,'ไม่แนะนำ',null,null,{avoid:true})],
   HD:{txt:'ไม่แนะนำ',avoid:true},CAPD:{txt:'ไม่แนะนำ',avoid:true},CRRT:{txt:'ไม่แนะนำ',avoid:true}},
  warn:[{crcl:30,lvl:'flag',msg:'Dabigatran: CrCl ≤30 — VTE treatment/prophylaxis ไม่แนะนำ · AF ไม่แนะนำเมื่อ CrCl <15'}],
@@ -1440,12 +1454,12 @@ const KB=[
  renal:{bands:[B(30,999,'1 mg/kg SC q12h หรือ 1.5 mg/kg OD',1.5,2,{kg:true}),B(15,30,'1 mg/kg SC OD',1,1,{kg:true}),B(0,15,'1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true})],
   HD:M('หลีกเลี่ยง ถ้าจำเป็น 1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true,warnAlways:'HD: หลีกเลี่ยงการใช้'}),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('1 mg/kg SC OD',1,1,{kg:true})},
  note:'กฎนี้สำหรับขนาดรักษา — ขนาดป้องกัน (เช่น 40 mg OD) ไม่อยู่ในคู่มือ',elderly:'Anticoagulant: เสี่ยงเลือดออก ติดตามอาการ',src:SRC_RENAL},
-{id:'riva',name:'Rivaroxaban (AF)',match:/rivaroxaban|xarelto/i,unit:'mg',forms:[[/20/,'20 mg',20],[/15/,'15 mg',15],[/10/,'10 mg',10]],
+{id:'riva',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Rivaroxaban (AF)',match:/rivaroxaban|xarelto/i,unit:'mg',forms:[[/20/,'20 mg',20],[/15/,'15 mg',15],[/10/,'10 mg',10]],
  renal:{bands:[B(50,999,'20 mg OD พร้อมอาหารเย็น',20,20),B(15,50,'15 mg OD',15,15),B(0,15,'หลีกเลี่ยง',null,null,{avoid:true})],HD:{txt:'หลีกเลี่ยง',avoid:true},CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('15 mg OD',15,15)},
  verify:'ตารางต้นฉบับมีค่าไม่ครบทุกช่อง — ช่วง 15-29 ต้นฉบับอาจระบุ Avoid',src:SRC_RENAL},
-{id:'dabi',name:'Dabigatran (AF)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/110/,'110 mg',110],[/150/,'150 mg',150]],
+{id:'dabi',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Dabigatran (AF)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/110/,'110 mg',110],[/150/,'150 mg',150]],
  renal:{bands:[B(30,999,'110 mg BID',150,300),B(0,30,'หลีกเลี่ยง',null,null,{avoid:true})],HD:{txt:'หลีกเลี่ยง',avoid:true},CAPD:{txt:'หลีกเลี่ยง',avoid:true},CRRT:{txt:'หลีกเลี่ยง',avoid:true}},elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
-{id:'apixaban',name:'Apixaban (AF)',match:/apixaban|eliquis/i,unit:'mg',forms:[[/5/,'5 mg',5],[/2\.5/,'2.5 mg',2.5]],special:'apixaban',elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
+{id:'apixaban',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Apixaban (AF)',match:/apixaban|eliquis/i,unit:'mg',forms:[[/5/,'5 mg',5],[/2\.5/,'2.5 mg',2.5]],special:'apixaban',elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
 
 /* ---------------- Analgesic / misc ---------------- */
 {id:'para',name:'Paracetamol',match:/paracetamol|acetaminophen|tylenol|sara\b/i,unit:'mg',forms:[[/120\s*mg\s*\/\s*5|syr/i,'120 mg/5 ml',24,'ml'],[/250\s*mg\s*\/\s*5/i,'250 mg/5 ml',50,'ml'],[/500/,'500 mg tab',500],[/325/,'325 mg tab',325]],
@@ -3419,7 +3433,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.33.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -4019,6 +4033,13 @@ function arvRender(){
 
 /* ---------- 2) คู่มือย่อ ---------- */
 const REF=[
+ {id:'acs2025',t:'ACS (2025 ACC/AHA) — ยาหลังเกิดกล้ามเนื้อหัวใจขาดเลือดเฉียบพลัน',src:'สรุปจาก academic in-service ACS update 2025 (รพ.มค) · 2025 ACC/AHA/ACEP/NAEMSP/SCAI ACS Guideline',h:`
+ <h3>ยาต้านเกล็ดเลือด</h3><ul><li>Aspirin loading 162–325 mg แล้ว 75–100 mg/วัน ตลอดไป</li><li>P2Y12 ร่วม 12 เดือน (DAPT): ทำ PCI → <b>ticagrelor หรือ prasugrel มากกว่า clopidogrel</b> · ได้ยาละลายลิ่มเลือด → clopidogrel เท่านั้น · prasugrel ห้ามในประวัติ stroke/TIA</li><li>เสี่ยงเลือดออกสูง: หลัง ≥1 เดือน พิจารณาเปลี่ยนเป็น ticagrelor เดี่ยว หรือ de-escalation · ให้ PPI ร่วมระหว่าง DAPT</li><li>ต้องได้ OAC ด้วย (AF): หยุด aspirin หลัง 1–4 สัปดาห์ เหลือ OAC + clopidogrel</li></ul>
+ <h3>ลดไขมัน</h3><ul><li>High-intensity statin ทุกราย (atorvastatin 40–80, rosuvastatin 20–40)</li><li>LDL ≥70 mg/dL (หรือ ≥55 ในเสี่ยงสูงมาก) แม้ได้ statin สูงสุด → เพิ่ม ezetimibe / PCSK9 inhibitor</li></ul>
+ <h3>ยาอื่น</h3><ul><li>Beta-blocker: LVEF ≤40% (ต้องให้) · ไม่ให้ในหัวใจล้มเหลวเฉียบพลัน/shock/bradycardia</li><li>ACEI (หรือ ARB): LVEF ≤40%, HT, DM, CKD</li><li>MRA: LVEF ≤40% ร่วมกับ HF หรือ DM ที่ได้ ACEI + BB แล้ว (ระวัง K, Cr)</li><li>SGLT2i/GLP-1 RA: ตามโรคร่วม (DM, HF)</li><li>Colchicine ขนาดต่ำ: อาจพิจารณาเพื่อลด event (หลักฐานน้อย)</li><li>ห้าม NSAIDs (ยกเว้น aspirin)</li></ul>`},
+ {id:'opiotit',t:'Cancer pain — เริ่มและปรับขนาด morphine',src:'สรุปจาก academic in-service Adult cancer pain (High alert team รพ.มค) · NCCN Adult Cancer Pain 2019 · แนวทางระงับปวดเฉียบพลัน 2552',h:`
+ <ul><li>เริ่ม morphine (opioid-naïve): 0.15–0.3 mg/kg PO q4h หรือ 0.05–0.1 mg/kg IV/SC q4h · ผู้สูงอายุ/ไตบกพร่อง เริ่มต่ำ</li><li>ขนาดวันถัดไป = ขนาด regular + รวม breakthrough (BTP) ที่ใช้ใน 24 ชม.</li><li>ปรับเพิ่มได้ 30–100% (ทั่วไป 50%) ตามความปวด · BTP 10–20% ของขนาดรวมต่อวัน</li><li>Fentanyl patch: ออกฤทธิ์สูงสุด 12–15 ชม. นาน 72 ชม. — ไม่ใช้ใน opioid-naïve/ปวดเฉียบพลัน</li><li>เสี่ยงพิษ: นอนกรน/หยุดหายใจขณะหลับ ตั้งครรภ์ ตับ/ไตบกพร่อง อายุ ≥65 ปี โรคจิตเวช ประวัติใช้สารเสพติด</li><li>พิษ opioid: หยุด opioid ทุกตัว ถอดแผ่นแปะ → naloxone titrate (ดูยาต้านพิษในแท็บคำนวณ HAD) · ให้ยาระบายป้องกันท้องผูกทุกราย</li></ul>
+ <p>คำนวณขนาดเทียบ (OME) ที่แท็บ <b>Opioid (OME)</b></p>`},
  {id:'faq-pen',t:'คำถามพบบ่อย: แพ้ penicillin ใช้ cephalosporin ตัวไหนได้',src:'Beta-lactam cross-allergy chart (side chain R1) · ตรงกับกฎใน cross.js',h:`
  <p><b>หลักการ:</b> แพ้ข้าม penicillin → cephalosporin ต่ำ (~1–2%) และขึ้นกับ <b>side chain (R1)</b> เป็นหลัก ไม่ใช่ beta-lactam ring · ยกเว้นแพ้แบบรุนแรงชนิดล่าช้า (SJS/TEN/DRESS/AGEP, ไตอักเสบ, ตับอักเสบ, hemolytic anemia) → <b>หลีกเลี่ยง beta-lactam ทุกตัว</b></p>
  <table class="ctbl"><tr><th>Cephalosporin</th><th>แพ้ penicillin ทั่วไป / amoxicillin / ampicillin</th><th>หมายเหตุ</th></tr>
@@ -5028,6 +5049,25 @@ function pepRender(){ const out=$('pOut'); if(!out) return; const pt=getPt(), bw
 (function(){ if(!$('pOut')) return; ['pExD','pExT','pSt','pAp'].forEach(id=>$(id).addEventListener('input',pepRender)); ['pTab','pType','pepReg','pApM'].forEach(id=>$(id).addEventListener('change',pepRender));
   ['bw','scr','ageIn','ageU','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',pepRender); el.addEventListener('change',pepRender); } }); $('t-arv').addEventListener('click',pepRender); pepRender(); })();
 
+/* ===== oi.js — โรคติดเชื้อฉวยโอกาส (OI) ในผู้ติดเชื้อ HIV: ป้องกัน · รักษา · เวลาเริ่ม ART · หยุดยาป้องกัน
+ สรุปจาก academic conference "HIV and OI drugs" (รพ.มค) และแนวทางการตรวจรักษาและป้องกันการติดเชื้อเอชไอวี ประเทศไทย 2564/2565 · WHO 2022 (cryptococcal)
+ ⚠ ข้อมูลอยู่ในแท็บที่ "รอตรวจ" — ยืนยันกับเภสัชกร HIV/แนวทาง รพ. */
+const OI=[
+ ['PCP (Pneumocystis jirovecii)','CD4 <200 (หรือ <14%) หรือมี oral candidiasis/โรค AIDS-defining','Co-trimoxazole (80/400) 2 เม็ด วันละครั้ง (หรือ 160/800 1 เม็ด) — ครอบคลุม toxoplasmosis ด้วย · แพ้ sulfa: dapsone 100 mg/วัน','TMP 15–20 mg/kg/วัน แบ่ง q6–8h นาน 21 วัน · PaO₂ <70 mmHg/A-a ≥35: prednisolone 40 mg bid วัน 1–5 → 40 mg od วัน 6–10 → 20 mg od วัน 11–21 (เริ่มภายใน 72 ชม.)','หยุดเมื่อ CD4 >200 ≥3 เดือน (หรือ 100–200 + VL ตรวจไม่พบ ≥3 เดือน)','ภายใน 2 สัปดาห์'],
+ ['Toxoplasmic encephalitis','CD4 <100 + Toxoplasma IgG บวก','Co-trimoxazole (80/400) 2 เม็ด วันละครั้ง','Pyrimethamine + sulfadiazine + leucovorin หรือ TMP-SMX (TMP 5 mg/kg bid) นาน ≥6 สัปดาห์ · แพ้ sulfa รุนแรง: pyrimethamine + clindamycin (หรือ azithromycin ร่วม clindamycin) · แพ้ไม่รุนแรง: desensitization','secondary: TMP-SMX จน CD4 >200 ≥6 เดือน','ภายใน 2 สัปดาห์'],
+ ['Cryptococcosis','CD4 <100: ตรวจ serum CrAg ทุกราย · primary prophylaxis เฉพาะผู้ที่เริ่ม ART เร็วไม่ได้ (fluconazole 400 mg สัปดาห์ละครั้ง/200 mg/วัน) · เด็ก <12 ปีไม่แนะนำ','CrAg บวก ไม่มีอาการ (ตัด meningitis แล้ว): fluconazole 800 mg/วัน 2 สัปดาห์ → 400 mg 8 สัปดาห์ → 200 mg','Meningitis: induction 2 สัปดาห์ amphotericin B deoxycholate 0.7–1 mg/kg/วัน + flucytosine 100 mg/kg/วัน (หรือ + fluconazole 800–1200 mg) · WHO 2022: liposomal AmB 10 mg/kg ครั้งเดียว + flucytosine + fluconazole 1200 mg 14 วัน → consolidation fluconazole 400–800 mg 8 สัปดาห์ → maintenance 200 mg · เจาะลดความดัน CSF ซ้ำ · ให้สารน้ำ/K/Mg ป้องกันพิษไตจาก AmB','maintenance ≥1 ปี และ CD4 >100 + VL ตรวจไม่พบ ≥3 เดือน','เลื่อน 4–6 สัปดาห์หลังเริ่มรักษา (ลด IRIS/เสียชีวิต)'],
+ ['Candidiasis','ไม่แนะนำ primary prophylaxis','—','Oropharyngeal: fluconazole 100–200 mg/วัน 7–14 วัน (clotrimazole troche/nystatin ในรายเบา) · Esophageal: fluconazole 200–400 mg/วัน 14–21 วัน (กลืนไม่ได้ให้ IV) · อาจมี HSV/CMV ร่วม','—','ทันที'],
+ ['Talaromycosis / Histoplasmosis','CD4 <100 (talaro) / <150 (histo) และเริ่ม ART เร็วไม่ได้: itraconazole 200 mg/วัน (ไม่ต้องให้ fluconazole ป้องกัน crypto ซ้ำ)','—','Amphotericin B (liposomal 3 mg/kg หรือ deoxycholate 0.7 mg/kg) 2 สัปดาห์ → itraconazole 200 mg bid 10 สัปดาห์ → 200 mg/วัน (itraconazole ดูดซึมดีเมื่อกินพร้อมอาหาร · ระวัง DDI กับ PI/rifampicin)','secondary จน CD4 >100 ≥6 เดือน','ภายใน 1–2 สัปดาห์'],
+ ['CMV retinitis','ไม่ให้ยาป้องกัน · CD4 <50: คัดกรองตาโดยจักษุแพทย์ (เด็ก CD4 ≤5%)','—','Ganciclovir IV 5 mg/kg q12h 14–21 วัน หรือ valganciclovir 900 mg bid ± intravitreal → maintenance 5 mg/kg/วัน หรือ valganciclovir 900 mg/วัน (ปรับตามไต · ระวังเม็ดเลือดต่ำ)','หยุด maintenance เมื่อ CD4 >100 ≥3–6 เดือน','ภายใน 2 สัปดาห์'],
+ ['MAC (Mycobacterium avium complex)','CD4 <50 และเริ่ม ART ภายใน 4 สัปดาห์ไม่ได้ (optional): azithromycin 1200 mg สัปดาห์ละครั้ง (หรือ clarithromycin 500 bid)','—','Clarithromycin 500 mg bid (หรือ azithromycin 500–600 mg/วัน) + ethambutol 15 mg/kg/วัน ± rifabutin · ตั้งครรภ์เลี่ยง clarithromycin · clarithromycin มี DDI กับ PI (CYP3A4) — azithromycin ปลอดภัยกว่า ใช้ร่วม rifampicin ได้','หยุดเมื่อ CD4 >100 ≥3–6 เดือน (รักษา ≥12 เดือน)','ภายใน 2 สัปดาห์'],
+ ['Tuberculosis','—','TPT (isoniazid 6–9 เดือน / 3HP) เมื่อตัด active TB','สูตร 2HRZE/4HR · rifampicin + DTG → DTG 50 mg bid · ดูแท็บยา TB','—','CD4 <50: ภายใน 2 สัปดาห์ · CD4 ≥50: ภายใน 8 สัปดาห์ · TB meningitis: 4–8 สัปดาห์'],
+];
+const OI_TIP=['IRIS: อาการใหม่/แย่ลงหลังเริ่ม ART โดยเฉพาะ 6 เดือนแรกและ CD4 ต่ำ — ไม่ใช่การแพ้ยาหรือรักษาล้มเหลว','Co-trimoxazole ป้องกัน PCP ครอบคลุม toxoplasmosis · itraconazole ป้องกัน talaro/histo ครอบคลุม crypto (ไม่ต้องให้ fluconazole ซ้ำ)','หยุด primary/secondary prophylaxis ได้เมื่อได้ ART และ CD4 สูงเกินเกณฑ์ตามตาราง + VL ตรวจไม่พบ','ตรวจ DDI ก่อนจ่าย: rifampicin กับ PI/DTG/azole · clarithromycin กับ PI · fluconazole/itraconazole กับ ยาที่ยืด QT · ganciclovir/co-trimoxazole/AZT เสริมกดไขกระดูก'];
+(function(){ const box=$('oiOut'); if(!box) return;
+  box.innerHTML=`<div style="overflow-x:auto"><table class="ctbl" style="font-size:13px"><thead><tr><th>โรค</th><th>เกณฑ์ป้องกัน (primary)</th><th>ยาป้องกัน / pre-emptive</th><th>การรักษา</th><th>หยุดยาป้องกัน</th><th>เริ่ม ART</th></tr></thead><tbody>${OI.map(r=>`<tr>${r.map((c,i)=>`<td${i?'':' style="font-weight:700"'}>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+   <ul class="msgs" style="margin-top:8px">${OI_TIP.map(t=>`<li><span class="tag info">${LVL_TXT.info}</span><span>${esc(t)}</span></li>`).join('')}</ul>
+   <p class="hint">สรุปจาก academic conference HIV & OI drugs (รพ.มค) · แนวทางการตรวจรักษาและป้องกันการติดเชื้อเอชไอวี ประเทศไทย 2564/2565 · WHO 2022 cryptococcal guideline — <b>รอเภสัชกร HIV ตรวจ</b></p>`; })();
+
 /* ===== anticoag.js — แท็บ HAD: Enoxaparin (ขนาดตามน้ำหนัก/ไต → syringe 40/60 mg) · Heparin ปรับ rate ตาม aPTT (weight-based nomogram)
  ⚑ อ้างอิงทั่วไป: Enoxaparin SPC / CHEST · Raschke weight-based heparin nomogram (1993) — ยืนยันกับแนวทาง/ใบสั่ง รพ.มค */
 const ENOX_SYR=[40,60]; // mg ต่อ syringe (100 mg/ml) ตามบัญชียา รพ. · ขนาดปัดเป็นทวีคูณ 10 mg ตามขีด syringe
@@ -5118,6 +5158,39 @@ function periopRender(){ const out=$('poOut'); if(!out) return; const drug=$('po
   ['poDrug','poThr','poBld'].forEach(id=>$(id).addEventListener('change',()=>{ $('poThrW').hidden=$('poDrug').value!=='warf'; periopRender(); })); $('poDate').addEventListener('input',periopRender);
   ['scr','bw','ageIn','mode','crclIn'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',periopRender); el.addEventListener('change',periopRender); } });
   periopRender(); })();
+
+/* ===== antidote.js — ยาต้านพิษที่ใช้บ่อยใน รพ.มค: Protamine · Naloxone · EPS (benztropine/diphenhydramine) · Leucovorin
+ สรุปจาก academic in-service "Antidote use in MSKH" (รพ.มค) และ Micromedex/Lexicomp · กฎตรวจคำสั่งยาที่เกี่ยวข้อง */
+function protCalc(){ const out=$('atOut'); if(!out) return; const ag=$('atAg').value, amt=+$('atAmt').value, h=+$('atHr').value, L=[];
+  if(ag==='hep'){ if(!(amt>0)){ out.innerHTML='<div class="empty">ใส่ปริมาณ heparin (unit) — bolus ที่เพิ่งให้ หรือ drip = ปริมาณที่ให้ใน 2–3 ชม.ล่าสุด</div>'; return; }
+    const b=!(h>0)||h<0.5?[1,1.5,'ทันที (<30 นาที)']:h<=1?[0.5,0.75,'30–60 นาที']:h<=2?[0.375,0.5,'1–2 ชม. (ระหว่างช่วงในตาราง)']:[0.25,0.375,'>2 ชม.'];
+    const lo=amt/100*b[0], hi=amt/100*b[1]; L.push(`เวลาหลังให้ heparin ${b[2]}: protamine ${b[0]}–${b[1]} mg ต่อ heparin 100 unit → <b>${fmtN(r1(Math.min(lo,50)))}–${fmtN(r1(Math.min(hi,50)))} mg</b>${hi>50?' (จำกัด 50 mg/ครั้ง)':''}`);
+    L.push('heparin drip: คิดจากปริมาณที่ให้ใน 2–3 ชม.ล่าสุด (half-life ~1–1.5 ชม.)'); }
+  else { if(!(amt>0)){ out.innerHTML='<div class="empty">ใส่ขนาด enoxaparin เข็มล่าสุด (mg)</div>'; return; }
+    if(h>12) L.push(`ผ่านมา ${h} ชม. (>12 ชม.): อาจไม่จำเป็นต้องให้ protamine — พิจารณาตามภาวะเลือดออก`);
+    else { const k=!(h>0)||h<=8?1:0.5; L.push(`${!(h>0)||h<=8?'≤8 ชม.':'8–12 ชม.'}หลังฉีด: protamine ${k} mg ต่อ enoxaparin 1 mg → <b>${fmtN(r1(Math.min(amt*k,50)))} mg</b>${amt*k>50?' (จำกัด 50 mg/ครั้ง)':''}`); }
+    L.push('ถ้า aPTT ยังยาวหลังให้ 2–4 ชม. หรือยังมีเลือดออก ให้ซ้ำ 0.5 mg ต่อ enoxaparin 1 mg · protamine แก้ฤทธิ์ anti-Xa ได้ ~60%'); }
+  L.push('ให้ IV ช้า ๆ ≤5 mg/นาที (push 1–3 นาที หรือเจือจางใน NSS/D5W 100 ml) · max 50 mg/ครั้ง ซ้ำได้ทุก 10 นาที · ระวัง hypotension/anaphylaxis (แพ้ปลา, เคยได้ protamine insulin, หมันชาย)');
+  out.innerHTML=`<ol style="margin:0;padding-left:20px">${L.map(x=>`<li style="margin:3px 0">${x}</li>`).join('')}</ol>`; }
+const AT_REF=`<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:700">Naloxone · EPS · Leucovorin — ขนาดยาย่อ</summary><dl class="rxdl" style="margin-top:6px">
+ <dt>Naloxone</dt><dd>opioid กดการหายใจ: เริ่ม 0.04 mg IV แล้ว titrate 0.4 → 2 → 4 → 8–10 mg (ถ้าถึง 10 mg ไม่ตอบสนอง ทบทวนสาเหตุอื่น) · ผู้ป่วยใช้ opioid ประจำ/มะเร็ง: 0.04–0.1 mg ทีละน้อย กันถอนยาและปวดกลับ · ให้ IV (IM ดูดซึมไม่แน่นอน) · <b>ถอดแผ่น fentanyl ออกก่อน</b> · opioid ออกฤทธิ์ยาว (methadone, MST, patch) ต้องให้ซ้ำ/drip เพราะ naloxone หมดฤทธิ์ 30–90 นาที</dd>
+ <dt>EPS — Benztropine</dt><dd>ผู้ใหญ่ 1–2 mg IV/IM · เด็ก >3 ปี 0.02 mg/kg (max 1 mg) · ต่อด้วยยากิน 1–2 mg q12h 1–2 สัปดาห์ (max 6 mg/วัน)</dd>
+ <dt>EPS — Diphenhydramine</dt><dd>ผู้ใหญ่ 50 mg IV/IM ซ้ำได้ (max 100 mg/ครั้ง) แล้วกิน 25–50 mg q4–6h 2–3 วัน (max 400 mg/วัน) · เด็ก 0.5–1 mg/kg IV/IM หรือ 12.5–25 mg q4–6h (max 300 mg/วัน)</dd>
+ <dt>Leucovorin (folinic acid)</dt><dd>MTX toxicity/high-dose rescue: 15 mg (~10 mg/m²) q6h เริ่มภายใน 24 ชม.หลัง MTX จนระดับ MTX <0.05 µmol/L · ป้องกันโลหิตจางจาก trimethoprim/pyrimethamine: 5–15 mg วันละครั้ง · ใช้ร่วมสูตร 5-FU (ไม่ใช่ antidote)</dd>
+ <dt>Metoclopramide IV ในเด็ก</dt><dd><6 ปี 0.1 mg/kg · 6–14 ปี 2.5–5 mg · ≥15 ปี 10 mg (ครั้งเดียว) — เด็กเกิด EPS ง่าย</dd></dl>
+ <p class="hint">ที่มา: academic in-service Antidote use in MSKH (รพ.มค) · Micromedex/Lexicomp · คู่มือยาต้านพิษ DIS 2564</p></details>`;
+// ---- กฎตรวจคำสั่งยา
+const AT_APSY=/haloperidol|fluphenazin|perphenazin|trifluoperazin|chlorpromazin|risperid|zuclopenth|flupentix|olanzap|aripipra|quetiap|sulpirid|amisulpr/i, AT_HIPOT=/haloperidol|fluphenazin|perphenazin|trifluoperazin|zuclopenth|flupentix/i, AT_ANTIEPS=/trihexyphen|benzhexol|artane|benztrop|diphenhydr|benadryl/i;
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items) return r; const raw=row.raw||'', all=(rows||[]).map(x=>x.raw||'').join('\n'), add=(l,t)=>{ if(!r.items.some(i=>i.txt===t)) r.items.push({lvl:l,txt:t}); if(l==='warn'&&r.status!=='flag') r.status='warn'; };
+  if(/metoclopramid|plasil/i.test(raw)){ const age=+pt.age; const m=raw.replace(/,/g,'').match(/(\d+(?:\.\d+)?)\s*mg/i), D=m?+m[1]:null, bw=+pt.bw;
+    if(age>0&&age<15&&D!=null){ const lim=age<6?(bw>0?0.1*bw:null):5; if(lim!=null&&D>lim*1.1) add('warn',`Metoclopramide เด็ก ${age<6?'<6 ปี: 0.1 mg/kg = '+fmtN(r1(lim))+' mg':'6–14 ปี: 2.5–5 mg'} ต่อครั้ง — สั่ง ${fmtN(D)} mg สูงกว่าแนะนำ (เด็กเสี่ยง EPS สูง)`); }
+    if(AT_APSY.test(all)) add('warn','Metoclopramide ร่วมกับยาต้านโรคจิต — เสริมฤทธิ์เกิด EPS/NMS · หลีกเลี่ยง พิจารณา domperidone/ondansetron'); }
+  if(AT_HIPOT.test(raw)&&/\b(inj|iv|im)\b|ฉีด|decanoate/i.test(raw)&&!AT_ANTIEPS.test(all)) add('info','ยาต้านโรคจิต high-potency ชนิดฉีด — ไม่พบยาป้องกัน EPS (trihexyphenidyl/benztropine/diphenhydramine) ในคำสั่ง · เฝ้าระวังลิ้นแข็ง คอบิด ตาเหลือก');
+  if(/naloxone/i.test(raw)&&/fentanyl.*(patch|durogesic|mcg\/h)|durogesic/i.test(all)) add('warn','ให้ naloxone ในผู้ป่วยที่ใช้ fentanyl patch — ถอดแผ่นแปะออกก่อน และเฝ้าระวังซ้ำ (ยายังซึมจากผิวหนังต่อ 12–24 ชม.)');
+  if(/methotrexat|\bmtx\b/i.test(raw)){ const m=raw.replace(/,/g,'').match(/(\d+(?:\.\d+)?)\s*(mg|g)\b/i); const mg=m?(+m[1])*(/^g$/i.test(m[2])?1000:1):null;
+    if(mg!=null&&mg>=500&&!/leucovorin|folinic|calcium folinate/i.test(all)) add('warn',`Methotrexate ${fmtN(mg)} mg (ขนาดสูง) — ไม่พบ leucovorin rescue ในคำสั่ง · ต้องให้ leucovorin 15 mg q6h เริ่มภายใน 24 ชม. + hydration/ปัสสาวะเป็นด่าง + ติดตามระดับ MTX`); }
+ }catch(e){} return r; })(evaluate);
+(function(){ if(!$('atOut')) return; $('atRef').innerHTML=AT_REF; ['atAmt','atHr'].forEach(id=>$(id).addEventListener('input',protCalc)); $('atAg').addEventListener('change',protCalc); protCalc(); })();
 
 /* ===== hadx.js — แท็บ HAD: Methylprednisolone inj (pulse / mg/kg → vial 40 mg · 1 g, การผสม, เทียบสเตียรอยด์) · rt-PA Alteplase (Actilyse 50 mg)
  ⚑ อ้างอิงทั่วไป: Solu-Medrol SPC · Actilyse SPC · AHA/ASA stroke 2019 · ACC/AHA STEMI · ESC PE — ยืนยันกับแนวทาง รพ.มค */

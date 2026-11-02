@@ -281,8 +281,8 @@ const KB=[
 
 /* ---------------- Anticoagulant ---------------- */
 {id:'warfarin',name:'Warfarin',match:/warfarin|orfarin|^\s*w\s*\(?\s*\d/i,unit:'mg',forms:[[/5/,'5 mg',5],[/3/,'3 mg',3],[/2/,'2 mg',2]],special:'warfarin',
- elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin ห้ามใช้ในหญิงตั้งครรภ์',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
-{id:'dabigatran',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
+ elderly:'Anticoagulant: การกำจัดยาลดลง เสี่ยงเลือดออก — ติดตาม INR และอาการเลือดออก',preg:'Warfarin category X (embryopathy เสี่ยงสูงสุดอายุครรภ์ 6–12 สัปดาห์) — VTE: เปลี่ยนเป็น enoxaparin/heparin ตลอดการตั้งครรภ์ · ลิ้นหัวใจเทียมโลหะ (ESC 2018): warfarin ≤5 mg/วัน ให้ต่อได้ทั้งครรภ์ หรือเปลี่ยน LMWH/UFH สัปดาห์ 6–12 · >5 mg/วัน เปลี่ยน LMWH bid (ติดตาม anti-Xa) หรือ UFH (aPTT ≥2× control) ช่วงไตรมาสแรก · 36 สัปดาห์ เปลี่ยนเป็น LMWH/UFH · 36 ชม.ก่อนคลอด UFH · หยุด 4–6 ชม.ก่อนคลอด เริ่มใหม่ 4–6 ชม.หลังคลอดถ้าไม่มีเลือดออก · ให้นมบุตรใช้ warfarin ได้',src:'แนวทาง DI warfarin / ทบทวนคำสั่งใช้ยา IPD'},
+{id:'dabigatran',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Dabigatran (Pradaxa)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/150/,'150 mg cap',150],[/110/,'110 mg cap',110],[/75/,'75 mg cap',75]],
  renal:{bands:[B(50,999,'150 mg bid (เสี่ยงเลือดออก 110 mg bid)',150,300),B(30,50,'150/110 mg bid — ใช้ร่วม dronedarone/ketoconazole: 75 mg (US: 75 mg bid)',150,300),B(15,30,'VTE: ไม่แนะนำ (CrCl ≤30) · AF: ตรวจข้อบ่งใช้ ระวังสูง',110,220),B(0,15,'ไม่แนะนำ',null,null,{avoid:true})],
   HD:{txt:'ไม่แนะนำ',avoid:true},CAPD:{txt:'ไม่แนะนำ',avoid:true},CRRT:{txt:'ไม่แนะนำ',avoid:true}},
  warn:[{crcl:30,lvl:'flag',msg:'Dabigatran: CrCl ≤30 — VTE treatment/prophylaxis ไม่แนะนำ · AF ไม่แนะนำเมื่อ CrCl <15'}],
@@ -291,12 +291,12 @@ const KB=[
  renal:{bands:[B(30,999,'1 mg/kg SC q12h หรือ 1.5 mg/kg OD',1.5,2,{kg:true}),B(15,30,'1 mg/kg SC OD',1,1,{kg:true}),B(0,15,'1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true})],
   HD:M('หลีกเลี่ยง ถ้าจำเป็น 1 mg/kg SC OD (monitor ใกล้ชิด)',1,1,{kg:true,warnAlways:'HD: หลีกเลี่ยงการใช้'}),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('1 mg/kg SC OD',1,1,{kg:true})},
  note:'กฎนี้สำหรับขนาดรักษา — ขนาดป้องกัน (เช่น 40 mg OD) ไม่อยู่ในคู่มือ',elderly:'Anticoagulant: เสี่ยงเลือดออก ติดตามอาการ',src:SRC_RENAL},
-{id:'riva',name:'Rivaroxaban (AF)',match:/rivaroxaban|xarelto/i,unit:'mg',forms:[[/20/,'20 mg',20],[/15/,'15 mg',15],[/10/,'10 mg',10]],
+{id:'riva',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Rivaroxaban (AF)',match:/rivaroxaban|xarelto/i,unit:'mg',forms:[[/20/,'20 mg',20],[/15/,'15 mg',15],[/10/,'10 mg',10]],
  renal:{bands:[B(50,999,'20 mg OD พร้อมอาหารเย็น',20,20),B(15,50,'15 mg OD',15,15),B(0,15,'หลีกเลี่ยง',null,null,{avoid:true})],HD:{txt:'หลีกเลี่ยง',avoid:true},CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:M('15 mg OD',15,15)},
  verify:'ตารางต้นฉบับมีค่าไม่ครบทุกช่อง — ช่วง 15-29 ต้นฉบับอาจระบุ Avoid',src:SRC_RENAL},
-{id:'dabi',name:'Dabigatran (AF)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/110/,'110 mg',110],[/150/,'150 mg',150]],
+{id:'dabi',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Dabigatran (AF)',match:/dabigatran|pradaxa/i,unit:'mg',forms:[[/110/,'110 mg',110],[/150/,'150 mg',150]],
  renal:{bands:[B(30,999,'110 mg BID',150,300),B(0,30,'หลีกเลี่ยง',null,null,{avoid:true})],HD:{txt:'หลีกเลี่ยง',avoid:true},CAPD:{txt:'หลีกเลี่ยง',avoid:true},CRRT:{txt:'หลีกเลี่ยง',avoid:true}},elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
-{id:'apixaban',name:'Apixaban (AF)',match:/apixaban|eliquis/i,unit:'mg',forms:[[/5/,'5 mg',5],[/2\.5/,'2.5 mg',2.5]],special:'apixaban',elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
+{id:'apixaban',preg:'DOAC ห้ามใช้ในหญิงตั้งครรภ์และให้นมบุตร (ข้อมูลไม่พอ ผ่านรก) — เปลี่ยนเป็น LMWH',name:'Apixaban (AF)',match:/apixaban|eliquis/i,unit:'mg',forms:[[/5/,'5 mg',5],[/2\.5/,'2.5 mg',2.5]],special:'apixaban',elderly:'Anticoagulant: เสี่ยงเลือดออก',src:SRC_RENAL},
 
 /* ---------------- Analgesic / misc ---------------- */
 {id:'para',name:'Paracetamol',match:/paracetamol|acetaminophen|tylenol|sara\b/i,unit:'mg',forms:[[/120\s*mg\s*\/\s*5|syr/i,'120 mg/5 ml',24,'ml'],[/250\s*mg\s*\/\s*5/i,'250 mg/5 ml',50,'ml'],[/500/,'500 mg tab',500],[/325/,'325 mg tab',325]],

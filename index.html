@@ -3198,7 +3198,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.28.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.28.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -5859,10 +5859,17 @@ function ocrClean(t){ return t.split('\n').map(l=>l.replace(/[|¦]/g,' ').replac
 async function ocrImage(blob,ta,msgEl){ const msg=t=>{ if(msgEl){ msgEl.textContent=t; } };
   try{ msg('เตรียมภาพ…'); const c=await ocrPrep(blob), w=await ocrWorker(msg); const r=await w.recognize(c);
     let t=ocrClean(r.data.text||''); t=typeof rcaScrub==='function'?rcaScrub(t):t;
-    if(!t.trim()){ msg('อ่านตัวอักษรจากภาพไม่ได้ — ลองตัดภาพให้ชิดรายการยา หรือใช้ Text actions ของ Snipping Tool'); return; }
+    const conf=Math.round(r.data.confidence||0), drugBox=!['ptPaste','labPaste','rImT'].includes(ta.id); let drop=0;
+    // ตัดบรรทัดข้อมูลระบุตัวผู้ป่วย (ชื่อ/HN/AN/อายุ/เลขบัตร) ทิ้งเสมอ
+    t=t.split('\n').filter(l=>{ const k=!/name\s*of|hospital\s*n(umber|o)|\b(hn|an)\b\s*[:.]?\s*\d|ชื่อ\s*[-–]?\s*สกุล|ชื่อผู้ป่วย|เลขบัตร|เลขประจำตัว|patient\s*name/i.test(l); if(!k) drop++; return k; }).join('\n');
+    // ภาพไม่ชัด (ภาพถ่าย/ลายมือ/สติกเกอร์) → ช่องคำสั่งยา เก็บเฉพาะบรรทัดที่หน้าตาเป็นยา (คำภาษาอังกฤษ ≥4 ตัว + ตัวเลข/หน่วย)
+    if(drugBox&&conf<70){ const L0=t.split('\n'); t=L0.filter(l=>/[A-Za-z]{4,}/.test(l)&&/\d|\b(mg|ml|tab|cap|syr|inj|iv|po|od|bid|tid|qid|prn|hs)\b/i.test(l)).join('\n'); drop+=L0.length-t.split('\n').filter(Boolean).length; }
+    if(drugBox&&conf<50){ msg(`ภาพนี้อ่านไม่ชัด (ความมั่นใจ ${conf}%) — ไม่ได้ใส่ข้อความให้ เพื่อกันรายการยาขยะ · ใช้ภาพหน้าจอ HIS/paperless (Snipping Tool ตัดชิดรายการยา) แทนภาพถ่ายหรือลายมือ`); if(msgEl) msgEl.style.color='#b91c1c'; return; }
+    if(msgEl) msgEl.style.color='';
+    if(!t.trim()){ msg(conf<70?`ภาพนี้อ่านไม่ชัด (ความมั่นใจ ${conf}%) และไม่พบบรรทัดที่เป็นรายการยา — ใช้ภาพหน้าจอ HIS ตัดชิดรายการยา`:'อ่านตัวอักษรจากภาพไม่ได้ — ลองตัดภาพให้ชิดรายการยา หรือใช้ Text actions ของ Snipping Tool'); return; }
     const s=ta.selectionStart??ta.value.length, e=ta.selectionEnd??ta.value.length, pre=ta.value.slice(0,s), post=ta.value.slice(e);
     ta.value=pre+(pre&&!pre.endsWith('\n')?'\n':'')+t+(post&&!post.startsWith('\n')?'\n':'')+post; ta.dispatchEvent(new Event('input',{bubbles:true})); if(ta.id==='wOrder'&&typeof wfParse==='function') wfParse();
-    const conf=Math.round(r.data.confidence||0); msg(`อ่านจากภาพได้ ${t.split('\n').length} บรรทัด (ความมั่นใจ ${conf}%) — ⚠ ตรวจชื่อยา/ตัวเลขก่อนใช้`);
+    msg(`อ่านจากภาพได้ ${t.split('\n').length} บรรทัด (ความมั่นใจ ${conf}%)${drop?` · ตัดบรรทัดที่ไม่ใช่ยา/ข้อมูลระบุตัว ${drop} บรรทัด`:''} — ⚠ ตรวจชื่อยา/ตัวเลขก่อนใช้${conf<70?' · ภาพไม่ชัด ควรใช้ภาพหน้าจอแทนภาพถ่าย':''}`); if(conf<70&&msgEl) msgEl.style.color='#b45309';
     ta.style.outline='3px solid #f59e0b'; setTimeout(()=>ta.style.outline='',4000); }
   catch(e){ msg('โหลดตัวอ่านภาพไม่ได้ (เครือข่ายอาจบล็อก) — ใช้ Snipping Tool → Text actions → Copy all text แทน'); } }
 // ผูกกับช่องวางข้อความ: วางรูป (Ctrl+V) · ลากไฟล์รูปมาวาง · ปุ่มเลือกรูป

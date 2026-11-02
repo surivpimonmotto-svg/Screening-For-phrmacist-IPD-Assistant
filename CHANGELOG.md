@@ -9,6 +9,9 @@
 
 ---
 
+## v0.29.0 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
+- แท็บใหม่ **ยาทารกแรกเกิด (รอตรวจ)**: กรอก GA · PNA · น้ำหนัก → คำนวณ PMA และตารางขนาด/ช่วงห่าง 21 ยา (ampicillin, cefotaxime, genta, amikacin, vanco, meropenem, ceftazidime, cloxacillin, metronidazole, Pen G, ceftriaxone, acyclovir, fluconazole, caffeine, aminophylline, phenobarbital, ibuprofen/paracetamol PDA, vit K) ตาม NeoFax / Red Book 2024 / CDC 2021 · ข้อบ่งใช้ sepsis/meningitis/PDA · วางคำสั่ง → ตรวจ mg/kg และช่วงห่าง (เช่น cefotaxime q6h = ขนาด meningitis) · ป้ายรอเภสัชกรกุมารเวชตรวจ
+
 ## v0.28.3 — 2 พ.ย. 69 — Motto (ผ่าน Claude)
 - ทารกแรกเกิด (<28 วัน): eGFR Schwartz <50 ไม่ขึ้นเตือน "เด็กไตบกพร่อง" แล้ว (ค่าปกติทารกต่ำ · สูตรไม่เหมาะกับ neonate) — แสดงเป็นข้อมูลให้ดู SCr/urine output แทน
 

@@ -396,7 +396,7 @@ function evaluate(row,pt,rows){
   // ---- TB
   if(useTB && D!=null && F!=null){hit=true; evalTB(d,D,F,pt,add,res);}
   // ---- pediatrics
-  else if(pt.isPed){ if(pt.neo) add('warn',`ทารกแรกเกิด (อายุ ${pt.pna} วัน): ขนาดยาเด็กในฐานกฎเป็นของเด็กโต ไม่ครอบคลุมทารกแรกเกิด — ขนาดและช่วงห่างขึ้นกับ GA (อายุครรภ์) และ PNA (อายุหลังคลอด) ตรวจกับ Neofax / Lexicomp neonatal หรือแนวทางกุมารเวช`);
+  else if(pt.isPed){ if(pt.neo) add('warn',`ทารกแรกเกิด (อายุ ${pt.pna} วัน): ขนาดยาเด็กในฐานกฎเป็นของเด็กโต ไม่ครอบคลุมทารกแรกเกิด — ขนาดและช่วงห่างขึ้นกับ GA (อายุครรภ์) และ PNA (อายุหลังคลอด) ตรวจที่แท็บ "ยาทารกแรกเกิด" (ตาราง NeoFax ตาม GA/PNA) หรือแนวทางกุมารเวช`);
     if(d.peds&&D!=null&&F!=null){hit=true;evalPed(d,row,D,F,pt,add,res);}
     else if(d.renal||d.variants||d.adult) add('info','ผู้ป่วยเด็ก: ไม่มีกฎขนาดยาเด็กสำหรับยานี้ในฐาน');
     if((d.renal||d.variants)&&pt.schwartz!=null&&pt.schwartz<50){ if(pt.neo) add('info',`ทารกแรกเกิด eGFR Schwartz ${r0(pt.schwartz)} — ค่าปกติของทารกแรกเกิดต่ำกว่าเด็กโต (สูตร Schwartz ไม่เหมาะกับ neonate) ดูแนวโน้ม SCr/urine output แทน`); else add('warn',`เด็กไตบกพร่อง (eGFR Schwartz ${r0(pt.schwartz)}) — ปรับขนาดตามแหล่งอ้างอิงเด็ก`); }

@@ -280,7 +280,7 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
 #ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
 #ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste::placeholder{color:#64748b;font-family:inherit}
@@ -380,6 +380,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
       <button role="tab" id="t-dtl" aria-selected="false">แผนภาพ Timeline ยา</button>
       <button role="tab" id="t-wf" aria-selected="false">Warfarin</button>
       <button role="tab" id="t-arv" aria-selected="false">ARV / PEP / ทารก HIV (รอตรวจ)</button>
+      <button role="tab" id="t-neo" aria-selected="false">ยาทารกแรกเกิด (รอตรวจ)</button>
       <button role="tab" id="t-tbx" aria-selected="false">ยา TB</button>
       <button role="tab" id="t-iou" aria-selected="false">ใบค้างยา</button>
       <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
@@ -851,6 +852,32 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <label class="f" style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" id="pdAll"> แสดงทุกช่วงน้ำหนัก</label></div>
         </div>
         <div class="panel sec hres" style="margin:0" id="pdOut"></div>
+      </div>
+    </section>
+
+    <section id="p-neo" hidden>
+      <div class="had" style="grid-template-columns:minmax(0,1fr)">
+        <div class="panel sec" style="margin:0">
+          <div style="margin:0 0 10px;padding:10px 12px;border-radius:10px;border:2px solid #f59e0b;background:color-mix(in srgb,#f59e0b 15%,transparent)"><b>⚠ ไกด์ไลน์อ้างอิง — รอเภสัชกรด้านกุมารเวช/NICU ตรวจสอบ</b>
+            <div style="font-size:.92em;margin-top:4px">ประเด็นที่ต้องยืนยันกับแนวทางกุมารแพทย์ รพ.มค:</div>
+            <ol style="margin:4px 0 0;padding-left:22px;font-size:.92em">
+              <li>ใช้ตาราง <b>NeoFax (PMA/PNA)</b> หรือ <b>Red Book (GA/PNA)</b> เป็นหลัก — ampicillin, cefotaxime ช่วงห่างต่างกันเล็กน้อย</li>
+              <li>ขนาด gentamicin/amikacin และเกณฑ์เจาะระดับยาที่ รพ. ใช้</li>
+              <li>น้ำหนักที่ใช้คำนวณ: น้ำหนักแรกคลอด หรือ น้ำหนักปัจจุบัน</li>
+              <li>ยาที่ใช้บ่อยใน NICU รพ. ที่ยังไม่มีในตาราง</li>
+            </ol></div>
+          <h2>ขนาดยาทารกแรกเกิด ตาม GA · PNA · PMA</h2>
+          <div class="grid2">
+            <label class="f">GA อายุครรภ์แรกคลอด (สัปดาห์)<input id="neGa" type="number" step="any" inputmode="decimal" placeholder="เช่น 36"></label>
+            <label class="f">PNA อายุหลังคลอด (วัน)<input id="nePna" type="number" step="1" inputmode="numeric" placeholder="เช่น 9"></label>
+            <label class="f">น้ำหนักที่ใช้คำนวณ (kg)<input id="neBw" type="number" step="any" inputmode="decimal" placeholder="เช่น 2.79"></label>
+            <label class="f">ข้อบ่งใช้<select id="neInd"></select></label>
+          </div>
+          <p class="hint" style="margin:4px 0">PMA = GA + PNA/7 · PNA/น้ำหนักดึงจากแผงผู้ป่วยได้ (อายุเป็น "วัน")</p>
+          <textarea id="nePaste" rows="4" placeholder="วางคำสั่งยา (ไม่ใส่ชื่อ/HN) เช่น&#10;Cefotaxime 145 mg IV q 6 hr&#10;Amikin 33.5 mg IV drip q 24 hr"></textarea>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn" id="neFromPt">ดึง PNA/น้ำหนักจากแผงผู้ป่วย</button><button type="button" class="btn" id="neFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="neEx">ตัวอย่าง</button><button type="button" class="btn" id="neClr">ล้าง</button><span class="toast" id="neMsg"></span></div>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="neOut"></div>
       </div>
     </section>
 

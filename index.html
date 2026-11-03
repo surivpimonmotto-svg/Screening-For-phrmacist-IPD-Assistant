@@ -3443,7 +3443,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -5284,10 +5284,12 @@ function tpaCalc(){ const out=$('tOut'); if(!out) return; const pt=getPt(), bw=+
 /* ===== tbtab.js — แท็บ "ยา TB": ขนาด H R Z E ตามน้ำหนัก (ตาราง TB รพ.มค 10/4/2566 ตามแนวทาง TB 2564 — ใช้ข้อมูลเดียวกับ kb.js) · ปรับตามไต
    · ตรวจคำสั่งที่วาง (ใช้กฎหน้าคัดกรอง) · จำนวนเม็ดตามวันที่จ่าย · ข้อควรระวัง */
 const TB_DRUGS=[['inh','H','Isoniazid'],['rifam','R','Rifampicin'],['pza','Z','Pyrazinamide'],['emb','E','Ethambutol']];
-const TB_TAB={inh:[300,100],rifam:[450,300],pza:[500],emb:[400,500]};
+// ขนาดเม็ดที่ รพ.มค มีในบัญชี: INH 100 mg (300 mg เฉพาะ MDR-TB) · RIF 300/450 · PZA 500 · EMB 400
+const TB_TAB={inh:[100],rifam:[450,300],pza:[500],emb:[400]};
 // เลือกเม็ดยาให้ได้ขนาดพอดี (หรือใกล้ที่สุดไม่เกิน) ด้วยจำนวนเม็ดน้อยสุด — เม็ดเดียวขนาดเดียวก่อน
-function tbTabs(id,mg){ const S=TB_TAB[id]||[]; let best=null;
-  const consider=c=>{ const t=c.reduce((a,[s,n])=>a+s*n,0), n=c.reduce((a,[,k])=>a+k,0), d=Math.abs(t-mg), one=c.filter(([,k])=>k).length===1; if(!best||d<best.d-1e-9||(Math.abs(d-best.d)<1e-9&&(n<best.n||(n===best.n&&one&&!best.one)))) best={c:c.filter(([,k])=>k),t,n,d,one}; };
+function tbTabs(id,mg,rng){ if(rng){ const ex=tbTabs(id,mg); if(ex&&ex.d<1) return ex; } const S=TB_TAB[id]||[]; let best=null; // rng=[lo,hi] mg: ถ้าทำขนาดตามตารางไม่ได้ด้วยเม็ดที่มี เลือกขนาดที่อยู่ในช่วง mg/kg ก่อน
+  const inR=t=>!rng||(t>=rng[0]-1e-9&&t<=rng[1]+1e-9);
+  const consider=c=>{ const t=c.reduce((a,[s,n])=>a+s*n,0), n=c.reduce((a,[,k])=>a+k,0), d=Math.abs(t-mg)+(inR(t)?0:1e6), one=c.filter(([,k])=>k).length===1; if(t<=0) return; if(!best||d<best.d-1e-9||(Math.abs(d-best.d)<1e-9&&(n<best.n||(n===best.n&&one&&!best.one)))) best={c:c.filter(([,k])=>k),t,n,d,one}; };
   for(let a=0;a<=6;a++){ if(S.length===1){ consider([[S[0],a]]); continue; } for(let b=0;b<=6;b++) consider([[S[0],a],[S[1],b]]); }
   return best; }
 const tbTabTxt=b=>b.c.map(([s,n])=>`${s} mg × ${n}`).join(' + ');
@@ -5300,7 +5302,8 @@ function tbRender(){ const out=$('xOut'); if(!out) return; const pt=getPt(), bw=
     if(!ped&&r.bandsWt){ const b=r.bandsWt.find(x=>bw>=x[0]&&bw<x[1]); band=b[0]===0?`<${b[1]} kg`:b[1]>=999?`≥${b[0]} kg`:`${b[0]}–${b[1]-1} kg`;
       if(b[2]!=null&&!b[3]){ mg=b[2]; how=`ตาราง ${band}`; } else { const lo=r.kg[0]*bw, hi=Math.min(r.kg[1]*bw,r.max); mg=b[2]!=null?b[2]:Math.min((r.kg[0]+r.kg[1])/2*bw,r.max); how=`${band}: ${b[2]!=null?b[2]+' mg หรือ ':''}คิด ${r.kg[0]}–${r.kg[1]} mg/kg = ${r0(lo)}–${r0(hi)} mg`; } }
     else { const lo=r.kg[0]*bw, hi=Math.min(r.kg[1]*bw,r.max); mg=Math.min((r.kg[0]+r.kg[1])/2*bw,r.max); how=`${r.kg[0]}–${r.kg[1]} mg/kg = ${r0(lo)}–${r0(hi)} mg (max ${r.max})`; }
-    const tb=tbTabs(id,mg), freq=(!ped&&r.renal3x&&imp)?'3 ครั้ง/สัปดาห์'+(pt.dial==='HD'?' หลังฟอก':''):'วันละครั้ง';
+    const rg=!ped&&r.kg?[r.kg[0]*bw,Math.min(r.kg[1]*bw,r.max)]:null, tb=tbTabs(id,mg,rg); if(Math.abs(tb.t-mg)>1) how+=` → ตาราง ${fmtN(Math.round(mg))} mg แต่ รพ.มีเม็ด ${TB_TAB[id].join('/')} mg ใช้ ${fmtN(tb.t)} mg (${r1(tb.t/bw)} mg/kg)`;
+    const freq=(!ped&&r.renal3x&&imp)?'3 ครั้ง/สัปดาห์'+(pt.dial==='HD'?' หลังฟอก':''):'วันละครั้ง';
     return {id,ab,nm,mg:tb.t,how,tb,freq,renal3x:!ped&&r.renal3x&&imp,capd:cap&&r.capd?r.capd:''}; });
   const perWk=x=>x.renal3x?3:7; window.tbLast={rec,ph,bw,imp,dial:pt.dial,ped};
   const recH=`<table class="ctbl"><thead><tr><th>ยา</th><th>ขนาด/ครั้ง</th><th>เม็ด</th><th>ความถี่</th><th>ที่มา</th>${days?`<th>จ่าย ${days} วัน</th>`:''}</tr></thead><tbody>${rec.map(x=>`<tr><td><b>${x.ab}</b> ${x.nm}</td><td><b>${fmtN(x.mg)} mg</b></td><td>${tbTabTxt(x.tb)}</td><td>${x.freq}${x.capd?`<div class="hint">${esc(x.capd)}</div>`:''}</td><td class="hint">${esc(x.how)}</td>${days?`<td>${x.tb.c.map(([s,n])=>`${s} mg × <b>${Math.ceil(n*days*perWk(x)/7)}</b> เม็ด`).join('<br>')}</td>`:''}</tr>`).join('')}</tbody></table>`;

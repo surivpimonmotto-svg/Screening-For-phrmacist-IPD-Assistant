@@ -297,7 +297,7 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#lpPaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
 #ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
 #ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste::placeholder{color:#64748b;font-family:inherit}
@@ -603,6 +603,13 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
     </section>
 
     <section id="p-liq" hidden>
+      <div class="panel sec" style="margin:0 0 12px">
+        <h2>วางใบสั่งยาน้ำ (หลายรายการ)</h2>
+        <p class="hint" style="margin:0 0 6px">วางจาก HIS/paperless หรือดึงจากหน้าคัดกรอง → คำนวณ ml/ครั้ง และตรวจขนาดตามน้ำหนัก/อายุทุกตัว · กด "คำนวณ" เพื่อดูละเอียด/จำนวนขวด · "+ แผ่นพับ" ใส่ลงแผ่นพับด้านล่าง · ห้ามใส่ชื่อ/HN</p>
+        <textarea id="lpPaste" rows="5" placeholder="เช่น&#10;PARACETAMOL SYR.(120 MG/5 ML)&#10;รับประทานครั้งละ 5 ซีซี ทุก 6 ชั่วโมง เวลาปวดหรือมีไข้&#10;GLYCERYL GUAIACOLATE 60 ML&#10;รับประทานครั้งละ 5 ซีซี วันละ 3 ครั้ง หลังอาหาร"></textarea>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="lpRead">อ่านคำสั่ง</button><button type="button" class="btn" id="lpFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="lpClr">ล้าง</button><span class="toast" id="lpMsg0"></span></div>
+        <div id="lpOut" style="margin-top:8px"></div>
+      </div>
       <div class="had">
         <div class="panel sec" style="margin:0">
           <h2>คำนวณยาน้ำ/ยาหยด</h2>

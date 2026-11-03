@@ -330,7 +330,7 @@ function fmtMl(ml){return ml<1?ml.toFixed(2).replace(/0$/,''):ml<10?(Math.round(
 function renderLiq(){
   const conc=+$('lConc').value, cu=$('lCU').value, dose=+$('lDose').value, du=$('lDU').value, days=+$('lDays').value, bottle=+$('lBottle').value; const LF=liqF(), F=LF.F;
   const bw=+$('lBw').value||+$('bw').value||null, age=+$('age').value;
-  if(!$('lBw').value&&$('bw').value) $('lBw').value=$('bw').value;
+  if($('bw').value&&($('lBw').dataset.manual!=='1'||!$('lBw').value)) $('lBw').value=$('bw').value; // ตามน้ำหนักในแผงผู้ป่วย เว้นแต่ผู้ใช้แก้ช่องนี้เอง
   const out=$('lOut'); window.liqLast=null;
   if(!(conc>0)&&dose>0&&(du==='ml'||du==='tsp')){ // ยาที่ไม่มีความเข้มข้นในบัญชี (เช่น GG syrup) — สั่งเป็น ml/ช้อนชา ใช้ทำแผ่นพับได้
     const ml=du==='tsp'?dose*5:dose, mlDay=ml*F, total=days>0?mlDay*days:null, nb=total&&bottle>0?Math.ceil(total/bottle-1e-9):null, name=liqCur?liqCur.name:'ยาน้ำ';
@@ -370,6 +370,8 @@ function renderLiq(){
 }
 $('lDrug').addEventListener('change',pickLiq);
 ['lConc','lDose','lDays','lBottle','lBw'].forEach(id=>$(id).addEventListener('input',renderLiq));
+$('lBw').addEventListener('input',e=>{ if(e.isTrusted) $('lBw').dataset.manual=$('lBw').value?'1':''; });
+['bw','ageIn','ageU'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',()=>{ if(!$('p-liq').hidden) renderLiq(); }); });
 ['lCU','lDU','lF'].forEach(id=>$(id).addEventListener('change',renderLiq));
 
 
@@ -402,7 +404,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();

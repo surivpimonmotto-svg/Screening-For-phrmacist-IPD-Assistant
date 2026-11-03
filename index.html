@@ -297,7 +297,7 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 .g-gen{--gc:#3b82f6}.g-renal{--gc:#0d9488}.g-coag{--gc:#be185d}.g-liver{--gc:#ea580c}.g-lyte{--gc:#16a34a}.g-cbc{--gc:#7c3aed}
 
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
-#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
+#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#lpPaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
 #ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
 #ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste::placeholder{color:#64748b;font-family:inherit}
@@ -603,6 +603,13 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
     </section>
 
     <section id="p-liq" hidden>
+      <div class="panel sec" style="margin:0 0 12px">
+        <h2>วางใบสั่งยาน้ำ (หลายรายการ)</h2>
+        <p class="hint" style="margin:0 0 6px">วางจาก HIS/paperless หรือดึงจากหน้าคัดกรอง → คำนวณ ml/ครั้ง และตรวจขนาดตามน้ำหนัก/อายุทุกตัว · กด "คำนวณ" เพื่อดูละเอียด/จำนวนขวด · "+ แผ่นพับ" ใส่ลงแผ่นพับด้านล่าง · ห้ามใส่ชื่อ/HN</p>
+        <textarea id="lpPaste" rows="5" placeholder="เช่น&#10;PARACETAMOL SYR.(120 MG/5 ML)&#10;รับประทานครั้งละ 5 ซีซี ทุก 6 ชั่วโมง เวลาปวดหรือมีไข้&#10;GLYCERYL GUAIACOLATE 60 ML&#10;รับประทานครั้งละ 5 ซีซี วันละ 3 ครั้ง หลังอาหาร"></textarea>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="lpRead">อ่านคำสั่ง</button><button type="button" class="btn" id="lpFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn" id="lpClr">ล้าง</button><span class="toast" id="lpMsg0"></span></div>
+        <div id="lpOut" style="margin-top:8px"></div>
+      </div>
       <div class="had">
         <div class="panel sec" style="margin:0">
           <h2>คำนวณยาน้ำ/ยาหยด</h2>
@@ -3362,7 +3369,7 @@ function fmtMl(ml){return ml<1?ml.toFixed(2).replace(/0$/,''):ml<10?(Math.round(
 function renderLiq(){
   const conc=+$('lConc').value, cu=$('lCU').value, dose=+$('lDose').value, du=$('lDU').value, days=+$('lDays').value, bottle=+$('lBottle').value; const LF=liqF(), F=LF.F;
   const bw=+$('lBw').value||+$('bw').value||null, age=+$('age').value;
-  if(!$('lBw').value&&$('bw').value) $('lBw').value=$('bw').value;
+  if($('bw').value&&($('lBw').dataset.manual!=='1'||!$('lBw').value)) $('lBw').value=$('bw').value; // ตามน้ำหนักในแผงผู้ป่วย เว้นแต่ผู้ใช้แก้ช่องนี้เอง
   const out=$('lOut'); window.liqLast=null;
   if(!(conc>0)&&dose>0&&(du==='ml'||du==='tsp')){ // ยาที่ไม่มีความเข้มข้นในบัญชี (เช่น GG syrup) — สั่งเป็น ml/ช้อนชา ใช้ทำแผ่นพับได้
     const ml=du==='tsp'?dose*5:dose, mlDay=ml*F, total=days>0?mlDay*days:null, nb=total&&bottle>0?Math.ceil(total/bottle-1e-9):null, name=liqCur?liqCur.name:'ยาน้ำ';
@@ -3402,6 +3409,8 @@ function renderLiq(){
 }
 $('lDrug').addEventListener('change',pickLiq);
 ['lConc','lDose','lDays','lBottle','lBw'].forEach(id=>$(id).addEventListener('input',renderLiq));
+$('lBw').addEventListener('input',e=>{ if(e.isTrusted) $('lBw').dataset.manual=$('lBw').value?'1':''; });
+['bw','ageIn','ageU'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',()=>{ if(!$('p-liq').hidden) renderLiq(); }); });
 ['lCU','lDU','lF'].forEach(id=>$(id).addEventListener('change',renderLiq));
 
 
@@ -3434,7 +3443,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -5705,6 +5714,41 @@ function llRender(){ const out=$('llOut'); if(!out) return; const box=$('llRows'
     llRows.push({name:x.name,ml:x.ml<10?Math.round(x.ml*10)/10:Math.round(x.ml*2)/2,freq:llFreqTh(x.F,x.prn,x.maxCount,x.sym,x.label),time:x.prn?'—':'หลังอาหาร',use,days:x.prn?null:(x.days||null),dry:!!dr,dryDays:dr?dr[1]:7,fridge:dr?dr[2]:false,abx,kb:x.kb}); llRender(); cpMsg($('llMsg'),'เพิ่มแล้ว'); };
   $('llClr').onclick=()=>{ llRows=[]; llRender(); }; $('llStk').addEventListener('change',llRender); llRender(); })();
 
+/* ===== liqpaste.js — แท็บยาน้ำเด็ก: วางใบสั่งยา (หลายรายการ) → คำนวณทุกตัว · ตรวจขนาดด้วยกฎหน้าคัดกรอง · โหลดเข้าเครื่องคำนวณ · เพิ่มลงแผ่นพับทีเดียว */
+let lpRows=[];
+function lpFind(r){ const m=masterOf(r); let x=m?LIQ.find(l=>l.code===m[0]):null;
+  if(!x){ const w=(r.raw.match(/[A-Za-z][A-Za-z\-]{3,}/g)||[]).map(s=>s.toUpperCase()).filter(s=>!/^(SYR|SUSP|DROP|DROPS|TAB|DRY|SYRUP|ORAL)$/.test(s)); if(w.length) x=LIQ.find(l=>l.name.toUpperCase().includes(w[0])&&(!w[1]||l.name.toUpperCase().includes(w[1])))||LIQ.find(l=>l.name.toUpperCase().includes(w[0])); }
+  return x; }
+function lpCalc(r){ const x=lpFind(r), conc=x&&x.conc?x.conc:null; let ml=null, amt=null;
+  const dv=+r.doseVal; if(r.doseUnit==='ml') ml=dv; else if(/tsp|ช้อนชา/i.test(r.doseUnit||'')) ml=dv*5; else if(conc&&dv>0&&/^(mg|mcg|iu|unit|g)$/i.test(r.doseUnit||'')) ml=dv*(r.doseUnit==='g'?1000:1)/conc;
+  if(ml!=null&&conc) amt=ml*conc;
+  const h=(r.raw.match(/ทุก\s*(\d+)\s*(?:-\s*(\d+))?\s*(?:ชั่วโมง|ชม|hr|h)/i)||[]); const prn=!!r.prn;
+  const label=prn?(h[1]?`ทุก ${h[1]}${h[2]?'-'+h[2]:''} ชั่วโมง`:'เมื่อมีอาการ'):((FREQ_OPTS.find(o=>Math.abs(+o[0]-(r.F||0))<0.01)||['',r.F?`วันละ ${r.F} ครั้ง`:'—'])[1]);
+  const sym=prn?((r.raw.match(/เวลา\s*([ก-๙]+(?:หรือ[ก-๙]+)?)/)||[])[1]||'มีอาการ'):'';
+  return {x,conc,ml,amt,label,prn,F:r.F||null,h,sym}; }
+function lpRender(){ const out=$('lpOut'); if(!out) return; if(!lpRows.length){ out.innerHTML=''; return; } const pt=getPt();
+  out.innerHTML=`<div style="overflow-x:auto"><table class="ctbl" style="font-size:13px"><thead><tr><th>ยา</th><th>ความเข้มข้น</th><th>ครั้งละ</th><th>ความถี่</th><th>ตรวจขนาด</th><th></th></tr></thead><tbody>${lpRows.map((r,i)=>{ const c=lpCalc(r), e=evaluate(r,pt,lpRows), top=e.items.filter(it=>it.lvl!=='info').slice(0,2), st=e.status;
+    return `<tr><td><b>${esc(c.x?c.x.name:r.raw.slice(0,40))}</b>${c.x?'':'<div class="hint">ไม่พบในบัญชียาน้ำ</div>'}</td><td>${c.conc?(c.x.u==='mg'&&c.conc<0.1?`${fmtN(r1(c.conc*1000))} mcg/ml`:`${fmtN(c.conc)} ${c.x.u}/ml`):'<span class="hint">—</span>'}</td><td>${c.ml!=null?`<b>${fmtMl(c.ml)} ml</b>${c.amt!=null?`<div class="hint">${c.x.u==='mg'&&c.amt<1?fmtN(r1(c.amt*1000))+' mcg':fmtN(r1(c.amt))+' '+c.x.u}</div>`:''}`:'<span class="hint">อ่านขนาดไม่ได้</span>'}</td><td>${esc(c.prn?'PRN '+c.label:(typeof llFreqTh==='function'&&c.F?llFreqTh(c.F,false):c.label))}</td>
+      <td><span class="pill ${st}">${ST_TXT[st]||'—'}</span>${top.map(it=>`<div style="font-size:12px;margin-top:2px">${esc(it.txt.slice(0,140))}</div>`).join('')}</td>
+      <td style="white-space:nowrap"><button type="button" class="btn sm" data-lpl="${i}" ${c.x?'':'disabled'}>คำนวณ</button> <button type="button" class="btn sm" data-lpa="${i}" ${c.ml!=null?'':'disabled'}>+ แผ่นพับ</button></td></tr>`; }).join('')}</tbody></table></div>
+   <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button type="button" class="btn sm pri" id="lpAll">+ เพิ่มทุกรายการลงแผ่นพับ</button><span class="toast" id="lpMsg"></span></div>`;
+  out.querySelectorAll('[data-lpl]').forEach(b=>b.onclick=()=>lpLoad(lpRows[+b.dataset.lpl]));
+  out.querySelectorAll('[data-lpa]').forEach(b=>b.onclick=()=>{ lpAdd(lpRows[+b.dataset.lpa]); cpMsg($('lpMsg'),'เพิ่มลงแผ่นพับแล้ว'); });
+  $('lpAll').onclick=()=>{ let n=0; lpRows.forEach(r=>{ if(lpAdd(r)) n++; }); cpMsg($('lpMsg'),`เพิ่ม ${n} รายการลงแผ่นพับ`); const el=$('llOut'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }; }
+function lpAdd(r){ const c=lpCalc(r); if(c.ml==null||!$('llAdd')) return false;
+  window.liqLast={name:c.x?c.x.name:r.raw.slice(0,40),ml:c.ml,amt:c.amt,uu:c.x?c.x.u:'mg',F:c.F||1,prn:c.prn,maxCount:c.prn?Math.floor(24/(+c.h[1]||6)):null,sym:c.sym,label:c.prn?c.label:c.label,days:+$('lDays').value||null,nb:null,bottle:c.x?c.x.bottle:0,kb:c.x&&c.x.kb?c.x.kb.id:(r.drugId||null)};
+  $('llAdd').click(); return true; }
+function lpLoad(r){ const c=lpCalc(r); if(!c.x) return; $('lDrug').value=c.x.code+' · '+c.x.name; $('lDrug').dispatchEvent(new Event('change'));
+  if(c.ml!=null){ $('lDose').value=+c.ml.toFixed(2); $('lDU').value='ml'; }
+  $('lMode').value=c.prn?'prn':'reg'; $('lMode').dispatchEvent(new Event('change'));
+  if(c.prn){ const k=c.h[1]?LIQ_PRN.findIndex(o=>o[2]===(c.h[2]?c.h[1]+'-'+c.h[2]:c.h[1])):-1; if(k>=0) $('lF').value=k; }
+  else { const k=LIQ_REG.findIndex(o=>Math.abs(+o[0]-(c.F||0))<0.01); if(k>=0) $('lF').value=k; }
+  $('lF').dispatchEvent(new Event('change')); if(typeof renderLiq==='function') renderLiq(); const o=$('lOut'); if(o) o.scrollIntoView({behavior:'smooth',block:'start'}); }
+function lpRead(){ lpRows=joinLines(($('lpPaste').value||'').split(/\n/)).map(parseLine).filter(Boolean); lpRender(); }
+(function(){ if(!$('lpPaste')) return; $('lpRead').onclick=lpRead; $('lpClr').onclick=()=>{ $('lpPaste').value=''; lpRows=[]; lpRender(); };
+  $('lpFromScr').onclick=()=>{ if(typeof rows==='undefined'||!rows.length){ cpMsg($('lpMsg0'),'หน้าคัดกรองยังไม่มีรายการยา'); return; } $('lpPaste').value=rows.map(r=>r.raw).join('\n'); lpRead(); };
+  ['bw','ageIn','ageU'].forEach(id=>{ const el=$(id); if(el){ el.addEventListener('input',()=>lpRows.length&&lpRender()); el.addEventListener('change',()=>lpRows.length&&lpRender()); } }); })();
+
 /* ---------- ADR: timeline + causality + HPVC (ไม่มีช่องชื่อ/HN — ข้อมูลอยู่ในเบราว์เซอร์เท่านั้น) ---------- */
 const ADR_SRC='ระยะเวลาอ้างอิง: Cutaneous Drug Eruptions in Clinical Practices (นพ.สัญชัย สมบัติไมไทย, คณะแพทยศาสตร์ มมส.)';
 const ADR_RT=[ // [id, label, [min,max] วัน, คำอธิบายช่วงที่พบบ่อย, major?]
@@ -6521,7 +6565,7 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   ta.addEventListener('paste',ev=>{ const it=[...(ev.clipboardData||{}).items||[]].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; const hasText=(ev.clipboardData.getData('text')||'').trim(); if(hasText) return; ev.preventDefault(); ev.stopImmediatePropagation(); ocrImage(it.getAsFile(),ta,msgEl); },true);
   ta.addEventListener('dragover',ev=>{ if([...ev.dataTransfer.items].some(x=>x.type.startsWith('image/'))) ev.preventDefault(); });
   ta.addEventListener('drop',ev=>{ const f=[...ev.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(!f) return; ev.preventDefault(); ocrImage(f,ta,msgEl); }); }
-['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste'].forEach(ocrAttach);
+['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste','lpPaste','nePaste'].forEach(ocrAttach);
 
 /* ===== copy.js — ปุ่มคัดลอก: รายส่วน (หัวข้อ h2) · รายช่อง · ทั้งหน้า (ปุ่มลอยมุมขวาล่าง) =====
  คัดลอกทั้งแบบ rich (วางใน Word/LINE/อีเมลเห็นตาราง) และข้อความล้วน · ช่องกรอกถูกแทนด้วยค่าที่กรอก · ไม่คัดลอกปุ่ม */

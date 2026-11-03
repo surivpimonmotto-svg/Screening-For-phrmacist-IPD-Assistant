@@ -3,11 +3,12 @@
 const TB_DRUGS=[['inh','H','Isoniazid'],['rifam','R','Rifampicin'],['pza','Z','Pyrazinamide'],['emb','E','Ethambutol']];
 // ขนาดเม็ดที่ รพ.มค มีในบัญชี: INH 100 mg (300 mg เฉพาะ MDR-TB) · RIF 300/450 · PZA 500 · EMB 400
 const TB_TAB={inh:[100],rifam:[450,300],pza:[500],emb:[400]};
+const TB_HALF={emb:true}; // Ethambutol 400 mg หักครึ่งเม็ดได้ (รพ.จ่าย 2.5 เม็ด = 1000 mg)
 // เลือกเม็ดยาให้ได้ขนาดพอดี (หรือใกล้ที่สุดไม่เกิน) ด้วยจำนวนเม็ดน้อยสุด — เม็ดเดียวขนาดเดียวก่อน
 function tbTabs(id,mg,rng){ if(rng){ const ex=tbTabs(id,mg); if(ex&&ex.d<1) return ex; } const S=TB_TAB[id]||[]; let best=null; // rng=[lo,hi] mg: ถ้าทำขนาดตามตารางไม่ได้ด้วยเม็ดที่มี เลือกขนาดที่อยู่ในช่วง mg/kg ก่อน
   const inR=t=>!rng||(t>=rng[0]-1e-9&&t<=rng[1]+1e-9);
   const consider=c=>{ const t=c.reduce((a,[s,n])=>a+s*n,0), n=c.reduce((a,[,k])=>a+k,0), d=Math.abs(t-mg)+(inR(t)?0:1e6), one=c.filter(([,k])=>k).length===1; if(t<=0) return; if(!best||d<best.d-1e-9||(Math.abs(d-best.d)<1e-9&&(n<best.n||(n===best.n&&one&&!best.one)))) best={c:c.filter(([,k])=>k),t,n,d,one}; };
-  for(let a=0;a<=6;a++){ if(S.length===1){ consider([[S[0],a]]); continue; } for(let b=0;b<=6;b++) consider([[S[0],a],[S[1],b]]); }
+  const st=TB_HALF[id]?0.5:1; for(let a=0;a<=6;a+=st){ if(S.length===1){ consider([[S[0],a]]); continue; } for(let b=0;b<=6;b++) consider([[S[0],a],[S[1],b]]); }
   return best; }
 const tbTabTxt=b=>b.c.map(([s,n])=>`${s} mg × ${n}`).join(' + ');
 function tbRender(){ const out=$('xOut'); if(!out) return; const pt=getPt(), bw=+pt.bw, ped=pt.isPed, days=+$('xDays').value||0, ph=$('xPh').value;

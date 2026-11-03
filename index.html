@@ -3443,7 +3443,7 @@ function renderRules(){const q=$('kbq').value.trim().toLowerCase();
 $('kbq').addEventListener('input',renderKB); $('kbR').onclick=()=>setKb('rules'); $('kbG').onclick=()=>setKb('gap');
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k;
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB();
@@ -5286,11 +5286,12 @@ function tpaCalc(){ const out=$('tOut'); if(!out) return; const pt=getPt(), bw=+
 const TB_DRUGS=[['inh','H','Isoniazid'],['rifam','R','Rifampicin'],['pza','Z','Pyrazinamide'],['emb','E','Ethambutol']];
 // ขนาดเม็ดที่ รพ.มค มีในบัญชี: INH 100 mg (300 mg เฉพาะ MDR-TB) · RIF 300/450 · PZA 500 · EMB 400
 const TB_TAB={inh:[100],rifam:[450,300],pza:[500],emb:[400]};
+const TB_HALF={emb:true}; // Ethambutol 400 mg หักครึ่งเม็ดได้ (รพ.จ่าย 2.5 เม็ด = 1000 mg)
 // เลือกเม็ดยาให้ได้ขนาดพอดี (หรือใกล้ที่สุดไม่เกิน) ด้วยจำนวนเม็ดน้อยสุด — เม็ดเดียวขนาดเดียวก่อน
 function tbTabs(id,mg,rng){ if(rng){ const ex=tbTabs(id,mg); if(ex&&ex.d<1) return ex; } const S=TB_TAB[id]||[]; let best=null; // rng=[lo,hi] mg: ถ้าทำขนาดตามตารางไม่ได้ด้วยเม็ดที่มี เลือกขนาดที่อยู่ในช่วง mg/kg ก่อน
   const inR=t=>!rng||(t>=rng[0]-1e-9&&t<=rng[1]+1e-9);
   const consider=c=>{ const t=c.reduce((a,[s,n])=>a+s*n,0), n=c.reduce((a,[,k])=>a+k,0), d=Math.abs(t-mg)+(inR(t)?0:1e6), one=c.filter(([,k])=>k).length===1; if(t<=0) return; if(!best||d<best.d-1e-9||(Math.abs(d-best.d)<1e-9&&(n<best.n||(n===best.n&&one&&!best.one)))) best={c:c.filter(([,k])=>k),t,n,d,one}; };
-  for(let a=0;a<=6;a++){ if(S.length===1){ consider([[S[0],a]]); continue; } for(let b=0;b<=6;b++) consider([[S[0],a],[S[1],b]]); }
+  const st=TB_HALF[id]?0.5:1; for(let a=0;a<=6;a+=st){ if(S.length===1){ consider([[S[0],a]]); continue; } for(let b=0;b<=6;b++) consider([[S[0],a],[S[1],b]]); }
   return best; }
 const tbTabTxt=b=>b.c.map(([s,n])=>`${s} mg × ${n}`).join(' + ');
 function tbRender(){ const out=$('xOut'); if(!out) return; const pt=getPt(), bw=+pt.bw, ped=pt.isPed, days=+$('xDays').value||0, ph=$('xPh').value;
@@ -5349,7 +5350,7 @@ function lfSeal(){ return lfSealData; }
 function tbLeafHtml(){ const T=window.tbLast||{rec:[],ph:'ip'}, typ=$('lfType').value, newPt=typ==='new', st=tlDate($('lfStart').value,'0:00'), ap=tlDate($('lfAp').value,'0:00'), tm=$('lfTime').value.trim()||'ก่อนนอน', b6=$('lfB6').checked, ph=T.ph, L=x=>`<span style="display:inline-block;min-width:${x}px;border-bottom:1px dotted #64748b">&nbsp;</span>`;
   const sec=(t,c,body)=>`<div style="border-radius:8px;border:1.5px solid ${c};margin:0 0 7px;overflow:hidden;page-break-inside:avoid"><div style="background:${c};color:#fff;font-weight:700;padding:3px 8px;font-size:13px">${t}</div><div style="padding:5px 8px">${body}</div></div>`;
   const ul=a=>`<ul style="margin:2px 0;padding-left:16px">${a.map(x=>`<li style="margin:1px 0">${x}</li>`).join('')}</ul>`;
-  const rows=(T.rec||[]).map(x=>{ const n=x.tb.c.reduce((a,[,k])=>a+k,0); return `<tr><td style="padding:3px 4px"><b>${TB_TH[x.id]||x.nm}</b><div style="font-size:11px;color:#475569">${x.tb.c.map(([s,k])=>`${s} mg × ${k}`).join(' + ')}</div></td><td style="padding:3px 4px;text-align:center;white-space:nowrap">${lfPills(n)}<div style="font-weight:700">${fmtN(n)} ${TB_UNIT[x.id]||'เม็ด'}</div></td><td style="padding:3px 4px;font-size:11.5px">${x.renal3x?'<b>สัปดาห์ละ 3 วัน</b>'+(T.dial==='HD'?' (หลังฟอกไต)':' (จ/พ/ศ)'):'ทุกวัน'}</td></tr>`; }).join('');
+  const rows=(T.rec||[]).map(x=>{ const n=x.tb.c.reduce((a,[,k])=>a+k,0); return `<tr><td style="padding:3px 4px"><b>${TB_TH[x.id]||x.nm}</b><div style="font-size:11px;color:#475569">${x.tb.c.map(([s,k])=>`${s} mg × ${k}`).join(' + ')}</div></td><td style="padding:3px 4px;text-align:center;white-space:nowrap">${lfPills(n)}<div style="font-weight:700">${n%1?`${Math.floor(n)?Math.floor(n)+' ':''}${TB_UNIT[x.id]||'เม็ด'}ครึ่ง`:fmtN(n)+' '+(TB_UNIT[x.id]||'เม็ด')}</div></td><td style="padding:3px 4px;font-size:11.5px">${x.renal3x?'<b>สัปดาห์ละ 3 วัน</b>'+(T.dial==='HD'?' (หลังฟอกไต)':' (จ/พ/ศ)'):'ทุกวัน'}</td></tr>`; }).join('');
   const regTxt=ph==='cp'?'ระยะต่อเนื่อง (H + R) อีก 4 เดือน':'ระยะเข้มข้น (H + R + Z + E) 2 เดือน แล้วต่อด้วย H + R อีก 4 เดือน';
   const cal=(()=>{ let h='<table style="border-collapse:collapse;width:100%;font-size:10px;text-align:center">'; for(let w=0;w<5;w++){ h+='<tr>'; for(let d=1;d<=7;d++){ const n=w*7+d; if(n>31){ h+='<td></td>'; continue; } const dt=st?mrAdd(st,n-1):null; h+=`<td style="border:1px solid #94a3b8;height:24px;width:14%;vertical-align:top;padding:1px">${dt?`${dt.getDate()}/${dt.getMonth()+1}`:n}<div style="font-size:13px;color:#cbd5e1">☐</div></td>`; } h+='</tr>'; } return h+'</table>'; })();
   // หน้า 1: ปกหลัง (ซ้าย) · ปกพับใน (กลาง) · ปกหน้า (ขวา) | หน้า 2: ด้านใน 3 ตอน

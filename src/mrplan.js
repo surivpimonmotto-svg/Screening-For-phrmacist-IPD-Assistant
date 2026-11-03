@@ -19,7 +19,7 @@ function mrDate(s,base){ s=(s||'').trim(); if(!s) return null; base=mrD0(base||n
   if(/พรุ่งนี้|tomorrow/i.test(s)) return mrAdd(base,1); if(/วันนี้|today/i.test(s)) return base; return null; }
 // ตัดวลี "เริ่มกินวันอังคารหน้า / start 3/11 / delay 1 สัปดาห์" ออกก่อนอ่านขนาดยา (ไม่ให้ตัวอ่านเข้าใจว่าเป็นวันในสัปดาห์)
 const MR_START_RE=/(?:เริ่ม(?:กิน|ทาน|ยา)?|start)\s*(?:วัน(?:ที่)?)?\s*(?:(?:จันทร์|อังคาร|พุธ|พฤหัส(?:บดี)?|ศุกร์|เสาร์|อาทิตย์)\s*(?:หน้า)?|\d{1,2}\s*[\/.\-]\s*\d{1,2}(?:\s*[\/.\-]\s*\d{2,4})?|\d{1,2}\s*(?:ม\.ค|ก\.พ|มี\.ค|เม\.ย|พ\.ค|มิ\.ย|ก\.ค|ส\.ค|ก\.ย|ต\.ค|พ\.ย|ธ\.ค)\S*(?:\s*\d{2,4})?|พรุ่งนี้)|(?:delay|เลื่อน|หลัง(?:จาก)?\s*นี้?)\s*\d+\s*(?:สัปดาห์|อาทิตย์|wks?|weeks?|w|วัน|days?|d|เดือน|months?)/gi;
-const mrClean=raw=>raw.replace(MR_START_RE,' ').replace(/\s+/g,' ').trim();
+const mrClean=raw=>raw.replace(MR_START_RE,' ').replace(/(ครั้ง|เช้า|กลางวัน|เย็น|ก่อนนอน|อาหาร|hs|pc|ac)\s+\d+\s*(เม็ด|แคปซูล|ขวด|ซอง|หลอด|tab|cap)\s*$/i,'$1').replace(/\s+\d+\s*Home\s*Med\s*$/i,'').replace(/\s+/g,' ').trim(); // ตัดจำนวนจ่ายท้ายบรรทัด (70เม็ด, 2ขวด, 28 Home Med) ไม่ให้นับเป็นขนาดยา
 // ระยะเวลา: "6 เดือน" "2 wk" "14 วัน" (ไม่นับ "*1 day" ของ tapering)
 function mrDurOf(s){ const t=mrClean(s||'').replace(/[x×*]\s*\d+\s*(?:days?|d|วัน)\b/gi,' '); const m=t.match(/(?:^|[\s#(x×*]|นาน|เป็นเวลา|for|plan|ครบ)\s*(\d+)\s*(เดือน|months?|mo\b|สัปดาห์|อาทิตย์|wks?|weeks?|วัน(?!ละ)|days?)/i); return m?`${m[1]} ${m[2]}`:''; }
 function mrDurEnd(start,txt){ const m=(txt||'').match(/(\d+)\s*(เดือน|months?|mo|สัปดาห์|อาทิตย์|wks?|weeks?|w|วัน|days?|d)/i); if(m){ const n=+m[1],u=m[2]; return mrAdd(/เดือน|mo/i.test(u)?mrAddMon(start,n):mrAdd(start,/สัปดาห์|อาทิตย์|w/i.test(u)?n*7:n),-1); }

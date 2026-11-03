@@ -8,15 +8,28 @@ const MR_ST=[['same','เดิม','คีย์ตามเดิม'],['chg',
 const MR_COL={same:'#16a34a',chg:'#d97706',new:'#2563eb',stop:'#64748b',own:'#7c3aed',eq:'#0d9488',ask:'#dc2626'};
 const MR_CLS=[['ACEI',/pril\b/i],['ARB',/sartan/i],['Statin',/statin/i],['NSAIDs',/ibuprofen|naproxen|diclofenac|meloxicam|piroxicam|celecoxib|etoricoxib|indomethacin|mefenamic/i],['PPI',/prazole/i],['Benzodiazepine',/azepam|azolam|chlordiazepoxide/i],['CCB (dihydropyridine)',/dipine/i],['Beta-blocker',/olol\b|ilol\b/i],['Sulfonylurea',/glipizide|glibenclamide|gliclazide|glimepiride/i],['Anticoagulant',/warfarin|apixaban|rivaroxaban|dabigatran|edoxaban|enoxaparin|heparin/i],['P2Y12 inhibitor',/clopidogrel|ticagrelor|prasugrel/i],['Loop diuretic',/furosemide|bumetanide/i],['Opioid',/morphine|tramadol|codeine|oxycodone|fentanyl|methadone/i],['Antipsychotic',/haloperidol|risperidone|quetiapine|olanzapine|clozapine|aripiprazole/i]];
 const MR_HOLD=/warfarin|apixaban|rivaroxaban|dabigatran|metformin|insulin|glipizide|gliclazide|aspirin|clopidogrel|amlodipine|losartan|enalapril|furosemide|spironolactone|levothyroxine|quetiapine|risperidone|haloperidol|olanzapine|clozapine|valproate|phenytoin|levetiracetam|carbamazepine|prednisolone|statin|digoxin/i;
-let MR={rows:[],ov:{},plan:{}};
+let MR={rows:[],ov:{},plan:{}}; try{ MR.view=localStorage.getItem('ipd_mr_view')||'compact'; }catch(e){ MR.view='compact'; }
+const MR_ORD={ask:0,chg:1,new:2,own:3,eq:4,same:5,stop:6,none:7};
 const mrSrc={a1:'รพ.มค',a2:'รพ.อื่น',b:'ระหว่างนอน รพ.',c:'กลับบ้าน'};
 function mrName(r,e){ if(e&&e.drug) return e.drug.name; const m=masterOf(r), w=((m?m[1]:r.raw).match(/[A-Za-z][A-Za-z\-]+/)||[r.raw.split(/\s+/)[0]])[0]; return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase(); }
 function mrKey(r){ if(r.drugId) return 'kb:'+r.drugId; const m=masterOf(r); const t=((m?(m[2]||m[1]):r.raw)||'').toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!/^(tab|tabs|cap|caps|inj|sol|syr|susp|mg|mcg|gm|ml|sr|er|mr|xr|cr|film|coated|the)$/.test(w));
   return 'nm:'+(t[0]||r.raw.toLowerCase().slice(0,12)); }
 function mrDaily(r){ if(r.weekly&&r.weekly.mgWeek!=null) return r.weekly.mgWeek/7; const st=r.strength;
   const per=r.doseUnit==='unit'?(st&&r.doseVal!==''?+r.doseVal*st:null):(r.doseVal!==''&&r.doseVal!=null?+r.doseVal:null); return per!=null&&r.F?per*r.F:null; }
-function mrParse(txt){ return joinLines((txt||'').split(/\n/)).map(l=>{ const r=parseLine(mrClean(l)); if(r) r.raw=l.replace(/\s+/g,' ').trim(); return r; }).filter(r=>r&&(r.drugId||r.master||/\d+(?:\.\d+)?\s*(mg|mcg|g|ml|iu|units?|tab|cap|เม็ด)\b|\d\s*[x×*]\s*\d/i.test(r.raw))); }
-function mrSig(r){ return rcaScrub(r.raw).replace(/\s+/g,' ').trim(); }
+// MAR/OCR: บรรทัดเดียวมีหลายรหัสยา (เช่น "ENLPT1 … CTAXI2 CEF-3 …") → แยกเป็นรายการตามรหัสยาในบัญชี รพ. · ตัดบรรทัดซ้ำ
+let MR_CODES=null;
+function mrSplitCodes(lines){ if(!MR_CODES&&typeof DM!=='undefined') MR_CODES=new Set(DM.map(m=>String(m[0]||'').toUpperCase()).filter(c=>c.length>=3));
+  const isCode=w=>MR_CODES.has(w)||MR_CODES.has(w.replace(/1/g,'I').replace(/0/g,'O'))||MR_CODES.has(w.replace(/I/g,'1').replace(/O/g,'0'));
+  const clean=x=>/^[A-Z][A-Z0-9]{2,9}\b/.test(x)&&isCode(x.match(/^[A-Z][A-Z0-9]{2,9}/)[0])?x.replace(/[\u0E00-\u0E7F]+/g,' ').replace(/\s{2,}/g,' '):x; // แถว MAR ขึ้นต้นด้วยรหัสยา: ไทยที่ปนมาเป็น OCR ขยะ
+  const out=[]; lines.forEach(l=>{ if(!MR_CODES){ out.push(l); return; } const re=/\b[A-Z][A-Z0-9]{2,9}\b/g, pos=[]; let m; while((m=re.exec(l))) if(isCode(m[0])) pos.push(m.index);
+    if(pos.length<2){ out.push(clean(l)); return; } if(pos[0]>0&&l.slice(0,pos[0]).trim()) out.push(l.slice(0,pos[0])); pos.forEach((p,i)=>out.push(clean(l.slice(p,i+1<pos.length?pos[i+1]:undefined)))); });
+  return out; }
+const mrUniq=arr=>{ const seen=new Set(); return arr.filter(x=>{ const k=String(x).replace(/\s+/g,' ').trim().toLowerCase(); if(!k||seen.has(k)) return false; seen.add(k); return true; }); };
+function mrParse(txt){ return mrUniq(joinLines(mrSplitCodes((txt||'').split(/\n/)))).map(l=>{ const r=parseLine(mrClean(l)); if(r) r.raw=l.replace(/\s+/g,' ').trim(); return r; }).filter(r=>r&&(r.drugId||r.master||/\d+(?:\.\d+)?\s*(mg|mcg|g|ml|iu|units?|tab|cap|เม็ด)\b|\d\s*[x×*]\s*\d/i.test(r.raw))); }
+function mrSig(r){ let t=rcaScrub(r.raw).replace(/\s+/g,' ').trim(); const m=typeof masterOf==='function'?masterOf(r):null;
+  if(m&&m[0]&&new RegExp('^'+String(m[0]).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i').test(t)){ const rest=t.slice(String(m[0]).length).replace(/^\s*[~\-–:]+\s*/,''); t=rest.toUpperCase().includes(String(m[1]).split(/[\s(]/)[0].toUpperCase())?rest:m[1]+' '+rest; }
+  else if(m&&/^[A-Z][A-Z0-9]{2,9}\s/.test(t)&&!t.toUpperCase().includes(String(m[1]).split(/[\s(]/)[0].toUpperCase())) t=m[1]+' · '+t;
+  return t.replace(/\s+/g,' ').trim(); }
 function mrRun(){ const pt=getPt(), lists={a1:mrParse($('mrA1').value),a2:mrParse($('mrA2').value),b:mrParse($('mrB').value),c:mrParse($('mrC').value)};
   const evC=lists.c.map(r=>evaluate(r,pt,lists.c)); const map=new Map();
   const add=(k,r,e)=>{ const key=mrKey(r); if(!map.has(key)) map.set(key,{key,name:null,a1:[],a2:[],b:[],c:[]}); const g=map.get(key); g[k].push({r,e}); if(!g.name||k==='c') g.name=mrName(r,e||{drug:r.drugId?KB.find(x=>x.id===r.drugId):null}); };
@@ -45,21 +58,26 @@ function mrRun(){ const pt=getPt(), lists={a1:mrParse($('mrA1').value),a2:mrPars
 function mrRender(){ const out=$('mrOut'), rows=MR.rows; if(!rows.length){ out.innerHTML='<div class="empty">วางรายการยาแล้วกด "เปรียบเทียบ"</div>'; return; }
   const cnt={}; rows.forEach(r=>cnt[r.st]=(cnt[r.st]||0)+1);
   const pill=(k,n)=>`<span class="pill" style="background:${MR_COL[k]||'#94a3b8'};color:#fff">${(MR_ST.find(s=>s[0]===k)||['','ไม่ต่อ'])[1]} ${n}</span>`;
-  const cell=(arr)=>arr.length?arr.map(x=>`<div style="margin-bottom:2px">${esc(mrSig(x.r))}</div>`).join(''):'<span class="hint">—</span>';
+  const cmp=MR.view!=='full', cut=t=>cmp&&t.length>70?t.slice(0,68)+'…':t;
+  const cell=(arr)=>{ if(!arr.length) return '<span class="hint">—</span>'; const u=mrUniq(arr.map(x=>mrSig(x.r))), show=cmp?u.slice(0,2):u;
+    return show.map(t=>`<div class="mrl" title="${esc(t)}">${esc(cut(t))}</div>`).join('')+(cmp&&u.length>2?`<div class="hint">+${u.length-2} บรรทัด</div>`:''); };
   const opt=st=>MR_ST.map(([k,n])=>`<option value="${k}"${k===st?' selected':''}>${n}</option>`).join('');
   if(MR.onlyC){ out.innerHTML=`<h2>ยากลับบ้าน ${rows.length} รายการ</h2><p class="hint" style="margin:0 0 6px">โหมดยากลับบ้านอย่างเดียว — ไม่ได้วางยาเดิม/ยาระหว่างนอน รพ. จึงไม่ได้เทียบ (reconcile) · คำนวณแผนจ่ายยา ยาฉีด และปฏิทินให้ · คัดกรองขนาดยาตามแผงข้อมูลผู้ป่วย</p>${rows.some(r=>r.notes.length)?`<ul class="msgs">${rows.filter(r=>r.notes.length).map(r=>r.notes.map(n=>`<li><span class="tag warn">ทบทวน</span><span>${esc(r.name)}: ${esc(n)}</span></li>`).join('')).join('')}</ul>`:''}
    ${mrPlanTbl()}
    <h2 style="margin-top:14px">ใบส่งคีย์ให้เจ้าพนักงาน</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm" id="mrCp" type="button">คัดลอกใบส่งคีย์</button><button class="btn sm pri" id="mrPr" type="button">พิมพ์ใบส่งคีย์</button><span class="toast" id="mrMsg"></span></div><pre id="mrSheet" style="white-space:pre-wrap;font-family:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0"></pre>`; }
   else out.innerHTML=`<h2>ผลเปรียบเทียบ</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${Object.entries(cnt).map(([k,n])=>pill(k,n)).join('')}</div>
    ${cnt.ask?`<p style="margin:0 0 8px;color:#dc2626;font-weight:700">มี ${cnt.ask} รายการที่ต้องยืนยันกับแพทย์ก่อนส่งคีย์ — เปลี่ยนสถานะเมื่อได้คำตอบ</p>`:''}
-   <div style="overflow-x:auto"><table class="ctbl" style="width:100%;font-size:13.5px"><thead><tr><th>ยา</th><th>ยาเดิม</th><th>ระหว่างนอน รพ.</th><th>ยากลับบ้าน</th><th>สถานะ</th><th>หมายเหตุ / คำเตือน</th></tr></thead><tbody>
-   ${rows.map((r,i)=>`<tr style="border-left:5px solid ${MR_COL[r.st]||'#cbd5e1'}"><td><b>${esc(r.name||'')}</b>${r.scr&&r.scr!=='ok'&&r.scr!=='none'?` <span class="pill ${r.scr}">${ST_TXT[r.scr]}</span>`:''}</td>
+   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px"><span class="hint">มุมมอง:</span><button type="button" class="btn sm${cmp?' pri':''}" data-mv="compact">ย่อ (อ่านครบหน้า)</button><button type="button" class="btn sm${cmp?'':' pri'}" data-mv="full">เต็ม</button>${cnt.none?`<label class="hint" style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="mrHideNone"${MR.hideNone!==false?' checked':''}>ซ่อน "ไม่ต่อ" (${cnt.none})</label>`:''}</div>
+   <div style="overflow-x:auto"><table class="ctbl mrt${cmp?' cmp':''}" style="width:100%"><thead><tr><th>ยา</th><th>ยาเดิม</th><th>ระหว่างนอน รพ.</th><th>ยากลับบ้าน</th><th>สถานะ</th><th>หมายเหตุ / คำเตือน</th></tr></thead><tbody>
+   ${rows.map((r,i)=>[r,i]).sort((a,b)=>cmp?(MR_ORD[a[0].st]??9)-(MR_ORD[b[0].st]??9):0).filter(([r])=>!(r.st==='none'&&MR.hideNone!==false&&cnt.none)).map(([r,i])=>`<tr style="border-left:5px solid ${MR_COL[r.st]||'#cbd5e1'}"><td><b>${esc(r.name||'')}</b>${r.scr&&r.scr!=='ok'&&r.scr!=='none'?` <span class="pill ${r.scr}">${ST_TXT[r.scr]}</span>`:''}</td>
      <td>${r.a1.length?`<div class="hint">รพ.มค</div>${cell(r.a1)}`:''}${r.a2.length?`<div class="hint">รพ.อื่น</div>${cell(r.a2)}`:''}${!r.a1.length&&!r.a2.length?'<span class="hint">—</span>':''}</td>
      <td>${cell(r.b)}</td><td>${cell(r.c)}</td>
      <td>${r.st==='none'?'<span class="hint">ไม่ต่อ (ไม่ต้องคีย์)</span>':`<select data-mi="${i}" style="font-weight:700;color:${MR_COL[r.st]}">${opt(r.st)}</select>`}</td>
-     <td>${r.auto?`<div>${esc(r.auto)}</div>`:''}${r.notes.map(n=>`<div style="color:${/^ซ้ำ|^คัดกรอง|ระวัง/.test(n)?'#b45309':'inherit'}">• ${esc(n)}</div>`).join('')}</td></tr>`).join('')}</tbody></table></div>
+     <td>${r.auto?`<div>${esc(r.auto)}</div>`:''}${(()=>{ const N=r.notes.map(n=>`<div style="color:${/^ซ้ำ|^คัดกรอง|ระวัง/.test(n)?'#b45309':'inherit'}">• ${esc(n)}</div>`); return cmp&&N.length>1?N[0]+`<details><summary class="hint" style="cursor:pointer">อีก ${N.length-1} ข้อ</summary>${N.slice(1).join('')}</details>`:N.join(''); })()}</td></tr>`).join('')}</tbody></table></div>
    ${mrPlanTbl()}
    <h2 style="margin-top:14px">ใบส่งคีย์ให้เจ้าพนักงาน</h2><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn sm" id="mrCp" type="button">คัดลอกใบส่งคีย์</button><button class="btn sm pri" id="mrPr" type="button">พิมพ์ใบส่งคีย์</button><span class="toast" id="mrMsg"></span></div><pre id="mrSheet" style="white-space:pre-wrap;font-family:inherit;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px;margin:0"></pre>`;
+  out.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{ MR.view=b.dataset.mv; try{localStorage.setItem('ipd_mr_view',MR.view);}catch(e){} mrRender(); });
+  if($('mrHideNone')) $('mrHideNone').onchange=()=>{ MR.hideNone=$('mrHideNone').checked; mrRender(); };
   out.querySelectorAll('[data-mi]').forEach(s=>s.onchange=()=>{ const r=MR.rows[+s.dataset.mi]; r.st=s.value; MR.ov[r.key]=s.value; mrRender(); });
   out.querySelectorAll('[data-tk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.tk]; if(P&&P.tl){ P.tl[el.dataset.tf]=el.value; } setTimeout(()=>{ const y=window.scrollY; mrRender(); window.scrollTo(0,y); },180); });
   out.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{ const P=MR.plan[el.dataset.pk]||(MR.plan[el.dataset.pk]={}); P[el.dataset.pf]=el.value; setTimeout(()=>{ const y=window.scrollY; mrRender(); window.scrollTo(0,y); },180); });

@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.34.5
+- Atlas ผื่น: การ์ด Angioedema ขยาย — กลไก histamine vs bradykinin/leukotriene/complement, แยก NSAIDs pseudoallergy / ACEI / HAE, ขนาด antihistamine (double dose, up-dosing ≤4 เม็ด), รุ่นของ antihistamine, CPG HAE ไทย 2565 (C4 → C1-INH, FFP 2 unit เมื่อไม่มียาเฉพาะ), emergency in allergy
+
 ## v0.34.4 — 3 พ.ย. 69 — Motto (ผ่าน Claude)
 - Ethambutol 400 mg หักครึ่งเม็ดได้: 50–69 kg = 1000 mg = 2.5 เม็ด (ตามตาราง รพ.) · <35 kg 600 mg = 1.5 เม็ด · แผ่นพับแสดง "2 เม็ดครึ่ง"
 

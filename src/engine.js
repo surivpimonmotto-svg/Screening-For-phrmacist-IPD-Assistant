@@ -250,6 +250,10 @@ function parseLine(raw){
         if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; }
       // ยาที่ให้แบบไม่เจือจาง (เช่น Propofol 500 mg/50 ml) — ไม่มีสารน้ำ → ปริมาตร = ปริมาณยา ÷ ความเข้มข้นของขวด
       if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
+      // ไม่มี ml/h แต่สั่งเป็นระยะเวลา เช่น "drip in 24 hr", "IV over 6 hr", "หยดนาน 24 ชม.", "in 30 min" → rate = ปริมาตร ÷ เวลา
+      if(row.had.rate==null&&row.had.vol>0){ const du=line.match(/(?:\bdrip\b|\bin\b|\bover\b|นาน|ภายใน|ใน)\s*(?:in|over|นาน|ภายใน)?\s*(\d+(?:\.\d+)?)\s*(hrs?|hours?|h|ชม\.?|ชั่วโมง|mins?|minutes?|นาที)(?![a-z])/i);
+        if(du&&!/(?:\bq|ทุก)\s*$/i.test(line.slice(0,du.index+du[0].indexOf(du[1])).replace(/(?:in|over|นาน|ภายใน)\s*$/i,''))){ const hr=/min|นาที/i.test(du[2])?+du[1]/60:+du[1];
+          if(hr>0&&hr<=72){ row.had.rate=Math.round(row.had.vol/hr*1000)/1000; row.had.rateFrom=`${du[0].trim()} → ${row.had.vol} ml ÷ ${fmtN(+du[1])} ${/min|นาที/i.test(du[2])?'นาที':'ชม.'} ≈ ${fmtN(Math.round(row.had.rate*10)/10)} ml/h`; } } }
       // ไม่เจือจางและไม่ระบุปริมาณ (เช่น "Propofol 1% rate 5 ml/h") → ใช้ความเข้มข้นมาตรฐานของยา
       if(H.neat&&H.neatConc&&row.had.amt>0&&row.had.amt===row.had.vol&&row.had.amt<=5){ row.had.neatNote=`คำสั่งเขียน "${row.had.amt} mg : สารน้ำ ${row.had.vol} ml" — ถือเป็นให้ไม่เจือจาง ${H.neatConc} mg/ml (ยืนยันกับหอผู้ป่วย)`; row.had.amt=H.neatConc; row.had.vol=1; row.had.how='undiluted'; }
       if(H.neat&&H.neatConc&&!(row.had.amt>0&&row.had.vol>0)){ row.had.amt=H.neatConc; row.had.vol=1; row.had.how='undiluted'; }

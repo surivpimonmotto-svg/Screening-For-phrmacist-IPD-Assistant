@@ -231,7 +231,9 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
   const sx=t.match(/เพศ\s*[:：]?\s*(ชาย|หญิง|male|female)/i)||t.match(/\bsex\s*[:：]?\s*(m|f|male|female)\b/i);
   if(sx) o.sex=/หญิง|^f/i.test(sx[1])?'F':'M'; else if(/(^|\s)(นาง|นางสาว|น\.ส\.|ด\.ญ\.|เด็กหญิง)\s*\S/.test(t)) o.sex='F'; else if(/(^|\s)(นาย|ด\.ช\.|เด็กชาย)\s*\S/.test(t)) o.sex='M';
   const bw=t.match(/น้ำหนัก\s*[:：]?\s*([\d.]+)\s*(kg|กก|กิโล)?/i)||t.match(/\b(?:bw|weight|wt)\s*[:：]?\s*([\d.]+)/i); if(bw) o.bw=+bw[1];
-  const ht=t.match(/(?:ส่วนสูง|สูง)\s*[:：]?\s*([\d.]+)\s*(cm|ซม)?/i)||t.match(/\b(?:height|ht)\s*[:：]?\s*([\d.]+)/i); if(ht) o.ht=+ht[1];
+  // ส่วนสูง: "ส่วนสูง/สูง: 155 cm" (ไม่เอา "...สูง" ที่ต่อท้ายคำไทยอื่น เช่น ความดันสูง) · ตรวจความสมเหตุผล ผู้ใหญ่ 120–220 cm
+  const ht=t.match(/ส่วนสูง\s*[:：]?\s*([\d.]+)\s*(?:cm|ซม)?/i)||t.match(/(?:^|[^\u0E00-\u0E7F])สูง\s*[:：]?\s*([\d.]+)\s*(?:cm|ซม)/i)||t.match(/(?:^|[^\u0E00-\u0E7F])สูง\s*[:：]\s*([\d.]+)/i)||t.match(/\bheight\s*[:：]?\s*([\d.]+)/i)||t.match(/\bht\s*[:：]?\s*([\d.]+)\s*cm/i);
+  if(ht){ const h=+ht[1], adult=o.age&&o.age.u==='y'&&o.age.v>=15; if(adult&&(h<120||h>220)) o.htBad=h; else if(h>=30&&h<=230) o.ht=h; }
   const wd=t.match(/Ward\s*\/?\s*Bed\s*[:：]?\s*([^\n]+?)\s*(?:\/\s*\d+\s*)?(?:\n|$)/i); if(wd) o.ward=wd[1].replace(/\s*\/\s*\d+\s*$/,'').trim();
   const al=t.match(/ประวัติ(?:การ)?แพ้ยา\s*[:：]?\s*([\s\S]{0,160})/);
   if(al){ let a=al[1].split(/\n\s*\n|Laboratory|ผล\s*Lab|Medication|Creatinine|ดูผล|\bLab\b/i)[0].replace(/ไม่พบประวัติ(การ)?แพ้ยา/g,'').replace(/\s+/g,' ').trim();
@@ -244,6 +246,7 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
     if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`+(o.age.u==='y'&&+o.age.v===0?' (ทารก — แก้เป็นวัน/เดือน และใส่น้ำหนัก)':'')); }
     if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
     if(o.ht){ $('ht').value=o.ht; got.push(`สูง ${o.ht}`); }
+    if(o.htBad){ got.push(`⚠ ส่วนสูง ${o.htBad} cm ไม่สมเหตุผลสำหรับผู้ใหญ่ — ไม่ได้เติม ตรวจใน HIS แล้วกรอกเอง`); }
     if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }
     if(o.allergyFound){ $('allergy').value=o.allergy; got.push(o.allergy?`แพ้ยา: ${o.allergy}`:'ไม่พบประวัติแพ้ยา'); }
     if(o.preg){ $('preg').checked=true; got.push('ตั้งครรภ์'); }

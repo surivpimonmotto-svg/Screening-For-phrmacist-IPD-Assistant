@@ -34,8 +34,10 @@ function pfPatientLine(){ const pt=getPt(), L=pt.lab||{}; const bw=$('bw').value
 function pfBar(t){ const sec=$('p-'+t); if(!sec) return null; let b=$('pf-'+t); if(b) return b;
   sec.insertAdjacentHTML('afterbegin',`<div class="pfbar" id="pf-${t}"><div class="pfl"><span class="pfk">ผู้ป่วย</span> <span class="pfpt"></span></div><div class="pfl"><span class="pfk">ใบสั่ง</span> <span class="pfrx"></span></div>
    <div class="pfbtn">${PF_LINK[t]?`<button type="button" class="btn sm pri" data-pf="pull">⤓ ดึงใบสั่งจากหน้าแรก</button>`:''}<button type="button" class="btn sm" data-pf="paste">📝 วางใบสั่ง / Lab</button><button type="button" class="btn sm pfreset" data-pf="reset">🗑 เริ่มใหม่ (แท็บนี้)</button><button type="button" class="btn sm" data-pf="newpt" title="ล้างผู้ป่วย ใบสั่ง และทุกแท็บ">👤 ผู้ป่วยใหม่</button><span class="pfmsg" style="align-self:center;color:#15803d;font-size:12.5px"></span></div>
-   <div class="pfpaste" hidden><textarea rows="3" placeholder="วางคำสั่งยาและ/หรือผล Lab (เช่น Potassium 3.3, Creatinine 1.2) — ยาจะถูกเพิ่มเข้าหน้า 'ตรวจใบสั่งยา' และดึงมาแท็บนี้ · Lab เติมแผงผู้ป่วย"></textarea><div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap"><button type="button" class="btn sm pri" data-pf="read">อ่าน</button></div></div></div>`);
+   <div class="pfpaste" hidden><textarea rows="3" placeholder="${t==='pk'?'เช่น VANCOMYCIN INJ 1 G 1 g iv q 12 hr หรือ COLISTIN 150 mg iv q 12 hr · Creatinine 0.8 · ':''}วางคำสั่งยาและ/หรือผล Lab (เช่น Potassium 3.3, Creatinine 1.2) — ยาจะถูกเพิ่มเข้าหน้า 'ตรวจใบสั่งยา' และดึงมาแท็บนี้ · Lab เติมแผงผู้ป่วย"></textarea><div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap"><button type="button" class="btn sm pri" data-pf="read">อ่าน</button></div></div></div>`);
   b=$('pf-'+t);
+  // แท็บที่ไม่มีช่องวางของตัวเอง → เปิดช่องวางใบสั่ง/Lab ให้เห็นทันที
+  if(!PF_LINK[t]||!PF_LINK[t].to){ const pp=b.querySelector('.pfpaste'); pp.hidden=false; pp.querySelector('textarea').rows=4; }
   b.querySelector('[data-pf="pull"]')&&(b.querySelector('[data-pf="pull"]').onclick=()=>pfPull(t,true));
   b.querySelector('[data-pf="paste"]').onclick=()=>{ const p=b.querySelector('.pfpaste'); p.hidden=!p.hidden; if(!p.hidden) p.querySelector('textarea').focus(); };
   b.querySelector('[data-pf="read"]').onclick=()=>pfRead(t);
@@ -57,6 +59,7 @@ function pfReset(t,quiet){ const L=PF_LINK[t]; if(L){ if(L.to&&$(L.to)){ $(L.to)
   if(!quiet){ pfUpdate(t); pfMsg(t,'เริ่มใหม่แล้ว — กด ⤓ เพื่อดึงใบสั่งอีกครั้ง'); } }
 function pfRead(t){ const b=$('pf-'+t), ta=b.querySelector('.pfpaste textarea'), raw=ta.value; if(!raw.trim()) return; const got=[];
   if(typeof demoClear==='function') demoClear();
+  if(typeof EX_TXT!=='undefined'&&$('paste').value===EX_TXT){ $('paste').value=''; rows=[]; } // ล้างใบสั่งตัวอย่างก่อน
   const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(v.k!=null&&typeof kFromText==='function') kFromText(raw,true); if(nl) got.push(`Lab ${nl} ค่า`);
   const ls=joinLines(labStrip(raw).split(/\n/)).map(parseLine).filter(Boolean); if(ls.length){ rows=rows.concat(ls); $('paste').value=($('paste').value.trim()?$('paste').value.trim()+'\n':'')+ls.map(r=>r.raw).join('\n'); got.push(`ยา ${ls.length} รายการ (เพิ่มในหน้าแรกแล้ว)`); }
   renderRows(); ta.value=''; if(ls.length&&PF_LINK[t]) pfPull(t); else try{ PF_LINK[t]&&PF_LINK[t].run&&PF_LINK[t].run(); }catch(e){}

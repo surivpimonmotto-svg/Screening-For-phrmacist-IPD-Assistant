@@ -239,7 +239,7 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
   if(/ตั้งครรภ์|pregnan/i.test(t)) o.preg=true;
   return o; }
 (function(){ if(!$('ptParse')) return;
-  $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; const o=ptParse(raw), got=[];
+  $('ptParse').onclick=()=>{ const raw=$('ptPaste').value; if(!raw.trim()) return; if(typeof demoClear==='function') demoClear(); const o=ptParse(raw), got=[];
     if(o.sex){ setSex(o.sex); got.push(o.sex==='F'?'หญิง':'ชาย'); }
     if(o.age){ $('ageU').value=o.age.u; $('ageIn').value=o.age.v; ageSync(); got.push(`อายุ ${o.age.v} ${({y:'ปี',m:'เดือน',d:'วัน'})[o.age.u]}`+(o.age.u==='y'&&+o.age.v===0?' (ทารก — แก้เป็นวัน/เดือน และใส่น้ำหนัก)':'')); }
     if(o.bw){ $('bw').value=o.bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); got.push(`น้ำหนัก ${o.bw}`); }
@@ -247,7 +247,7 @@ function ptParse(txt){ const t=(txt||'').replace(/ /g,' '), o={};
     if(o.ward&&$('cnWard')){ $('cnWard').value=o.ward; got.push(`หอผู้ป่วย ${o.ward}`); }
     if(o.allergyFound){ $('allergy').value=o.allergy; got.push(o.allergy?`แพ้ยา: ${o.allergy}`:'ไม่พบประวัติแพ้ยา'); }
     if(o.preg){ $('preg').checked=true; got.push('ตั้งครรภ์'); }
-    const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(nl) got.push(`Lab ${nl} ค่า`);
+    const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(v.k!=null&&typeof kFromText==='function') kFromText(raw,true); if(nl) got.push(`Lab ${nl} ค่า`);
     $('ptPaste').value=''; // ไม่เก็บข้อความที่มีชื่อ/HN
     $('ptMsg').textContent=got.length?`อ่านได้: ${got.join(' · ')} — ตรวจค่าก่อนใช้ (ลบข้อความที่วางแล้ว)`:'อ่านค่าไม่ได้ — กรอกเองในช่อง';
     renderRows(); if(typeof renderHad==='function') renderHad(); if($('p-cmt')&&!$('p-cmt').hidden) renderCmt(); };

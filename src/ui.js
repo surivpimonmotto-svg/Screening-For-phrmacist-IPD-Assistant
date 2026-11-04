@@ -435,7 +435,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.9 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.35.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -541,6 +541,10 @@ function renderPk(){
       m.push(li('info','สูตร Garonzik ใช้ประกอบเท่านั้น — ยึดขนาดตามคู่มือปรับยาตามไตของ รพ. เป็นหลัก'));}
     m.push(li('info',`Loading 300 mg CBA ตามคู่มือ รพ. และ international consensus 2019 (ฉลาก FDA คิดตามน้ำหนัก 5 mg/kg = ${r0(5*bw)} mg)`));
     h+=`<dl class="kv" style="margin-bottom:12px">${kv.map(([a,x])=>`<dt>${a}</dt><dd>${x}</dd>`).join('')}</dl><ul class="msgs">${m.join('')}</ul>`; }
+  { const S=typeof PK_SHOW!=='undefined'?PK_SHOW:{v:true,c:true}, i=h.indexOf('<h2 style="margin-top:20px">Colistin'); if(i>0&&!(S.v&&S.c)){ let V=h.slice(0,i), C=h.slice(i);
+    if(!S.c) C=`<details style="margin-top:16px"><summary class="hint" style="cursor:pointer">Colistin — ไม่มีในใบสั่ง (กดเพื่อดู)</summary>${C}</details>`;
+    if(!S.v) V=`<details><summary class="hint" style="cursor:pointer">Vancomycin — ไม่มีในใบสั่ง (กดเพื่อดู)</summary>${V}</details>`, C=C.replace('margin-top:20px','margin-top:4px');
+    h=S.v?V+C:C+V; } }
   $('pkOut').innerHTML=h;
 }
 ['vDose','vTau','vTau2'].forEach(id=>$(id).addEventListener('input',renderPk));

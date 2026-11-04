@@ -120,7 +120,7 @@ const ARV_NEO={
  '3TC':{nm:'Lamivudine (3TC) syrup 10 mg/ml',c:10,sch:[[32,[[0,4],2,12],[[4,99],4,12]]]},
  NVP:{nm:'Nevirapine (NVP) syrup 10 mg/ml',c:10,sch:[[37,[[0,99],4,24]]]}};
 const ARV_NEO_RISK={std:{nm:'ความเสี่ยงมาตรฐาน',drugs:['AZT']},high:{nm:'ความเสี่ยงสูง',drugs:['AZT','3TC','NVP']}};
-function neoRender(){ const out=$('nOut'); if(!out) return; const ga=+$('nGa').value, bw=+$('nBw').value, risk=$('nRisk').value, wk=+$('nWk').value||4, bd=tlDate($('nBd').value,'0:00');
+function neoArvRender(){ const out=$('nOut'); if(!out) return; const ga=+$('nGa').value, bw=+$('nBw').value, risk=$('nRisk').value, wk=+$('nWk').value||4, bd=tlDate($('nBd').value,'0:00');
   const vl=$('nVl').value, dur=$('nDur').value, bf=$('nBf').checked;
   // ประเมินความเสี่ยงจากข้อมูลมารดา (แนวทางชาติ 2564/65 ตามที่ มช. สรุป)
   let auto=null, why=[]; if(vl==='hi') why.push('VL ใกล้คลอด >50'); if(dur==='lt12') why.push('ARV <12 สัปดาห์/ไม่สม่ำเสมอ/ไม่ได้รับ'); if(bf) why.push('ได้รับนมแม่');
@@ -143,8 +143,8 @@ function neoRender(){ const out=$('nOut'); if(!out) return; const ga=+$('nGa').v
   $('vRun').onclick=renderArv; $('vClr').onclick=()=>{ $('vPaste').value=''; renderArv(); };
   $('vFromScr').onclick=()=>{ if(typeof rows==='undefined'||!rows.length){ cpMsg($('vMsg'),'หน้าคัดกรองยังไม่มีรายการยา'); return; } $('vPaste').value=rows.map(r=>r.raw).join('\n'); renderArv(); };
   $('vEx').onclick=()=>{ $('vPaste').value='Acriptega (TDF300/3TC300/DTG50) 1 tab oral od pc เช้า\nCalcium carbonate 1000 mg 1x3 pc\nFerrous fumarate 200 mg 1x1 pc\nSimvastatin 20 mg 1 tab hs\nRifampicin 450 mg 1 tab od ac\nMetformin 500 mg 2x2 pc\nOmeprazole 20 mg 1x1 ac'; renderArv(); };
-  ['nGa','nBw','nWk','nBd'].forEach(id=>$(id).addEventListener('input',neoRender)); ['nRisk','nVl','nDur','nBf','nWk'].forEach(id=>$(id).addEventListener('change',neoRender));
-  renderArv(); neoRender(); })();
+  ['nGa','nBw','nWk','nBd'].forEach(id=>$(id).addEventListener('input',neoArvRender)); ['nRisk','nVl','nDur','nBf','nWk'].forEach(id=>$(id).addEventListener('change',neoArvRender));
+  renderArv(); neoArvRender(); })();
 
 /* ---------- HIV Post Exposure Prophylaxis (PEP) — แบบคัดกรอง PEP / OSCC 2024 รพ.มหาสารคาม ----------
  เด็ก: AZT syr 180 mg/m² q12h + 3TC syr 4 mg/kg q12h + DTG dispersible ตามน้ำหนัก · เด็กกินเม็ดได้ 14–<35 kg · ผู้ใหญ่/≥35 kg สูตร 1–5

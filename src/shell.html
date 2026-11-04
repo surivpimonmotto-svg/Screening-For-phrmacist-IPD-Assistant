@@ -347,6 +347,11 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
 #hClr{border-color:#dc2626;color:#b91c1c}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root:not([data-theme="light"]) .pstate{background:#14532d;color:#dcfce7}}
 :root[data-theme="dark"] textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root[data-theme="dark"] .pstate{background:#14532d;color:#dcfce7}
+.pfbar{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:8px 12px;margin:0 0 12px;background:var(--surface);display:grid;gap:4px;font-size:13.5px}
+.pfl{line-height:1.5}.pfk{display:inline-block;min-width:52px;font-weight:700;color:var(--muted);font-size:12px}
+.pfbtn{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}.pfreset{border-color:#dc2626!important;color:#b91c1c!important}
+.pfpaste textarea{width:100%;box-sizing:border-box;font:13px ui-monospace,monospace;color:var(--ink)}
+@media print{.pfbar{display:none}}
 </style>
 
 <header class="top">

@@ -341,6 +341,12 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
 .jp{cursor:pointer;border:0;font:inherit}.jp:disabled{cursor:default;opacity:.55}.jp:not(:disabled):hover{filter:brightness(.95);text-decoration:underline}
 .hit{outline:3px solid #f59e0b!important;outline-offset:3px;border-radius:8px;transition:outline-color .4s}
 .ohead{border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:8px 10px;margin-bottom:10px;background:var(--panel2,rgba(148,163,184,.08))}.ojump{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+textarea#hPaste,textarea#paste,textarea#lpPaste,textarea#dtPaste,textarea#ptPaste,textarea#labPaste,textarea#mrA1,textarea#mrA2,textarea#mrB,textarea#mrC{color:var(--ink,#0f172a)}
+textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;color:#0f172a!important}
+.pstate{margin-top:4px;padding:4px 10px;border-radius:999px;display:inline-block;background:#dcfce7;color:#166534;font-size:12.5px}
+#hClr{border-color:#dc2626;color:#b91c1c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root:not([data-theme="light"]) .pstate{background:#14532d;color:#dcfce7}}
+:root[data-theme="dark"] textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root[data-theme="dark"] .pstate{background:#14532d;color:#dcfce7}
 </style>
 
 <header class="top">
@@ -525,7 +531,7 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
           <div style="display:grid;gap:10px">
             <div><div class="hint">วางคำสั่งยาจาก paperless / scan order — อ่านยา · ปริมาณยา · สารน้ำ · rate · สาย ให้อัตโนมัติ (ห้ามใส่ชื่อ-สกุล/HN)</div>
               <textarea id="hPaste" rows="3" placeholder="เช่น Norepinephrine 4 mg/4 ml 8 mg + D5W 125 ml iv rate 15 ml/hr&#10;หรือ Levophed (4:250) 10 cc/hr central"></textarea>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"><button type="button" class="btn pri sm" id="hRead">อ่านคำสั่ง → คำนวณ</button><button type="button" class="btn sm" id="hFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn sm" id="hClr">ล้าง</button><span class="toast" id="hPMsg"></span></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px"><button type="button" class="btn pri sm" id="hRead">อ่านคำสั่ง → คำนวณ</button><button type="button" class="btn sm" id="hFromScr">ดึงจากหน้าคัดกรอง</button><button type="button" class="btn sm" id="hClr" title="ล้างคำสั่งและช่องกรอกทั้งหมด เพื่อเริ่มยาตัวใหม่">🗑 ล้าง / เริ่มใหม่</button><span class="toast" id="hPMsg"></span></div>
               <div id="hPick" style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px"></div></div>
             <label class="f">ยา<select id="hDrug"></select></label>
             <div class="hint" id="hInfo"></div>

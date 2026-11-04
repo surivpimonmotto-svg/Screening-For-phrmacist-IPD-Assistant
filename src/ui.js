@@ -166,7 +166,7 @@ $('rows').addEventListener('click',ev=>{const b=ev.target.closest('[data-del]');
 /* events: input modes */
 function setMode(paste){$('mPaste').setAttribute('aria-pressed',paste);$('mKey').setAttribute('aria-pressed',!paste);$('pasteBox').hidden=!paste;$('keyBox').hidden=paste;}
 $('mPaste').onclick=()=>setMode(true); $('mKey').onclick=()=>setMode(false);
-function doParse(replace){ const tx=$('paste').value; if(tx!==EX_TXT){ demoClear(); kFromText(tx); } const ls=joinLines(labStrip(tx).split(/\n/)).map(parseLine).filter(Boolean); rows=replace?ls:rows.concat(ls); renderRows();}
+function doParse(replace){ setTimeout(()=>pasteState('paste',`อ่านได้ ${rows.length} รายการ`),0); const tx=$('paste').value; if(tx!==EX_TXT){ demoClear(); kFromText(tx); } const ls=joinLines(labStrip(tx).split(/\n/)).map(parseLine).filter(Boolean); rows=replace?ls:rows.concat(ls); renderRows();}
 $('parseRep').onclick=()=>doParse(true); $('parseAdd').onclick=()=>doParse(false);
 $('clearRows').onclick=()=>{rows=[];renderRows();};
 // เริ่มเคสใหม่: ล้างข้อมูลผู้ป่วย + ข้อความ + รายการยา เพื่อไม่ให้ค่าของผู้ป่วยคนก่อนค้าง
@@ -233,7 +233,7 @@ function hadNote(k,h,o,cu,V){
   const line=V?V.line:(lineSel&&lineSel.value?lineSel.options[lineSel.selectedIndex].text:'');
   const S=(typeof HAD_STD!=='undefined'&&HAD_STD[k])||{}, ic={ok:'✓',warn:'⚠',flag:'✗',info:'•'};
   const raw=V?V.raw:(hadList[hadSel]&&hadList[hadSel].had&&hadList[hadSel].had.key===k?hadList[hadSel].raw:'');
-  const L=[`■ ${h.name} — ผล: ${st}`,...(raw?[`  คำสั่งยา : ${raw.replace(/\s+/g,' ').trim()}`]:[]),
+  const L=[`■ ${h.name} — ผล: ${st}`,...(raw?[`  คำสั่งยา : ${raw.replace(/\s+/g,' ').trim()}`]:[]),...((()=>{ const g=V?V.seg:(hadList[hadSel]&&hadList[hadSel].had.key===k?hadList[hadSel].had:null); return g&&g.segN?[`  ชุดที่ใช้ : ${g.segTxt} (ชุด ${g.segNo}/${g.segN}${g.segNo===g.segN?' — ล่าสุด':''})`]:[]; })()),
    h.neat?`  สูตรผสม : ไม่เจือจาง (${fmtN(o.conc)} ${cu})${line?` · สาย ${line}`:''}`:`  สูตรผสม : ${amt} ${h.u}${amp?` (${amp} amp)`:''} ใน ${vol} ml${line?` · สาย ${line}`:''}`,
    `  Rate    : ${rate!==''&&rate!=null?rate:'– (ไม่ระบุ)'} ml/h${+rate>0?` × 24 ชม. = ${fmtN(+rate*24)} ml/วัน`:''}${(V?V.rateFrom:(raw&&hadRateFrom&&hadList[hadSel]&&+rate===hadList[hadSel].had.rate))?` (สั่ง ${V?V.rateFrom:hadRateFrom})`:''}`,
    `  Dose    : ${o.dose!=null?fmtN(o.dose)+' '+(o.doseU||''):'–'}${bw?` (BW ${bw} kg)`:''}`,
@@ -289,10 +289,11 @@ function hadFill(r){ const h=r.had; hadRateFrom=h.rateFrom||''; hadDil={[h.key]:
   const miss=[!(h.amt>0)&&'ปริมาณยา',!(h.vol>0)&&'สารน้ำ (ml)',h.rate==null&&'rate (ml/h)'].filter(Boolean);
   hMsg(miss.length?`อ่านได้บางส่วน — กรอกเพิ่ม: ${miss.join(', ')}`:`อ่านแล้ว: ${HAD[h.key].name} ${h.amt} ${HAD[h.key].u} / ${h.vol} ml · ${h.rate} ml/h${h.how==='conc'?` (สูตร ${fmtN(h.amt/h.vol)} mg/ml · ใช้ ${fmtN(h.rate*24)} ml/วัน → ถุง ${h.vol} ml${Math.ceil(h.rate*24/h.vol)>1?` × ${Math.ceil(h.rate*24/h.vol)} ถุง/วัน`:''})`:''}${h.line?'':' · ไม่ระบุสาย ตั้งเป็น Peripheral (เปลี่ยนได้)'}`); }
 var hadList=[], hadSel=0, hadLastT='', hadKMsg='', hadRateFrom='';
-function hadFromText(t){ if(String(t||'').trim()&&t!==hadLastT){ demoClear(); const kg=kFromText(t); hadKMsg=kg.length?' · อ่าน Lab จากข้อความ: '+kg.join(', '):''; } const rs=joinLines(labStrip(String(t||'')).split(/\n/)).map(parseLine).filter(r=>r&&r.had), pk=$('hPick'); const same=t===hadLastT&&hadSel<rs.length; hadLastT=t; hadList=rs; if(!same) hadSel=0;
-  if(!rs.length){ pk.innerHTML=''; hMsg('ไม่พบยา HAD ที่คำนวณได้ในข้อความ (เช่น Norepinephrine, Dopamine, Adrenaline, KCl, MgSO4, Heparin, Insulin)'); return; }
-  pk.innerHTML=rs.length>1?'<span class="hint">พบ '+rs.length+' รายการ เลือก:</span>'+rs.map((r,i)=>`<button type="button" class="btn sm" data-hp="${i}">${esc(HAD[r.had.key].name)} ${r.had.amt||''}/${r.had.vol||''}</button>`).join(''):'';
-  pk.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{ hadSel=+b.dataset.hp; hadFill(rs[hadSel]); }); hadFill(rs[hadSel]); }
+function hadFromText(t){ if(String(t||'').trim()&&t!==hadLastT){ demoClear(); const kg=kFromText(t); hadKMsg=kg.length?' · อ่าน Lab จากข้อความ: '+kg.join(', '):''; } const rs=joinLines(labStrip(String(t||'')).split(/\n/)).map(parseLine).filter(r=>r&&r.had).flatMap(r=>r.had.segs?r.had.segs.map((g,j,A)=>({...r,had:{...r.had,amt:g.amt,vol:g.vol,rate:g.rate!=null?g.rate:r.had.rate,segTxt:g.txt,segNo:j+1,segN:A.length}})):[r]), pk=$('hPick'); const same=t===hadLastT&&hadSel<rs.length; hadLastT=t; hadList=rs; if(!same){ hadSel=0; const lastSeg=rs.findIndex(r=>r.had.segNo&&r.had.segNo===r.had.segN); if(lastSeg>=0) hadSel=lastSeg; }
+  if(!rs.length){ pk.innerHTML=''; pasteState('hPaste','<span style="color:#b45309">อ่านไม่พบยา HAD</span>'); hMsg('ไม่พบยา HAD ที่คำนวณได้ในข้อความ (เช่น Norepinephrine, Dopamine, Adrenaline, KCl, MgSO4, Heparin, Insulin)'); return; }
+  pk.innerHTML=rs.length>1?'<span class="hint">พบ '+rs.length+' รายการ เลือก:</span>'+rs.map((r,i)=>`<button type="button" class="btn sm${i===hadSel?' pri':''}" data-hp="${i}">${esc(HAD[r.had.key].name)} ${fmtN(r.had.amt||0)}/${r.had.vol||''}${r.had.rate!=null?` · ${r.had.rate} ml/h`:''}${r.had.segN?` (ชุด ${r.had.segNo}/${r.had.segN}${r.had.segNo===r.had.segN?' ล่าสุด':''})`:''}</button>`).join(''):'';
+  pasteState('hPaste',`อ่านได้ ${rs.length} รายการ`+(rs.length>1?' (เลือกปุ่มด้านล่าง)':''));
+  pk.querySelectorAll('[data-hp]').forEach(b=>b.onclick=()=>{ hadSel=+b.dataset.hp; pk.querySelectorAll('[data-hp]').forEach(x=>x.classList.toggle('pri',x===b)); hadFill(rs[hadSel]); }); hadFill(rs[hadSel]); }
 // note ของยา HAD รายการอื่นที่อยู่ในคำสั่งเดียวกัน (คำนวณจากคำสั่ง ไม่ใช่จากช่องกรอก)
 function hadOtherNotes(){ if(hadList.length<2) return []; const pt=getPt(), bw=$('hBw').value||$('bw').value;
   return hadList.map((r,i)=>{ if(i===hadSel) return null; const x=r.had, H=HAD[x.key]; const ap=x.amp||H.amp;
@@ -300,9 +301,9 @@ function hadOtherNotes(){ if(hadList.length<2) return []; const pt=getPt(), bw=$
     if(o.conc==null) return {i,name:H.name,st:'อ่านไม่ครบ',txt:`■ ${H.name} — อ่านคำสั่งไม่ครบ (ยา ${x.amt||'–'} ${H.u} · สารน้ำ ${x.vol||'–'} ml · rate ${x.rate??'–'} ml/h) — กดปุ่มชื่อยาเพื่อกรอกเอง`};
     const cu=H.u==='mcg'?'mcg/ml':H.u==='mEq'?'mEq/ml':H.u==='g'?'g/ml':H.u==='unit'?'unit/ml':'mg/ml';
     const st=o.checks.some(c=>c.lvl==='flag')?'ต้อง consult':o.checks.some(c=>c.lvl==='warn')?'ทบทวน':'OK (check2)';
-    return {i,name:H.name,st,o,txt:hadNote(x.key,H,o,cu,{raw:r.raw,rateFrom:x.rateFrom||'',amt:x.amt,amp:+(x.amt/ap).toFixed(2),vol:x.vol,rate:x.rate,bw,line:x.line==='central'?'Central':'Peripheral'})}; }).filter(Boolean); }
+    return {i,name:H.name,st,o,txt:hadNote(x.key,H,o,cu,{seg:x.segN?x:null,raw:r.raw,rateFrom:x.rateFrom||'',amt:x.amt,amp:+(x.amt/ap).toFixed(2),vol:x.vol,rate:x.rate,bw,line:x.line==='central'?'Central':'Peripheral'})}; }).filter(Boolean); }
 { let t=0; $('hPaste').addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(()=>{ if($('hPaste').value.trim()) hadFromText($('hPaste').value); },700); });
-  $('hRead').onclick=()=>hadFromText($('hPaste').value); $('hClr').onclick=()=>{ $('hPaste').value=''; $('hPick').innerHTML=''; hadList=[]; renderHad(); };
+  $('hRead').onclick=()=>hadFromText($('hPaste').value); $('hClr').onclick=()=>{ $('hPaste').value=''; $('hPick').innerHTML=''; hadList=[]; hadLastT=''; hadKMsg=''; hadRateFrom=''; ['hAmt','hAmp','hVol','hRate','hDoses'].forEach(id=>{ const e=$(id); if(e) e.value=''; }); hMsg(''); $('hPaste').dispatchEvent(new Event('input')); renderHad(); $('hPaste').focus(); };
   $('hFromScr').onclick=()=>{ const rs=(typeof rows!=='undefined'?rows:[]).filter(r=>r.had); if(!rs.length){ hMsg('หน้าคัดกรองไม่มียา HAD'); return; } $('hPaste').value=rs.map(r=>r.raw).join('\n'); hadFromText($('hPaste').value); }; }
 
 
@@ -427,8 +428,14 @@ function labStrip(t){ return labSplit(t).rest.join('\n'); }
 function jumpTo(root,sel,btn){ const L=[...root.querySelectorAll(sel)]; if(!L.length) return; const i=((+btn.dataset.ji||0))%L.length; btn.dataset.ji=i+1; const el=L[i];
   el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); setTimeout(()=>el.classList.remove('hit'),1800); }
 
+/* ---- สถานะช่องวาง: รู้ทันทีว่าวางแล้ว/อ่านแล้ว */
+function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); if(!c){ ta.insertAdjacentHTML('afterend',`<div class="pstate" id="${id}St" hidden></div>`); c=$(id+'St'); }
+  const n=ta.value.split(/\n/).filter(l=>l.trim()).length; ta.classList.toggle('pasted',n>0); c.hidden=!n;
+  if(n) c.innerHTML=`<b>✓ วางแล้ว ${n} บรรทัด</b>${info?` · ${info}`:' · กดปุ่ม "อ่าน" เพื่อคำนวณ'}`; }
+['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
+
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.34.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.34.8 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

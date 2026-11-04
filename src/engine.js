@@ -250,6 +250,15 @@ function parseLine(raw){
         if(row.had.amp) row.had.ampTxt=`${am[1]} ${am[2].replace(/^meq$/i,'mEq').replace(/^(MG|MCG|G|UNITS?)$/,x=>x.toLowerCase())}/${am[3]} ml`; }
       // ยาที่ให้แบบไม่เจือจาง (เช่น Propofol 500 mg/50 ml) — ไม่มีสารน้ำ → ปริมาตร = ปริมาณยา ÷ ความเข้มข้นของขวด
       if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
+      // รูปแบบ paperless "ปริมาณยา : ปริมาตรรวม rate x ml/hr" เช่น "1.6 ML : 20 ml rate 1.6 ml/hr" (ยา 1.6 ml) หรือ "81 mg : 50 ml rate 1.1 ml/hr"
+      // คำสั่งเดียวมีหลายชุด (ปรับสูตร/rate) → เก็บทุกชุดใน segs ใช้ชุดสุดท้ายเป็นค่าเริ่มต้น
+      { const segs=[]; for(const m of line.matchAll(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?|ml|cc)\s*:\s*(\d+(?:\.\d+)?)\s*(?:ml|cc)?([^:]*?)(?=\d+(?:\.\d+)?\s*(?:mg|mcg|meq|g|units?|ml|cc)\s*:|$)/gi)){
+          const u=m[2].toLowerCase(), hu=H.u.toLowerCase(), q=+m[1]; let a=null;
+          if(/^(ml|cc)$/.test(u)){ const cm=row.had.amp&&am?row.had.amp/(+am[3]):null; a=cm?Math.round(q*cm*1000)/1000:null; }
+          else a=u===hu||(u.startsWith('unit')&&hu==='unit')?q:u==='mg'&&hu==='mcg'?q*1000:u==='g'&&hu==='mg'?q*1000:u==='mcg'&&hu==='mg'?q/1000:q;
+          const rm=m[4].match(/(\d+(?:\.\d+)?)\s*(?:cc|ml)\s*\/\s*(?:hr|h|ชม)/i)||m[4].match(/\brate\s*(\d+(?:\.\d+)?)/i);
+          if(a>0&&+m[3]>0) segs.push({amt:a,vol:+m[3],rate:rm?+rm[1]:null,txt:m[0].trim(),drugMl:/^(ml|cc)$/.test(u)?q:null}); }
+        if(segs.length){ const L2=segs[segs.length-1]; Object.assign(row.had,{amt:L2.amt,vol:L2.vol,rate:L2.rate!=null?L2.rate:row.had.rate,how:'seg'}); if(segs.length>1) row.had.segs=segs; } }
       // ไม่มี ml/h แต่สั่งเป็นระยะเวลา เช่น "drip in 24 hr", "IV over 6 hr", "หยดนาน 24 ชม.", "in 30 min" → rate = ปริมาตร ÷ เวลา
       if(row.had.rate==null&&row.had.vol>0){ const du=line.match(/(?:\bdrip\b|\bin\b|\bover\b|นาน|ภายใน|ใน)\s*(?:in|over|นาน|ภายใน)?\s*(\d+(?:\.\d+)?)\s*(hrs?|hours?|h|ชม\.?|ชั่วโมง|mins?|minutes?|นาที)(?![a-z])/i);
         if(du&&!/(?:\bq|ทุก)\s*$/i.test(line.slice(0,du.index+du[0].indexOf(du[1])).replace(/(?:in|over|นาน|ภายใน)\s*$/i,''))){ const hr=/min|นาที/i.test(du[2])?+du[1]/60:+du[1];

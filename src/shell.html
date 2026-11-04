@@ -591,6 +591,15 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
         </div>
         <div class="panel sec hres" style="margin:0" id="atOut"></div>
         <div class="panel sec" style="margin:0">
+          <h2>ยาต้านพิษ — N-Acetylcysteine (NAC) IV</h2>
+          <div class="grid2">
+            <label class="f">น้ำหนักจริง (kg)<input id="nacBw" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">สูตร<select id="nacReg"><option value="std">มาตรฐาน 3 ขวด 21 ชม. (พิษ paracetamol)</option><option value="alf">72 ชม. — ตับวายที่ไม่ใช่จาก paracetamol</option><option value="snap">SNAP 2 ขวด 12 ชม.</option></select></label>
+          </div>
+          <p class="hint" style="margin:4px 0 0">คำนวณ mg · amp (300 mg/3 ml) · ปริมาตร D5W ตามน้ำหนัก · rate ของแต่ละขวด · คำสั่ง NAC ในหน้าคัดกรองจะถูกตรวจว่าเป็นขวดที่เท่าไร</p>
+        </div>
+        <div class="panel sec hres" style="margin:0" id="nacOut"></div>
+        <div class="panel sec" style="margin:0">
           <h2>Methylprednisolone inj — ขนาด · vial · การผสม</h2>
           <div class="grid2">
             <label class="f" style="grid-column:1/-1">แบบการให้<select id="mReg"></select></label>

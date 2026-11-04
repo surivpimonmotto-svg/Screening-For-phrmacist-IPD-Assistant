@@ -398,7 +398,7 @@ const KB=[
 {id:'naloxone',name:'Naloxone',match:/naloxone/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ non-dependence 0.4-2 mg IV ซ้ำทุก 2-3 นาที / dependence 0.1-0.2 mg; เด็ก 0.01 mg/kg (max 2 mg/dose)',src:'ยาต้านพิษ DIS 2564'},
 {id:'benztropine',name:'Benztropine',match:/benztropine|bentropine|cogentin/i,unit:'mg',special:'antidote',note:'ผู้ใหญ่ 1-2 mg IV; เด็ก >3 ปี 0.02 mg/kg IV (max 1 mg)',src:'ยาต้านพิษ DIS 2564'},
 {id:'protamine',name:'Protamine',match:/protamine/i,unit:'mg',special:'antidote',note:'1 mg ต่อ heparin 100 unit หรือ enoxaparin 1 mg (max 50 mg/dose)',src:'ยาต้านพิษ DIS 2564'},
-{id:'nac',name:'N-Acetylcysteine IV',match:/acetylcysteine.*(inj|\biv\b)|\bnac\b.*(inj|\biv\b)|fluimucil.*inj/i,unit:'mg',special:'antidote',note:'IV ≥40 kg: 150 mg/kg/1h → 50 mg/kg/4h → 100 mg/kg/16h (ใช้น้ำหนักจริงไม่เกิน 110 kg)',src:'ยาต้านพิษ DIS 2564'}
+{id:'nac',name:'N-Acetylcysteine IV',match:/acetylcysteine.*(inj|\biv\b)|\bnac\b.*(inj|\biv\b)|fluimucil.*inj/i,unit:'mg',special:'antidote',note:'IV: 150 mg/kg/1h → 50 mg/kg/4h → 100 mg/kg/16h (น้ำหนักจริง จำกัด 100 kg) · D5W >40 kg 200/500/1000 ml · 21–40 kg 100/250/500 ml · ≤20 kg 3/7/14 ml/kg · ขวดแรก ≥60 นาที ห้าม IV push · ตับวายที่ไม่ใช่จาก paracetamol: 6.25 mg/kg/h ต่อรวม 72 ชม.',src:'ยาต้านพิษ DIS 2564 · Acetadote PI · Lee 2009'}
 ];
 
 /* คู่ยาซ้ำซ้อนตามเกณฑ์ รพ. */

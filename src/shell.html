@@ -476,8 +476,9 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
           <label class="f">หอผู้ป่วย<input id="cnWard"></label>
           <label class="f">เบอร์ติดต่อ<input id="cnTel" placeholder="เช่น 1234"></label>
         </div>
-        <textarea class="note" id="note" readonly aria-label="ข้อความ note" style="min-height:320px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55"></textarea>
-        <p class="hint" style="margin:6px 0 0">ปุ่มคัดลอกจะคัดลอกแบบมีรูปแบบ (ตัวหนา/สี) เมื่อวางใน Word/LINE PC และเป็นข้อความธรรมดาเมื่อวางใน HIS · ห้ามใส่ชื่อ/HN ผู้ป่วย</p>
+        <div id="noteEd" class="band w" style="margin:0 0 6px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap" hidden><span>✏️ <b>แก้ไขข้อความแล้ว</b> — ปุ่มคัดลอก/พิมพ์ใช้ข้อความที่แก้ <span id="noteEdStale"></span></span><button type="button" class="btn sm" id="noteReset">↺ สร้างใหม่จากผลตรวจ (ทิ้งที่แก้)</button></div>
+        <textarea class="note" id="note" spellcheck="false" title="แก้ไขข้อความได้ก่อนคัดลอก/พิมพ์" aria-label="ข้อความ note (แก้ไขได้)" style="min-height:320px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.55"></textarea>
+        <p class="hint" style="margin:6px 0 0"><b>แก้ไขข้อความในกรอบได้</b>ก่อนคัดลอก/พิมพ์ · ปุ่มคัดลอกจะคัดลอกแบบมีรูปแบบ (ตัวหนา/สี) เมื่อวางใน Word/LINE PC และเป็นข้อความธรรมดาเมื่อวางใน HIS · ห้ามใส่ชื่อ/HN ผู้ป่วย</p>
       </div>
     </section>
 

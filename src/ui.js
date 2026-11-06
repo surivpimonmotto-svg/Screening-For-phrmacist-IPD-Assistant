@@ -95,10 +95,10 @@ function renderRows(){
   buildNote(evs,pt);
 }
 
-let noteHtml='';
+let noteHtml='', noteEdited=false, noteGen='';
 function cnPref(k,v){ try{ if(v===undefined) return localStorage.getItem('ipd_cn_'+k)||''; localStorage.setItem('ipd_cn_'+k,v); }catch(e){ return ''; } }
 function buildNote(evs,pt){
-  if(!rows.length){$('note').value='';noteHtml='';return}
+  if(!rows.length){ if(!noteEdited) $('note').value=''; noteHtml=''; noteGen=''; return }
   const n=new Date(), p2=x=>String(x).padStart(2,'0'), dt=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()+543} เวลา ${p2(n.getHours())}:${p2(n.getMinutes())} น.`;
   const ward=$('cnWard').value.trim(), who=`${$('cnTitle').value} ${$('cnName').value.trim()||'..............................'}`, tel=$('cnTel').value.trim();
   const L=pt.lab||{}, fx=v=>fmtN(Math.round(v*100)/100);
@@ -136,7 +136,7 @@ function buildNote(evs,pt){
       if(x.bl) T.push(`   เหตุผล     : การแพ้ข้ามระหว่าง penicillin กับ cephalosporin ขึ้นกับความคล้ายของ side chain (R1) มากกว่า beta-lactam ring`,`               เมื่อ R1 ต่างกัน อุบัติการณ์แพ้ข้าม <1–2% · ผู้ที่แพ้ penicillin แบบไม่รุนแรง (เช่น MP rash, urticaria`,`               ที่ไม่ใช่ anaphylaxis/SCAR) ใช้ cephalosporin ที่ R1 ต่างได้โดยไม่ต้องทดสอบก่อน`,`               (AAAAI/ACAAI Drug Allergy Practice Parameter 2022)`);
       T.push(`   ข้อเสนอ    : ให้ยาได้ตามคำสั่ง · เฝ้าระวังอาการแพ้หลังให้ยาครั้งแรก (ผื่น คัน บวม หายใจลำบาก) หากเกิดอาการให้หยุดยาและแจ้งแพทย์`); if(x.alt) T.push(`   ทางเลือก   : (หากแพทย์ต้องการเปลี่ยน) ${x.alt}`); }); }
   T.push('',ask,'',`ลงชื่อ ${who}`,`เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+tel:''}`,LN);
-  $('note').value=T.join('\n');
+  noteGen=T.join('\n'); if(!noteEdited) $('note').value=noteGen; else { const st=$('noteEdStale'); if(st) st.textContent=noteGen!==$('note').dataset.base?'· ผลตรวจเปลี่ยนหลังแก้ — กด ↺ เพื่ออัปเดต':''; }
   const C={flag:'#b91c1c',warn:'#b45309',ok:'#15803d',none:'#475569'};
   noteHtml=`<div style="font-family:Sarabun,Tahoma,sans-serif;font-size:15px;line-height:1.55;color:#111">
 <div style="font-size:18px;font-weight:700;border-bottom:2px solid #1d4ed8;padding-bottom:4px">ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)</div>
@@ -166,11 +166,11 @@ $('rows').addEventListener('click',ev=>{const b=ev.target.closest('[data-del]');
 /* events: input modes */
 function setMode(paste){$('mPaste').setAttribute('aria-pressed',paste);$('mKey').setAttribute('aria-pressed',!paste);$('pasteBox').hidden=!paste;$('keyBox').hidden=paste;}
 $('mPaste').onclick=()=>setMode(true); $('mKey').onclick=()=>setMode(false);
-function doParse(replace){ setTimeout(()=>pasteState('paste',`อ่านได้ ${rows.length} รายการ`),0); const tx=$('paste').value; if(tx!==EX_TXT){ demoClear(); kFromText(tx); } const ls=joinLines(labStrip(tx).split(/\n/)).map(parseLine).filter(Boolean); rows=replace?ls:rows.concat(ls); renderRows();}
+function doParse(replace){ if(replace&&noteEdited&&typeof noteResetEd==='function') noteResetEd(); setTimeout(()=>pasteState('paste',`อ่านได้ ${rows.length} รายการ`),0); const tx=$('paste').value; if(tx!==EX_TXT){ demoClear(); kFromText(tx); } const ls=joinLines(labStrip(tx).split(/\n/)).map(parseLine).filter(Boolean); rows=replace?ls:rows.concat(ls); renderRows();}
 $('parseRep').onclick=()=>doParse(true); $('parseAdd').onclick=()=>doParse(false);
 $('clearRows').onclick=()=>{rows=[];renderRows();};
 // เริ่มเคสใหม่: ล้างข้อมูลผู้ป่วย + ข้อความ + รายการยา เพื่อไม่ให้ค่าของผู้ป่วยคนก่อนค้าง
-$('clearAll').onclick=()=>{
+$('clearAll').onclick=()=>{ if(typeof noteResetEd==='function') noteResetEd();
   ['age','ageIn','bw','ht','scr','crclIn','egfrIn','inr','k','mgl','allergy','paste','hBw','lBw'].forEach(id=>{const el=$(id); if(el) el.value='';});
   $('mode').value=''; $('wbasis').value='auto'; $('preg').checked=false; $('tb').checked=false;
   sex='M'; $('sexM').setAttribute('aria-pressed',true); $('sexF').setAttribute('aria-pressed',false);
@@ -209,8 +209,12 @@ $('sexM').onclick=()=>setSex('M'); $('sexF').onclick=()=>setSex('F');
 /* note */
 function setNote(all){noteAll=all;$('nProb').setAttribute('aria-pressed',!all);$('nAll').setAttribute('aria-pressed',all);renderRows();}
 $('nProb').onclick=()=>setNote(false); $('nAll').onclick=()=>setNote(true);
-$('copyNote').onclick=()=>copyRich(noteHtml,$('note').value,$('toast'));
-$('printNote').onclick=()=>{ if(noteHtml) printHtml(noteHtml); };
+$('copyNote').onclick=()=>copyRich(noteEdited?txtHtml($('note').value):noteHtml,$('note').value,$('toast'));
+// ใบ consult แก้ไขได้: พิมพ์แก้ → คัดลอก/พิมพ์ใช้ข้อความที่แก้ · ไม่ถูกทับเมื่อผลตรวจคำนวณใหม่ จนกว่าจะกด ↺
+$('note').addEventListener('input',e=>{ if(!e.isTrusted) return; if(!noteEdited){ noteEdited=true; $('note').dataset.base=noteGen; } $('noteEd').hidden=false; });
+function noteResetEd(){ noteEdited=false; $('noteEd').hidden=true; $('noteEdStale').textContent=''; $('note').value=noteGen; }
+$('noteReset').onclick=()=>{ noteResetEd(); renderRows(); };
+$('printNote').onclick=()=>{ if(noteEdited) printHtml(`<pre style="font-family:Sarabun,Tahoma,sans-serif;font-size:15px;line-height:1.55;white-space:pre-wrap">${esc($('note').value)}</pre>`); else if(noteHtml) printHtml(noteHtml); };
 [['cnName','name'],['cnTitle','title'],['cnTel','tel'],['cnWard','ward']].forEach(([id,k])=>{ const el=$(id); const v=cnPref(k); if(v&&k!=='ward') el.value=v; el.addEventListener(el.tagName==='SELECT'?'change':'input',()=>{ if(k!=='ward') cnPref(k,el.value); renderRows(); }); });
 
 /* tabs */
@@ -435,7 +439,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.35.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.35.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

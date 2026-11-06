@@ -435,7 +435,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.35.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.35.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -798,8 +798,10 @@ function wfParse(){ const raw=$('wOrder').value; if(!raw.trim()) return;
   { const L=hits[hits.length-1].L, t=/ก่อนนอน|\bhs\b/i.test(L)?'ก่อนนอน':/หลังอาหารเย็น|\bpc\s*(?:เย็น|dinner)/i.test(L)?'หลังอาหารเย็น':/หลังอาหารเช้า/.test(L)?'หลังอาหารเช้า':/เย็น/.test(L)?'ตอนเย็น':null; if(t) $('wTime').value=`วันละ 1 ครั้ง ${t}`; }
   const miss=hits.some(h=>h.u.some(v=>v==null));
   $('wMsg').textContent=`อ่านได้ ${hits.length} รายการ → แถว${done.join(' + ')}${hits.length>2?' (มีมากกว่า 2 รายการ ใช้รายการแรก/สุดท้าย)':''}${miss?' · บางวันไม่ได้ระบุ (ช่องว่าง)':''} — ตรวจตัวเลขในตารางก่อนใช้`;
-  $('wOrder').value=''; renderWf(); }
-$('wParse').onclick=wfParse; $('wOrder').addEventListener('paste',()=>setTimeout(wfParse,0));
+  // ไม่ล้างคำสั่งที่อ่านแล้ว (เห็นว่าดึง/วางอะไรไว้) · ไฮไลต์ช่องวันที่ยังว่าง
+  const blank=WD.filter((d,i)=>hits[hits.length-1].u[i]==null).map(d=>DAY_TH[d]); if(blank.length) $('wMsg').textContent+=` · ยังไม่ได้ระบุวัน: ${blank.join(' ')} — กรอกในตารางเอง`;
+  renderWf(); ['old','new'].forEach(k=>WD.forEach(d=>{ const el=$(`w_${k}_${d}`); if(el) el.classList.toggle('wblank',done.length&&el.value===''&&(k==='new'||done.includes('เดิม'))); })); }
+$('wParse').onclick=wfParse; $('wOrder').addEventListener('paste',()=>setTimeout(wfParse,0)); WD.forEach(d=>['old','new'].forEach(k=>{ const el=$(`w_${k}_${d}`); el&&el.addEventListener('input',()=>el.classList.remove('wblank')); }));
 $('wClr').onclick=()=>{ ['old','new'].forEach(k=>{ WD.forEach(d=>$(`w_${k}_${d}`).value=''); $(`w_${k}_s`).value=String(WF_HOSP); }); $('wWeeks').value=''; $('wMsg').textContent=''; $('wAdj')&&($('wPct').value=''); renderWf(); };
 ['wStart','wWeeks','wUntil','wTgt','wTime'].forEach(id=>$(id).addEventListener('input',renderWf)); $('wPct').addEventListener('change',renderWf); $('wPctB').innerHTML=WF_PCTS.map(v=>`<button type="button" class="btn sm" data-wp="${v}">${v>0?'+':''}${v}%</button>`).join(''); $('wPctB').querySelectorAll('[data-wp]').forEach(b=>b.onclick=()=>{ $('wPct').value=b.dataset.wp; renderWf(); }); $('wPct').addEventListener('input',renderWf); $('wTgt').addEventListener('change',renderWf);
 ['old','new'].forEach(k=>{$(`w_${k}_s`).addEventListener('change',renderWf); WD.forEach(d=>$(`w_${k}_${d}`).addEventListener('input',renderWf));});

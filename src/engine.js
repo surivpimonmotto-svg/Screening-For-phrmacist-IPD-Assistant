@@ -73,6 +73,7 @@ function parseWeekly(sig){
     let m=p.match(/(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)\s*[x×*]\s*\d/)||p.match(/ครั้งละ\s*(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)/)||p.match(/(?:^|\s)(\d+(?:\.\d+)?|\d*[½¼¾]|\d+\/\d+)(?=\s|เม็ด|tab|$)/);
     const units=m?num(m[1]):null;
     if(units==null&&d.size===0) continue;
+    if(d.size===0&&off.size&&units!=null&&parts.length===1){ ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(x=>{ if(!off.has(x)) d.add(x); }); } // "1 เม็ด ก่อนนอน เว้นวันอาทิตย์" = ทุกวันยกเว้นวันที่หยุด
     segs.push({units:units??(last?last.units:null),days:[...d],raw:p.trim(),noDays:d.size===0,noUnits:units==null,tpd:tpdOf(p)??(parts.length===1?sigTpd:null)??1});
     if(units!=null) last={units};
   }

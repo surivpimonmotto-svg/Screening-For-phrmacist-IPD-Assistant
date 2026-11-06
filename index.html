@@ -3177,6 +3177,28 @@ function renderRows(){
 
 let noteHtml='', noteEdited=false, noteGen='';
 function cnPref(k,v){ try{ if(v===undefined) return localStorage.getItem('ipd_cn_'+k)||''; localStorage.setItem('ipd_cn_'+k,v); }catch(e){ return ''; } }
+// ปัญหาเรื่องไต → เรียบเรียงแบบ ข้อมูลผู้ป่วย · เหตุผล (กลไก + ขนาดที่เกิน + ความเสี่ยง) · ข้อเสนอเลือกตาม CrCl จริง · การติดตาม
+const NR_RISK=[[/cephalosporin|penicillin|carbapenem|blbi|beta/i,'เสี่ยงยาสะสม (ชัก/สับสน — neurotoxicity จาก beta-lactam)','อาการทางระบบประสาท (สับสน ชัก กระตุก)'],[/aminoglycoside|vanco|colist|polymyx/i,'เสี่ยงพิษต่อไต/หูเพิ่ม','ระดับยา (TDM) · ปัสสาวะ · การได้ยิน'],[/quinolone/i,'เสี่ยงยาสะสม (ชัก สับสน QT ยาว)','อาการทางระบบประสาท · ECG ถ้ามียายืด QT ร่วม'],[/metformin/i,'เสี่ยง lactic acidosis','อาการคลื่นไส้ หายใจหอบ · lactate'],[/enoxaparin|lmwh|dabig|rivarox|apix/i,'เสี่ยงเลือดออก','อาการเลือดออก · CBC']];
+const gTxt=(v,u)=>u==='mg'&&v>=1000&&Math.abs(v/1000*100-Math.round(v/1000*100))<1e-6?`${fmtN(v/1000)} g`:`${fmtN(v)} ${u}`;
+function noteRenal(P,e,r,d,pt,u){ const W=P.why.join(' '); if(!/(CrCl|eGFR|HD|CAPD|CRRT)[^:]{0,12}:/.test(W+' '+(P.rec||''))) return;
+  if(P.lvl==='flag') P.req='ขอพิจารณาปรับขนาดยาตามการทำงานของไต'; else if(P.lvl==='warn') P.req='ขอ confirm ขนาดยาตามการทำงานของไต';
+  const inj=/\b(iv|im|inj|vial)\b|ฉีด/i.test(r.raw), gT=(v,uu)=>inj?gTxt(v,uu):`${fmtN(v)} ${uu}`;
+  if(e.D!=null&&r.F) P.dose=`${gT(e.D,u)} ${r.F>=1&&Number.isInteger(24/r.F)?'q'+(24/r.F)+'h':freqLabel(r.F)} = ${gT(e.T,u)}/วัน`;
+  P.ptx=pt.dial?`การบำบัดทดแทนไต ${pt.dial}${$('bw').value?` · BW ${$('bw').value} kg`:''}`:`SCr ${$('scr').value||'...'} mg/dL · BW ${$('bw').value||'...'} kg · ${/^eGFR|\beGFR\s*\d/.test(W)?`eGFR ${pt.egfr!=null?r0(pt.egfr):'...'} ml/min/1.73m² (CKD-EPI)`:`CrCl ${pt.crcl!=null?r1(pt.crcl):'...'} ml/min (${pt.crclSrc==='HIS'?'จาก HIS':'Cockcroft-Gault'})`}`;
+  const cls=(d&&(d.fam||d.cls||''))+' '+P.nm, risk=NR_RISK.find(x=>x[0].test(cls));
+  const nw=[]; P.why.forEach(w=>{ const m=w.match(/^((?:CrCl|eGFR)\s*[^:]+|HD|CAPD|CRRT):\s*ขนาดต่อ(วัน|ครั้ง)\s*([\d,.]+)(\s*mg\/kg)?\s*>\s*([\d,.]+)/);
+    if(m){ const a=+m[3].replace(/,/g,''), b=+m[5].replace(/,/g,''), uu=m[4]?'mg/kg':u;
+      nw.push(`${P.nm.replace(/\s*\(.*\)/,'')} ขับออกทางไตเป็นหลัก ${m[1]} ขนาดแนะนำไม่เกิน ${uu==='mg/kg'?fmtN(b)+' mg/kg':gT(b,u)}/${m[2]}`);
+      nw.push(`ขนาดที่สั่ง ${uu==='mg/kg'?fmtN(a)+' mg/kg':gT(a,u)}/${m[2]} เกิน${risk?' '+risk[1]:' เสี่ยงยาสะสมและอาการไม่พึงประสงค์'}`); }
+    else nw.push(w.replace(/\s*→\s*แนะนำ.*$/,'')); });
+  P.why=nw;
+  // ข้อเสนอ: ช่วง interval (q12-24h) → เลือกตามตำแหน่ง CrCl ในช่วง
+  if(P.rec){ let rc=P.rec.replace(/^(?:CrCl|eGFR)[^:]*:\s*/,''); const iv=rc.match(/q\s*(\d+)\s*[-–]\s*(\d+)\s*h/i), bd=(W+' '+P.rec).match(/(?:CrCl|eGFR)\s*(\d+)\s*[–-]\s*(\d+)/);
+    if(iv&&bd&&pt.crcl!=null&&!pt.dial){ const lo=+bd[1], hi=+bd[2], mid=(lo+hi)/2, sh=iv[1], lg=iv[2], pick=pt.crcl<mid?lg:sh, other=pick===lg?sh:lg;
+      const abx=/cephalo|penic|carbap|blbi|quinol|aminogly|vanco|colist|azole|acyclo|ganci|cillin|cef|penem|mycin|floxacin/i.test(cls);
+      rc=rc.replace(iv[0],'q'+pick+'h')+(abx?` (CrCl ${r1(pt.crcl)} อยู่ช่วง${pick===lg?'ล่าง':'บน'}ของ ${lo}–${hi} · หากติดเชื้อรุนแรง เช่น Pseudomonas/febrile neutropenia พิจารณา q${other}h${pick===lg?'':' ตามการทำงานของไต'})`:` (หรือ q${other}h ตามอาการ)`); }
+    P.rec=rc.replace(/^(\d+(?:\.\d+)?\s*(?:g|mg))\s+(?!IV|PO|iv|po)/,`$1 ${/\b(iv|inj)\b|ฉีด/i.test(r.raw)?'IV ':''}`); }
+  P.mon=`ติดตาม SCr${risk?' และ'+risk[2]:''} ปรับขนาดเมื่อไตดีขึ้น`; }
 function buildNote(evs,pt){
   if(!rows.length){ if(!noteEdited) $('note').value=''; noteHtml=''; noteGen=''; return }
   const n=new Date(), p2=x=>String(x).padStart(2,'0'), dt=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()+543} เวลา ${p2(n.getHours())}:${p2(n.getMinutes())} น.`;
@@ -3198,7 +3220,7 @@ function buildNote(evs,pt){
     const rec=e.sugg&&(e.sugg.rx||e.sugg.txt)?`${e.sugg.where?e.sugg.where.replace(/\s+/g,' ')+': ':''}${e.sugg.rx||e.sugg.txt}`:'';
     const alt=e.items.some(m=>/^ประวัติแพ้/.test(m.txt)&&m.lvl!=='info')&&typeof xaAlt==='function'?xaAlt($('allergy').value,nm+' '+r.raw):null;
     const rl=relLabs(r,pt).filter(x=>x.v!=null).map(x=>`${x.name} ${fmtN(x.v)}${x.st==='low'?' (ต่ำ)':x.st==='high'?' (สูง)':''}${x.corr!=null?` corrected ${fmtN(Math.round(x.corr*100)/100)}`:''} [${x.lo}–${x.hi}]`).join(' · ');
-    probs.push({nm,req,lvl:e.status,raw:r.raw,dose,why,rec,lab:rl,src:d&&d.src?d.src:'',alt:alt&&alt.txt}); });
+    const P={nm,req,lvl:e.status,raw:r.raw,dose,why,rec,lab:rl,src:d&&d.src?d.src:'',alt:alt&&alt.txt}; noteRenal(P,e,r,d,pt,u); probs.push(P); });
   // แจ้งเพื่อทราบ: ประวัติแพ้ยาที่ประเมินแล้วใช้ได้ (แพ้ข้ามต่ำ)
   const infos=[]; rows.forEach((r,i)=>{ const e=evs[i]; const al=e.items.filter(m=>m.lvl==='info'&&/^ประวัติแพ้/.test(m.txt)); if(!al.length||['flag'].includes(e.status)) return;
     const d=e.drug, mm=e.master, nm=d?d.name:mm?mm[1]:r.raw.slice(0,50);
@@ -3209,7 +3231,7 @@ function buildNote(evs,pt){
   const LN='━'.repeat(34);
   const T=[LN,'ใบปรึกษาแพทย์เรื่องการใช้ยา (Pharmacist Consult)',`${ward?'หอผู้ป่วย '+ward+' · ':''}วันที่ ${dt}`,LN,'','■ ข้อมูลผู้ป่วย',...ptl.map(x=>'  • '+x),'',`■ ปัญหาที่พบ (${probs.length} รายการ)`];
   probs.forEach((p,i)=>{ T.push('',`${i+1}) ${p.nm} — ${p.req}`); T.push(`   คำสั่งยา   : ${p.raw}`); if(p.dose) T.push(`   ขนาดที่สั่ง : ${p.dose}`); if(p.lab) T.push(`   Lab        : ${p.lab}`);
-    p.why.forEach((w,j)=>T.push(`   ${j?'          ':'เหตุผล     '}: ${w}`)); if(p.rec) T.push(`   ข้อเสนอ    : ${p.rec}`); if(p.alt) T.push(`   ทางเลือก   : ${p.alt}`); if(p.src) T.push(`   อ้างอิง     : ${p.src}`); });
+    if(p.ptx) T.push(`   ข้อมูลผู้ป่วย: ${p.ptx}`); p.why.forEach((w,j)=>T.push(`   ${j?'            ':'เหตุผล     : '}${w}`)); if(p.rec) T.push(`   ข้อเสนอ    : ${p.rec}`); if(p.mon) T.push(`                ${p.mon}`); if(p.alt) T.push(`   ทางเลือก   : ${p.alt}`); if(p.src) T.push(`   อ้างอิง     : ${p.src}`); });
   if(!probs.length) T.push(infos.length?'  ไม่พบปัญหาขนาดยา':'  ทุกรายการผ่านเกณฑ์ในฐานกฎ');
   if(infos.length){ T.push('',`■ แจ้งเพื่อทราบ — ประวัติแพ้ยา (${infos.length} รายการ)`);
     infos.forEach((x,i)=>{ T.push('',`${i+1}) ${x.nm} — แจ้งเพื่อทราบ (ไม่ต้องเปลี่ยนยา)`,`   ประวัติแพ้  : ${allergyTxt||x.a}`,`   คำสั่งยา   : ${x.raw}`,`   การประเมิน : ${x.why}`);
@@ -3224,7 +3246,7 @@ function buildNote(evs,pt){
 <div style="font-weight:700;margin-top:10px">ข้อมูลผู้ป่วย</div><ul style="margin:2px 0 6px 18px;padding:0">${ptl.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
 <div style="font-weight:700">ปัญหาที่พบ (${probs.length} รายการ)</div>
 ${probs.map((p,i)=>`<div style="border-left:4px solid ${C[p.lvl]};padding:4px 10px;margin:8px 0;background:#f8fafc"><div><b>${i+1}) ${esc(p.nm)}</b> — <b style="color:${C[p.lvl]}">${esc(p.req)}</b></div>
-<table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.lab?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">Lab</td><td>${esc(p.lab)}</td></tr>`:''}${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b></td></tr>`:''}${p.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">${esc(p.alt)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
+<table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(p.raw)}</td></tr>${p.lab?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">Lab</td><td>${esc(p.lab)}</td></tr>`:''}${p.dose?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ขนาดที่สั่ง</td><td><b>${esc(p.dose)}</b></td></tr>`:''}${p.ptx?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อมูลผู้ป่วย</td><td>${esc(p.ptx)}</td></tr>`:''}${p.why.length?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>${p.why.map(w=>esc(w)).join('<br>')}</td></tr>`:''}${p.rec?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">${esc(p.rec)}</b>${p.mon?`<br><span style="color:#334155">${esc(p.mon)}</span>`:''}</td></tr>`:''}${p.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">${esc(p.alt)}</b></td></tr>`:''}${p.src?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">อ้างอิง</td><td style="font-size:12.5px">${esc(p.src)}</td></tr>`:''}</table></div>`).join('')}
 ${infos.length?`<div style="font-weight:700;margin-top:10px">แจ้งเพื่อทราบ — ประวัติแพ้ยา</div>${infos.map((x,i)=>`<div style="border-left:4px solid #1d4ed8;padding:4px 10px;margin:8px 0;background:#eff6ff"><div><b>${i+1}) ${esc(x.nm)}</b> — <b style="color:#1d4ed8">แจ้งเพื่อทราบ (ไม่ต้องเปลี่ยนยา)</b></div><table style="border-collapse:collapse;font-size:14px"><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ประวัติแพ้</td><td>${esc(allergyTxt||x.a)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">คำสั่งยา</td><td>${esc(x.raw)}</td></tr><tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">การประเมิน</td><td>${esc(x.why)}</td></tr>${x.bl?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">เหตุผล</td><td>การแพ้ข้ามระหว่าง penicillin กับ cephalosporin ขึ้นกับความคล้ายของ side chain (R1) มากกว่า beta-lactam ring เมื่อ R1 ต่างกัน อุบัติการณ์แพ้ข้าม &lt;1–2% · ผู้ที่แพ้ penicillin แบบไม่รุนแรง (ไม่ใช่ anaphylaxis/SCAR) ใช้ cephalosporin ที่ R1 ต่างได้โดยไม่ต้องทดสอบก่อน <span style="font-size:12.5px">(AAAAI/ACAAI Drug Allergy Practice Parameter 2022)</span></td></tr>`:''}<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ข้อเสนอ</td><td><b style="color:#1d4ed8">ให้ยาได้ตามคำสั่ง · เฝ้าระวังอาการแพ้หลังให้ยาครั้งแรก (ผื่น คัน บวม หายใจลำบาก) หากเกิดอาการให้หยุดยาและแจ้งแพทย์</b></td></tr>${x.alt?`<tr><td style="vertical-align:top;padding:1px 8px 1px 0;color:#475569;white-space:nowrap">ทางเลือก</td><td><b style="color:#047857">(หากแพทย์ต้องการเปลี่ยน) ${esc(x.alt)}</b></td></tr>`:''}</table></div>`).join('')}`:''}<p style="margin:10px 0">${esc(ask)}</p><div style="text-align:right">ลงชื่อ ${esc(who)}<br><span style="font-size:13px;color:#475569">เภสัชกร งานบริการเภสัชกรรมผู้ป่วยใน กลุ่มงานเภสัชกรรม รพ.มหาสารคาม${tel?' · โทร '+esc(tel):''}</span></div></div>`;
 }
 function copyRich(html,text,okEl){ const done=m=>{ if(okEl){ okEl.textContent=m; setTimeout(()=>okEl.textContent='',2200);} };
@@ -3519,7 +3541,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.36.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.36.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

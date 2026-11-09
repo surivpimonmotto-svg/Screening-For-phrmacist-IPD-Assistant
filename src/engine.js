@@ -271,7 +271,9 @@ function parseLine(raw){
       if(H.fixPack){ row.had.amp=null; row.had.ampTxt=null; } }
     row.issues=[]; row.parsed=true; row.F=null; row.doseVal=amt??''; row.doseUnit=['mcg','mEq','unit','g'].includes(HAD[row.had.key].u)?HAD[row.had.key].u:'mg';
     return row; }
-  const wk=parseWeekly(sig);
+  // ผู้ป่วยฟอกไต: "150 mg ทุก 24 ชม., non HD ... HD ให้ 200 mg ... HD=อ,พฤ,ส" → วันไม่ฟอก / วันฟอก (ไม่ใช่สูตรรายวันในสัปดาห์)
+  const hdInfo=parseHD(sig,raw);
+  const wk=hdInfo?null:parseWeekly(sig);
   if(wk&&(wk.segs.length>1||wk.segs[0].days.length)){
     const mgU=form&&form[3]!=='ml'?form[2]:strength;
     row.weekly=wk; row.issues=row.issues.filter(x=>!/จำนวนต่อครั้ง/.test(x));
@@ -295,8 +297,24 @@ function parseLine(raw){
   if(row.fromStated&&row.stated.per==='day'&&row.F) row.doseVal=Math.round(row.stated.v/row.F*1000)/1000;
   if(/\bprn\b|as\s*need|(?:เวลา|เมื่อ|ถ้า|หาก)\s*(?:มี)?\s*(?:ปวด|ไข้|อาการ|ไอ|คัน|คลื่นไส้|อาเจียน|นอนไม่หลับ|ท้องเสีย|น้ำมูก|เจ็บ|แน่น|หอบ|ชัก)/i.test(line)) row.prn=true;
   if(!drug){row.parsed=false;}
+  if(hdInfo){ row.hd=hdInfo; row.weekly=null; row.issues=(row.issues||[]).filter(x=>!/ระบุวัน|ไม่ระบุจำนวน/.test(x));
+    if(hdInfo.non!=null){ row.doseVal=hdInfo.non; row.doseUnit=hdInfo.u; } else if(hdInfo.hd!=null){ row.doseVal=hdInfo.hd; row.doseUnit=hdInfo.u; }
+    if(!(row.F>0)) row.F=1;
+    if(!hdInfo.days.length) row.issues.push('คำสั่งฟอกไตไม่ระบุวันฟอก (เช่น HD = อ, พฤ, ส) — ยืนยันวันฟอกเพื่อเตรียมยา');
+    if(hdInfo.hd==null) row.issues.push('ระบุ HD แต่ไม่ระบุขนาดวันฟอก — ยืนยันกับแพทย์'); }
   return row;
 }
+function parseHD(sig,full){ const t=' '+String(sig||'').replace(/,/g,' , ')+' ', T2=' '+String(full||sig||'').replace(/,/g,' , ')+' ';
+  if(!/non\s*-?\s*HD\b|วันไม่ฟอก|\bHD\s*(?:day)?\s*(?:[=:]|ให้|give)|วันฟอก/i.test(t)) return null;
+  const U='(mg|g|mcg|unit|units|iu|mu)', num='(\\d+(?:\\.\\d+)?)';
+  const hm=t.match(new RegExp('(?:\\bHD\\s*(?:day)?|วันฟอก(?:ไต)?)\\s*(?:[=:]|ให้|give|หลังฟอก)?\\s*(?:ให้|หลังฟอก)?\\s*'+num+'\\s*'+U+'\\b','i'));
+  const nm=t.match(new RegExp('(?:non\\s*-?\\s*HD|วันไม่ฟอก(?:ไต)?)\\s*(?:day)?\\s*(?:[=:]|ให้)?\\s*'+num+'\\s*'+U+'\\b','i'));
+  let non=nm?+nm[1]:null, u=(nm||hm||[])[2]||'mg';
+  if(non==null){ const bm=T2.match(new RegExp(num+'\\s*'+U+'\\b[^0-9]{0,25}(?:non\\s*-?\\s*HD|วันไม่ฟอก)','i')); if(bm){ non=+bm[1]; u=bm[2]; } }
+  if(non==null){ const all=[...T2.matchAll(new RegExp(num+'\\s*'+U+'\\b','gi'))].filter(m=>!hm||+m[1]!==+hm[1]); const f=all.find(m=>!/\(\s*$/.test(T2.slice(0,m.index))); if(f){ non=+f[1]; u=f[2]; } }
+  const dm=t.match(/\bHD\s*(?:day)?\s*[=:]\s*([^0-9]{1,40})/i)||t.match(/ฟอก(?:ไต)?\s*(?:วัน)?\s*([จอพศส][^0-9]{0,30})/);
+  const days=dm?[...daysIn(dm[1].replace(/[()]/g,' '))]:[]; const ord=['Mo','Tu','We','Th','Fr','Sa','Su']; days.sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));
+  return {non,hd:hm?+hm[1]:null,u:u.toLowerCase().replace(/units?/,'unit'),days}; }
 function toUnit(v,u,drug){u=(u||'mg').toLowerCase(); if(u==='กรัม')u='g'; else if(u==='มก'||u==='มก.')u='mg';const du=drug?drug.unit:'mg';
   if(du==='g'){if(u==='mg')return v/1000;return v;}
   if(du==='unit'||du==='mEq')return v;

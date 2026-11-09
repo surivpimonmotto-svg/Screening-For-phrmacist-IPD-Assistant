@@ -2159,7 +2159,9 @@ function parseLine(raw){
       if(H.fixPack){ row.had.amp=null; row.had.ampTxt=null; } }
     row.issues=[]; row.parsed=true; row.F=null; row.doseVal=amt??''; row.doseUnit=['mcg','mEq','unit','g'].includes(HAD[row.had.key].u)?HAD[row.had.key].u:'mg';
     return row; }
-  const wk=parseWeekly(sig);
+  // ผู้ป่วยฟอกไต: "150 mg ทุก 24 ชม., non HD ... HD ให้ 200 mg ... HD=อ,พฤ,ส" → วันไม่ฟอก / วันฟอก (ไม่ใช่สูตรรายวันในสัปดาห์)
+  const hdInfo=parseHD(sig,raw);
+  const wk=hdInfo?null:parseWeekly(sig);
   if(wk&&(wk.segs.length>1||wk.segs[0].days.length)){
     const mgU=form&&form[3]!=='ml'?form[2]:strength;
     row.weekly=wk; row.issues=row.issues.filter(x=>!/จำนวนต่อครั้ง/.test(x));
@@ -2183,8 +2185,24 @@ function parseLine(raw){
   if(row.fromStated&&row.stated.per==='day'&&row.F) row.doseVal=Math.round(row.stated.v/row.F*1000)/1000;
   if(/\bprn\b|as\s*need|(?:เวลา|เมื่อ|ถ้า|หาก)\s*(?:มี)?\s*(?:ปวด|ไข้|อาการ|ไอ|คัน|คลื่นไส้|อาเจียน|นอนไม่หลับ|ท้องเสีย|น้ำมูก|เจ็บ|แน่น|หอบ|ชัก)/i.test(line)) row.prn=true;
   if(!drug){row.parsed=false;}
+  if(hdInfo){ row.hd=hdInfo; row.weekly=null; row.issues=(row.issues||[]).filter(x=>!/ระบุวัน|ไม่ระบุจำนวน/.test(x));
+    if(hdInfo.non!=null){ row.doseVal=hdInfo.non; row.doseUnit=hdInfo.u; } else if(hdInfo.hd!=null){ row.doseVal=hdInfo.hd; row.doseUnit=hdInfo.u; }
+    if(!(row.F>0)) row.F=1;
+    if(!hdInfo.days.length) row.issues.push('คำสั่งฟอกไตไม่ระบุวันฟอก (เช่น HD = อ, พฤ, ส) — ยืนยันวันฟอกเพื่อเตรียมยา');
+    if(hdInfo.hd==null) row.issues.push('ระบุ HD แต่ไม่ระบุขนาดวันฟอก — ยืนยันกับแพทย์'); }
   return row;
 }
+function parseHD(sig,full){ const t=' '+String(sig||'').replace(/,/g,' , ')+' ', T2=' '+String(full||sig||'').replace(/,/g,' , ')+' ';
+  if(!/non\s*-?\s*HD\b|วันไม่ฟอก|\bHD\s*(?:day)?\s*(?:[=:]|ให้|give)|วันฟอก/i.test(t)) return null;
+  const U='(mg|g|mcg|unit|units|iu|mu)', num='(\\d+(?:\\.\\d+)?)';
+  const hm=t.match(new RegExp('(?:\\bHD\\s*(?:day)?|วันฟอก(?:ไต)?)\\s*(?:[=:]|ให้|give|หลังฟอก)?\\s*(?:ให้|หลังฟอก)?\\s*'+num+'\\s*'+U+'\\b','i'));
+  const nm=t.match(new RegExp('(?:non\\s*-?\\s*HD|วันไม่ฟอก(?:ไต)?)\\s*(?:day)?\\s*(?:[=:]|ให้)?\\s*'+num+'\\s*'+U+'\\b','i'));
+  let non=nm?+nm[1]:null, u=(nm||hm||[])[2]||'mg';
+  if(non==null){ const bm=T2.match(new RegExp(num+'\\s*'+U+'\\b[^0-9]{0,25}(?:non\\s*-?\\s*HD|วันไม่ฟอก)','i')); if(bm){ non=+bm[1]; u=bm[2]; } }
+  if(non==null){ const all=[...T2.matchAll(new RegExp(num+'\\s*'+U+'\\b','gi'))].filter(m=>!hm||+m[1]!==+hm[1]); const f=all.find(m=>!/\(\s*$/.test(T2.slice(0,m.index))); if(f){ non=+f[1]; u=f[2]; } }
+  const dm=t.match(/\bHD\s*(?:day)?\s*[=:]\s*([^0-9]{1,40})/i)||t.match(/ฟอก(?:ไต)?\s*(?:วัน)?\s*([จอพศส][^0-9]{0,30})/);
+  const days=dm?[...daysIn(dm[1].replace(/[()]/g,' '))]:[]; const ord=['Mo','Tu','We','Th','Fr','Sa','Su']; days.sort((a,b)=>ord.indexOf(a)-ord.indexOf(b));
+  return {non,hd:hm?+hm[1]:null,u:u.toLowerCase().replace(/units?/,'unit'),days}; }
 function toUnit(v,u,drug){u=(u||'mg').toLowerCase(); if(u==='กรัม')u='g'; else if(u==='มก'||u==='มก.')u='mg';const du=drug?drug.unit:'mg';
   if(du==='g'){if(u==='mg')return v/1000;return v;}
   if(du==='unit'||du==='mEq')return v;
@@ -3541,7 +3559,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.36.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.36.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -5384,6 +5402,19 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
 (function(){ if(!$('nacOut')) return; const s=()=>{ if($('nacBw').dataset.manual!=='1'&&$('bw').value) $('nacBw').value=$('bw').value; nacCalc(); };
   $('nacBw').addEventListener('input',e=>{ if(e.isTrusted) $('nacBw').dataset.manual='1'; nacCalc(); }); $('nacReg').addEventListener('change',nacCalc);
   $('bw').addEventListener('input',s); s(); })();
+
+/* ===== hd.js — คำสั่งยาผู้ป่วยฟอกไต (HD) แบบ "วันไม่ฟอก X / วันฟอก Y (HD = อ พฤ ส)"
+ · สรุปสูตร · เทียบกับขนาด HD ในฐานข้อมูล (ถ้ามีรูปแบบ วันไม่ฟอก/วันฟอก) · เตือนเมื่อแผงผู้ป่วยยังไม่ตั้ง HD */
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!row.hd) return r; const h=row.hd, u=h.u||'mg', add=(l,t)=>{ if(!r.items.some(i=>i.txt===t)) r.items.push({lvl:l,txt:t}); if(l==='warn'&&r.status==='ok') r.status='warn'; if(l==='flag') r.status='flag'; };
+  const dTh=h.days.map(d=>DAY_TH[d]).join(' '), nHd=h.days.length, wk=h.non!=null&&h.hd!=null&&nHd?h.non*(7-nHd)+h.hd*nHd:null;
+  add('info',`สูตรผู้ป่วยฟอกไต: วันไม่ฟอก ${h.non!=null?fmtN(h.non)+' '+u:'–'} · วันฟอก${dTh?` (${dTh})`:''} ${h.hd!=null?fmtN(h.hd)+' '+u+' (ให้หลังฟอก)':'–'}${wk!=null?` · รวม ${fmtN(wk)} ${u}/สัปดาห์ · จ่ายวันฟอก ${fmtN(h.hd)} / วันอื่น ${fmtN(h.non)}`:''}`);
+  if(pt.dial!=='HD') add('warn',`คำสั่งเป็นสูตรฟอกไต (HD) แต่แผงผู้ป่วยยังไม่ได้ตั้ง "การบำบัดทดแทนไต = HD" — ตั้งค่าเพื่อให้ตรวจขนาดตาม HD${pt.crcl!=null?` (ตอนนี้ตรวจตาม CrCl ${r1(pt.crcl)})`:''}`);
+  const d=r.drug, hdTxt=d&&d.renal&&d.renal.HD?(d.renal.HD.txt||d.renal.HD.rx||''):'';
+  const m=String(hdTxt).replace(/,/g,'').match(/วันไม่ฟอก\s*(\d+(?:\.\d+)?)\s*(?:mg|g|unit)?[^/]*\/\s*วันฟอก\s*(\d+(?:\.\d+)?)/);
+  if(m&&pt.dial==='HD'){ const okN=h.non==null||h.non<=+m[1]*1.05, okH=h.hd==null||h.hd<=+m[2]*1.05;
+    add(okN&&okH?'ok':'flag',`HD: ${okN&&okH?'ขนาดตรงตามคู่มือ':'ขนาดเกินคู่มือ'} — วันไม่ฟอก ${fmtN(h.non??0)} (≤${m[1]}) · วันฟอก ${fmtN(h.hd??0)} (≤${m[2]}) ${u}`);
+    if(okN&&okH) r.items=r.items.filter(i=>!(i.lvl==='flag'&&/ขนาดต่อ(ครั้ง|วัน)/.test(i.txt))); }
+ }catch(e){} return r; })(evaluate);
 
 /* ===== hadx.js — แท็บ HAD: Methylprednisolone inj (pulse / mg/kg → vial 40 mg · 1 g, การผสม, เทียบสเตียรอยด์) · rt-PA Alteplase (Actilyse 50 mg)
  ⚑ อ้างอิงทั่วไป: Solu-Medrol SPC · Actilyse SPC · AHA/ASA stroke 2019 · ACC/AHA STEMI · ESC PE — ยืนยันกับแนวทาง รพ.มค */

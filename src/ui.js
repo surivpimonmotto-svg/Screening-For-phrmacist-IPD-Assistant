@@ -400,11 +400,11 @@ function renderLiq(){
    <p class="hint" style="margin:12px 0 4px">ข้อความฉลาก/note</p><div class="note" style="min-height:auto">${esc(sticker)}</div>`;
   window.liqLast={name,ml,amt,uu,F,prn:LF.prn,maxCount:LF.maxCount,sym:$('lSym').value,label:LF.label,days,nb,bottle,kb:liqCur&&liqCur.kb?liqCur.kb.id:null};
 }
-$('lDrug').addEventListener('change',pickLiq);
-['lConc','lDose','lDays','lBottle','lBw'].forEach(id=>$(id).addEventListener('input',renderLiq));
+$('lDrug').addEventListener('change',()=>pickLiq());
+['lConc','lDose','lDays','lBottle','lBw'].forEach(id=>$(id).addEventListener('input',()=>renderLiq()));
 $('lBw').addEventListener('input',e=>{ if(e.isTrusted) $('lBw').dataset.manual=$('lBw').value?'1':''; });
 ['bw','ageIn','ageU'].forEach(id=>{ const el=$(id); if(el) el.addEventListener('input',()=>{ if(!$('p-liq').hidden) renderLiq(); }); });
-['lCU','lDU','lF'].forEach(id=>$(id).addEventListener('change',renderLiq));
+['lCU','lDU','lF'].forEach(id=>$(id).addEventListener('change',()=>renderLiq()));
 
 
 /* KB table */
@@ -461,11 +461,11 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.36.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.36.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
-{const d3=LIQ.find(x=>/VIT D3/i.test(x.name)); if(d3){$('lDrug').value=d3.code+' · '+d3.name; pickLiq(); $('lDose').value=400; $('lDays').value=30; renderLiq();}}
+// ยาเริ่มต้นของแท็บยาน้ำเด็ก: Paracetamol syrup (ตั้งใน liqreco.js)
 const exNote=document.createElement('p');exNote.id='exNote';exNote.className='hint';exNote.style.margin='0 0 10px';exNote.textContent='ข้อมูลที่แสดงเป็นเคสตัวอย่าง (ชาย 72 ปี SCr 2.0) — กด "เริ่มเคสใหม่" ก่อนกรอกผู้ป่วยจริงทุกครั้ง';
 $('sum').before(exNote);
 

@@ -4,7 +4,10 @@
 function lrFreq(note){ const m=String(note||'').match(/q\s*(\d+)(?:\s*-\s*(\d+))?\s*h/i); if(!m) return null; return {a:+m[1],b:m[2]?+m[2]:null}; }
 function lrRound(ml,lo,hi){ const st=ml<1?0.1:ml<10?0.5:1, r=x=>Math.round(x/st)*st; let v=r(ml); if(lo!=null&&v<lo-1e-9) v=Math.ceil(lo/st-1e-9)*st; if(hi!=null&&v>hi+1e-9) v=Math.floor(hi/st+1e-9)*st; return Math.round(v*100)/100; }
 function lrReco(){ const x=liqCur, p=x&&x.kb&&x.kb.peds, bw=+$('lBw').value||+$('bw').value||null;
-  if(!x) return null; if(!p) return {msg:'ยานี้ยังไม่มีขนาดเด็กในฐาน — กรอกขนาดที่สั่งเอง'};
+  if(!x) return null;
+  if(x.kb&&typeof PED_BAND!=='undefined'&&PED_BAND[x.kb.id]){ if(!(bw>0)) return {msg:'ใส่น้ำหนัก (kg) เพื่อคำนวณขนาดแนะนำ'}; const b=pedBand(x.kb.id,bw), ml=Math.round(b.mg/x.conc*100)/100;
+    return {ml,mg:b.mg,F:2,fq:{a:12},prn:false,src:b.B.src,S:[`① น้ำหนัก ${fmtN(bw)} kg`,`② ตาราง: ${b.lab} → ${fmtN(b.mg)} mg/ครั้ง ${b.B.tx}`,`③ ${fmtN(b.mg)} mg ÷ ${fmtN(x.conc)} mg/ml = ${fmtMl(ml)} ml/ครั้ง วันละ 2 ครั้ง`,`④ รักษา 5 วัน = ${fmtN(Math.round(ml*10*100)/100)} ml${x.bottle?` → ${Math.ceil(ml*10/x.bottle-1e-9)} ขวด (${x.bottle} ml)`:''}`,`⑤ ${b.B.px}`]}; }
+  if(!p) return {msg:'ยานี้ยังไม่มีขนาดเด็กในฐาน — กรอกขนาดที่สั่งเอง'};
   if(p.type==='age') return {msg:`ขนาดตามอายุ: ${p.note}`,age:true};
   if(!(bw>0)) return {msg:'ใส่น้ำหนัก (kg) เพื่อคำนวณขนาดแนะนำ'};
   const ag=+$('age').value; if(bw>=40||(ag>=15&&$('ageU').value!=='m')) return {msg:`น้ำหนัก ${fmtN(bw)} kg${ag?` อายุ ${ag} ปี`:''} — ใช้ขนาดผู้ใหญ่ (ตารางยาเด็กใช้กับ <40 kg)${x.kb.adult&&x.kb.adult.txt?' · '+x.kb.adult.txt:''}`}; if(!(x.conc>0)||!p.kg) return {msg:p.note||''};

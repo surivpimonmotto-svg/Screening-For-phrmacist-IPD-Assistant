@@ -57,3 +57,31 @@ evaluate=(orig=>function(row,pt,rows){
     add('info',S.join('\n'),true); }
   if(guess){ r.items=r.items.filter(i=>!/ไม่มี CrCl|ไม่มี eGFR/.test(i.txt)); add('info','ไม่มีอายุผู้ป่วย — คำสั่งเป็นยาน้ำ/ระบุ mg/kg จึงตรวจแบบผู้ป่วยเด็กตามตารางยาเด็ก รพ. (ไม่ใช้ CrCl) · กรอกอายุเพื่อยืนยัน',true); }
  }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- ยาที่ขนาดเด็กเป็น "ช่วงน้ำหนัก" (fixed dose ต่อช่วง) — Oseltamivir (Tamiflu)
+const PED_BAND={oseltamivir:{bands:[[15,30],[23,45],[40,60],[999,75]],labs:['≤15 kg','>15–23 kg','>23–40 kg','>40 kg'],tx:'วันละ 2 ครั้ง (q12h) นาน 5 วัน',px:'ป้องกัน (post-exposure): ขนาดเดียวกัน วันละครั้ง นาน 7–10 วัน',
+  infant:m=>m<9?3:3.5, infNote:'อายุ <1 ปี: 3 mg/kg/ครั้ง (9–11 เดือน 3.5 mg/kg) วันละ 2 ครั้ง · ป้องกันใน <3 เดือนไม่แนะนำ ยกเว้นสถานการณ์วิกฤต',
+  extra:'เริ่มเร็วที่สุดภายใน 48 ชม.หลังมีอาการ (ผู้ป่วยใน/อาการรุนแรง/กลุ่มเสี่ยงให้ได้แม้เกิน 48 ชม.) · กินพร้อมอาหารลดคลื่นไส้ · เฝ้าระวังอาการทางจิตประสาท (สับสน เพ้อ) ในเด็ก',
+  src:'CDC/AAP influenza antiviral 2024–25 · Tamiflu PI · กรมการแพทย์: คำแนะนำการใช้ยารักษาไข้หวัดใหญ่'}};
+function pedAgeM(){ const v=+$('ageIn').value, u=$('ageU')?$('ageU').value:'y'; if(!(v>0)) return null; return u==='m'?v:u==='d'?v/30:v*12; }
+function pedBand(id,bw){ const B=PED_BAND[id]; if(!B||!(bw>0)) return null; const am=pedAgeM();
+  if(am!=null&&am<12){ const k=B.infant(am), mg=Math.round(k*bw*10)/10; return {mg,lab:`อายุ ${fmtN(Math.round(am*10)/10)} เดือน: ${k} mg/kg × ${fmtN(bw)} kg`,inf:true,B}; }
+  const i=B.bands.findIndex(b=>bw<=b[0]); return {mg:B.bands[i][1],lab:`น้ำหนัก ${B.labs[i]}`,B}; }
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!r.drug||!PED_BAND[r.drug.id]) return r;
+  const id=r.drug.id, bw=+(pt.dw||pt.bw), am=pedAgeM(), ped=pt.isPed||(am!=null&&am<13*12)||(bw>0&&bw<40&&!(+pt.age>=13));
+  if(!ped) return r; const add=(l,t,top)=>{ if(r.items.some(i=>i.txt===t)) return; const it={lvl:l,txt:t}; top?r.items.unshift(it):r.items.push(it); if(l==='warn'&&(r.status==='ok'||r.status==='none')) r.status='warn'; if(l==='flag') r.status='flag'; };
+  r.items=r.items.filter(i=>!/ยังไม่มีขนาดเด็ก|ไม่มีข้อมูลขนาดยาเด็ก|ผู้ป่วยเด็ก: (ยังไม่มีกฎ|ไม่มีกฎ)/.test(i.txt));
+  if(!(bw>0)){ add('warn','Oseltamivir เด็ก: ขนาดตามช่วงน้ำหนัก — ใส่น้ำหนัก'); return r; }
+  const b=pedBand(id,bw), form=r.drug.forms&&row.formIdx>=0?r.drug.forms[row.formIdx]:null, mlPer=form&&form[3]==='ml'?form[2]:15, F=row.F||null, D=r.D;
+  const okD=D!=null&&Math.abs(D-b.mg)/b.mg<=0.1, pxLike=F===1;
+  const S=[`ขั้นตอนคำนวณ (${b.B.src})`,`① น้ำหนัก ${fmtN(bw)} kg${am!=null?` · อายุ ${am<24?fmtN(Math.round(am*10)/10)+' เดือน':fmtN(Math.round(am/12*10)/10)+' ปี'}`:''}`,
+   `② ตาราง: ${b.lab} → ${fmtN(b.mg)} mg/ครั้ง ${b.B.tx}`+(b.inf?'':` (≤15 kg 30 · 15–23 kg 45 · 23–40 kg 60 · >40 kg 75 mg)`),
+   `③ Syrup ${mlPer} mg/ml → ${fmtN(Math.round(b.mg/mlPer*100)/100)} ml/ครั้ง`,
+   D!=null?`④ สั่ง: ${fmtN(D)} mg × ${F?fmtN(F):'?'} ครั้ง/วัน → ${okD?'ขนาดต่อครั้งตรงตามตาราง':`ไม่ตรง (ควรเป็น ${fmtN(b.mg)} mg)`}${F===2?' · BID = ขนาดรักษา':F===1?' · OD = ขนาดป้องกัน':''}`:'④ อ่านขนาดที่สั่งไม่ได้',
+   `⑤ ปริมาณรวม (รักษา 5 วัน): ${fmtN(Math.round(b.mg/mlPer*100)/100)} ml × 2 × 5 = ${fmtN(Math.round(b.mg/mlPer*10*100)/100)} ml${mlPer===15?` → ${Math.ceil(b.mg/mlPer*10/40-1e-9)} ขวด (40 ml)`:''}`];
+  add('info',S.join('\n'),true);
+  if(D!=null&&!okD) add(D>b.mg*1.1?'flag':'warn',`Oseltamivir เด็ก ${b.lab}: ควรได้ ${fmtN(b.mg)} mg/ครั้ง (${fmtN(Math.round(b.mg/mlPer*100)/100)} ml ของ ${mlPer} mg/ml) — สั่ง ${fmtN(D)} mg`);
+  else if(okD){ if(r.status==='none') r.status='ok'; } if(okD) add('ok',`Oseltamivir เด็ก: ${fmtN(D)} mg/ครั้ง ตรงตาม${b.lab}`);
+  if(F&&F>2) add('warn',`ความถี่ ${freqLabel(F)} — oseltamivir ให้ BID (รักษา) หรือ OD (ป้องกัน)`);
+  if(pxLike) add('info',b.B.px); if(b.inf) add('info',b.B.infNote); add('info',b.B.extra);
+  if(pt.crcl!=null&&pt.crcl<60&&!b.inf) add('warn',`CrCl ${r1(pt.crcl)} — oseltamivir ปรับตามไต (CrCl 30–60: ลดขนาดครึ่งหนึ่ง · 10–30: วันละครั้ง) ตรวจกับแพทย์`);
+ }catch(e){ console.warn(e); } return r; })(evaluate);

@@ -2,6 +2,12 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.37.1 — อ้างอิงขนาดยาเด็กเพิ่ม: ตารางการใช้ยาในเด็ก รพ.ควนเนียง (1/10/2566 · อ้างอิงคู่มือยาเด็ก จุฬาฯ)
+- ยาที่ตาราง รพ.มค ไม่มี: ผลตรวจห้อย "อ้างอิง" ขนาดยา (mg/kg) จากแต่ละแหล่ง [1] เอกสารเสริม [2] รพ.ควนเนียง · ตาราง ml/ครั้งตามน้ำหนัก 5/10/15/20 kg (erythromycin, salbutamol, alum milk)
+- ปรับช่วงตามสองแหล่ง: erythromycin 20–50 MKD · GG >12 ปี · hyoscine 1–3 ปี · carminative 5–15 ml · MOM >12 ปี · MTV 5–10 ml/วัน · salbutamol max 2 mg/ครั้ง
+- เพิ่ม Albendazole (1–<2 ปี 200 mg · ≥2 ปี 400 mg ครั้งเดียว — เตือน รพ.มค susp 400 mg/20 ml: 200 mg = 10 ml) · Alum milk 0.5–1 ml/kg/ครั้ง (max 30 ml) · Tamiflu ทารก ขนาดอ้างอิงจุฬาฯ 12/20/25 mg
+- คู่มือย่อ: เพิ่มไฟล์อ้างอิง ped-khuanniang-2566.pdf
+
 ## v0.37.0 — ขนาดยาเด็กจากเอกสารเสริม "ขนาดยาในเด็ก" (ใช้เมื่อตาราง รพ.มค 2568 ไม่มี)
 - เพิ่ม 11 ยา: Cetirizine, Erythromycin, Glyceryl guaiacolate (GG), Hyoscine, Hydroxyzine, Mixt. Carminative, Milk of Magnesia, Multivitamin, Roxithromycin, Salbutamol (oral), Simethicone — กฎตามน้ำหนัก (mg/kg) หรือช่วงอายุ (mg/ml/ช้อนชาต่อครั้ง) พร้อมขั้นตอนคำนวณ · ข้อมูลตาราง รพ.มค เดิมไม่ถูกเขียนทับ
 - Salbutamol พ่น (nebule/MDI) ไม่ใช้กฎยากิน · Erythromycin ไม่จับคู่ erythropoietin

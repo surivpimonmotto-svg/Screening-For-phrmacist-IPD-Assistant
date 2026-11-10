@@ -149,6 +149,7 @@ const REF_FILES=[
  ['TB','tb-dose-child-renal.pdf','ตารางขนาดยาต้านวัณโรค เด็ก <15 ปี และผู้ป่วยไตบกพร่อง','tb วัณโรค เด็ก ped renal'],
  ['HIV','arv-screening-ipd-2568.pdf','ARV Screening IPD 2568 (ขนาดยา ARV · ปรับตามไต · สูตร)','arv hiv dtg tld'],
  ['HIV','oscc-arv-2024.pdf','OSCC 2024 — ยาต้านไวรัสหลังสัมผัส (เด็ก/ผู้ใหญ่, BSA) one page','oscc pep hiv azt 3tc dtg'],
+ ['เด็ก','ped-khuanniang-2566.pdf','ตารางการใช้ยาในเด็ก (ยารับประทาน) รพ.ควนเนียง 1/10/2566 — อ้างอิงคู่มือการใช้ยาในเด็ก จุฬาฯ (ใช้เสริมเมื่อตาราง รพ.มค ไม่มี)','ped เด็ก syrup albendazole antacid gg hyoscine mom tamiflu'],
  ['เด็ก','ped-dose-2568.pdf','ขนาดยาน้ำเด็กตามน้ำหนัก (ช้อนชา/เม็ด) ฉบับปรับปรุง 2568','ped เด็ก syrup liquid'],
  ['พิษ / Antidote','antidotes-2564.pdf','ยาต้านพิษ (Antidotes) — MSKH Pharmacy News ก.ย. 2564','antidote nac naloxone พิษ'],
  ['ผู้สูงอายุ','pharmacy-news-2563-12-elderly.pdf','ยาที่ควรระวังในผู้สูงอายุ (Beers) — MSKH Pharmacy News ธ.ค. 2563','elderly beers ผู้สูงอายุ'],

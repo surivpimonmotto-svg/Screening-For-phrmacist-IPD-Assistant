@@ -85,3 +85,35 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   if(pxLike) add('info',b.B.px); if(b.inf) add('info',b.B.infNote); add('info',b.B.extra);
   if(pt.crcl!=null&&pt.crcl<60&&!b.inf) add('warn',`CrCl ${r1(pt.crcl)} — oseltamivir ปรับตามไต (CrCl 30–60: ลดขนาดครึ่งหนึ่ง · 10–30: วันละครั้ง) ตรวจกับแพทย์`);
  }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- เอกสารเสริม "ขนาดยาในเด็ก" (PED2) — ยาที่ตาราง รพ.มค ไม่มี: กฎตามช่วงอายุ/น้ำหนัก
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!r.drug||typeof PED2==='undefined'||!PED2[r.drug.id]) return r;
+  const id=r.drug.id, G=PED2[id], bw=+(pt.dw||pt.bw), am=pedAgeM(), ay=am!=null?am/12:null, ped=pt.isPed||(ay!=null&&ay<13)||(bw>0&&bw<40&&!(+pt.age>=13)&&PED_FORM.test(row.raw||''));
+  if(!ped) return r; const add=(l,t,top)=>{ if(r.items.some(i=>i.txt===t)) return; const it={lvl:l,txt:t}; top?r.items.unshift(it):r.items.push(it); if(l==='warn'&&(r.status==='ok'||r.status==='none')) r.status='warn'; if(l==='flag') r.status='flag'; if(l==='ok'&&r.status==='none') r.status='ok'; };
+  r.items=r.items.filter(i=>!/ผู้ป่วยเด็ก: (ยังไม่มีกฎ|ไม่มีกฎ)|ยังไม่มีกฎในฐาน/.test(i.txt));
+  const kgOnly=G.rules.length===1&&G.rules[0].a[0]===0&&G.rules[0].a[1]>=99;
+  const R=kgOnly?G.rules[0]:ay!=null?G.rules.find(x=>ay>=x.a[0]&&ay<x.a[1]):null;
+  if(!R){ add('warn',`${r.drug.name} เด็ก: ${ay==null?'ใส่อายุเพื่อตรวจขนาดตามช่วงอายุ':`อายุ ${fmtN(Math.round(ay*10)/10)} ปี ไม่อยู่ในช่วงที่เอกสารระบุ`} — ${G.note}`); return r; }
+  const u=r.drug.unit||'mg', D=r.D, F=row.F||null, form=r.drug.forms&&row.formIdx>=0?r.drug.forms[row.formIdx]:null, mlPer=form&&form[3]==='ml'?form[2]:null;
+  const mlD=D!=null?(u==='ml'?D:mlPer?D/mlPer:null):null, rg=(x,y)=>x===y?fmtN(x):`${fmtN(x)}–${fmtN(y)}`, rd=v=>Math.round(v*100)/100;
+  let lo,hi,got,unitTxt,need=null;
+  if(R.kgDay){ if(!(bw>0)) need='น้ำหนัก'; else { lo=R.kgDay[0]*bw*(1-(R.tol||0)); hi=R.kgDay[1]*bw*(1+(R.tol||0)); got=D!=null&&F?D*F:null; unitTxt=`${u}/วัน`; } }
+  else if(R.kgDose){ if(!(bw>0)) need='น้ำหนัก'; else { lo=R.kgDose[0]*bw; hi=R.kgDose[1]*bw; got=D; unitTxt=`${u}/ครั้ง`; } }
+  else if(R.kgMlDose){ if(!(bw>0)) need='น้ำหนัก'; else { lo=hi=R.kgMlDose[0]*bw; got=mlD; unitTxt='ml/ครั้ง'; } }
+  else if(R.mgDose){ lo=R.mgDose[0]; hi=R.mgDose[1]; got=D; unitTxt=`${u}/ครั้ง`; }
+  else if(R.mlDose){ lo=R.mlDose[0]; hi=R.mlDose[1]; got=mlD; unitTxt='ml/ครั้ง'; }
+  else if(R.mlDay){ lo=R.mlDay[0]; hi=R.mlDay[1]; got=mlD!=null&&F?mlD*F:null; unitTxt='ml/วัน'; }
+  else if(R.tsp){ lo=R.tsp[0]*5; hi=R.tsp[1]*5; got=mlD; unitTxt='ml/ครั้ง'; }
+  const S=[`ขั้นตอนคำนวณ (${SRC_PED2})`,`① ${bw>0?`น้ำหนัก ${fmtN(bw)} kg`:'ไม่มีน้ำหนัก'}${ay!=null?` · อายุ ${ay<2?fmtN(Math.round(am*10)/10)+' เดือน':fmtN(Math.round(ay*10)/10)+' ปี'}`:''}`,`② เอกสาร: ${G.note}`];
+  if(need){ S.push(`③ ต้องใช้${need}ในการคำนวณ`); add('info',S.join('\n'),true); add('warn',`${r.drug.name} เด็ก: ใส่${need}เพื่อตรวจขนาด`); return r; }
+  const tol=0.1, st=got==null?null:got>hi*(1+tol)?'high':got<lo*(1-tol)?'low':'ok', mlTxt=v=>mlPer&&!/ml/.test(unitTxt)?` (${rg(rd(v[0]/mlPer),rd(v[1]/mlPer))} ml)`:'';
+  S.push(`③ ควรได้: ${rg(rd(lo),rd(hi))} ${unitTxt}${R.kgDay&&F?` → ÷ ${fmtN(F)} ครั้ง = ${rg(rd(lo/F),rd(hi/F))} ${u}/ครั้ง${mlPer?` (${rg(rd(lo/F/mlPer),rd(hi/F/mlPer))} ml)`:''}`:mlTxt([lo,hi])}${R.tsp?` (= ${rg(R.tsp[0],R.tsp[1])} ช้อนชา)`:''}`);
+  S.push(got!=null?`④ สั่ง: ${D!=null?fmtN(D)+' '+u:''}${F?` × ${fmtN(F)} ครั้ง/วัน`:''} → ${fmtN(rd(got))} ${unitTxt}${R.kgDay&&bw>0?` = ${fmtN(rd(got/bw))} ${u}/kg/วัน`:''}`:'④ อ่านขนาดที่สั่งไม่ได้ (หรือยาไม่มีความเข้มข้นในบัญชี — สั่งเป็น ml/ช้อนชา)');
+  if(st) S.push(`⑤ ผล: ${st==='ok'?'อยู่ในช่วง':st==='high'?'สูงกว่าช่วง':'ต่ำกว่าช่วง'}${R.F&&F&&(F<R.F[0]||F>R.F[1])?` · ความถี่ ${fmtN(F)} ครั้ง/วัน ต่างจากเอกสาร (${rg(R.F[0],R.F[1])} ครั้ง/วัน)`:''}`);
+  add('info',S.join('\n'),true);
+  if(st==='high') add(got>hi*1.5?'flag':'warn',`${r.drug.name} เด็ก: ${fmtN(rd(got))} ${unitTxt} สูงกว่า ${rg(rd(lo),rd(hi))} ${unitTxt} (${G.note})`);
+  else if(st==='low') add('warn',`${r.drug.name} เด็ก: ${fmtN(rd(got))} ${unitTxt} ต่ำกว่า ${rg(rd(lo),rd(hi))} ${unitTxt}`);
+  else if(st==='ok') add('ok',`${r.drug.name} เด็ก: ขนาดอยู่ในช่วงตามเอกสารเสริม`);
+  if(R.maxDose&&D>R.maxDose) add('warn',`เกินขนาดสูงสุด ${R.maxDose} ${u}/ครั้ง`);
+  if(id==='hyoscine'&&ay!=null&&ay<6) add('info','Hyoscine butylbromide ในเด็ก <6 ปี: เอกสารกำกับยาบางผลิตภัณฑ์ไม่แนะนำ — ใช้เมื่อแพทย์พิจารณาแล้ว เฝ้าระวังท้องผูก ปัสสาวะคั่ง หัวใจเต้นเร็ว');
+  if(id==='mom') add('info','Milk of Magnesia: ระวังในผู้ป่วยไตบกพร่อง (Mg สะสม) · ห่างจากยาอื่น 2 ชม.');
+ }catch(e){ console.warn(e); } return r; })(evaluate);

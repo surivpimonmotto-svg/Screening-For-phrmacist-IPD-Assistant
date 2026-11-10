@@ -165,7 +165,10 @@ function joinLines(lines){ const out=[];
 function parseLine(raw){
   const line0=raw.replace(/\s+/g,' ').trim(); if(!line0) return null;
   // "ครึ่งเม็ด" → 0.5 เม็ด · "1 เม็ดครึ่ง" → 1.5 เม็ด
-  const line=line0.replace(/(\d+)\s*(เม็ด|tab)\s*ครึ่ง/gi,(m,a,u)=>`${+a+0.5} ${u}`).replace(/ครึ่ง\s*(เม็ด|tab)/gi,'0.5 $1');
+  // เศษส่วนก่อนหน่วยนับ: "1/2 tab" → 0.5 · "1 1/2 เม็ด" → 1.5 · "3/4 ช้อนชา" → 0.75 (ไม่แตะ 300MG/3ML, 40/200 mg, 1/2x2)
+  const FRU='(?=\\s*(?:tabs?|tablets?|เม็ด|caps?|capsules?|แคปซูล|ช้อน|tsp|amps?|หลอด|vials?|ขวด|sachets?|ซอง|supp))';
+  const line00=line0.replace(new RegExp('\\b(\\d+)\\s+(\\d)\\s*\\/\\s*(\\d)'+FRU,'gi'),(m,w,n,d)=>String(+w+(+n)/(+d))).replace(new RegExp('(^|[^\\d.\\/])(\\d)\\s*\\/\\s*(\\d)'+FRU,'gi'),(m,pre,n,d)=>pre+String(Math.round(+n/+d*1000)/1000));
+  const line=line00.replace(/(\d+)\s*(เม็ด|tab)\s*ครึ่ง/gi,(m,a,u)=>`${+a+0.5} ${u}`).replace(/ครึ่ง\s*(เม็ด|tab)/gi,'0.5 $1');
   const fm=findMaster(line);
   const drug=(fm&&fm.m[8]?KB.find(k=>k.id===fm.m[8]):null)||findDrug(fm&&fm.byCode?fm.m[1]+' '+line:line);
   const row={raw:line0,drugId:drug?drug.id:'',doseVal:'',doseUnit:'mg',F:null,parsed:true,issues:[],master:fm?fm.m[0]:''};

@@ -2,6 +2,11 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.37.0 — ขนาดยาเด็กจากเอกสารเสริม "ขนาดยาในเด็ก" (ใช้เมื่อตาราง รพ.มค 2568 ไม่มี)
+- เพิ่ม 11 ยา: Cetirizine, Erythromycin, Glyceryl guaiacolate (GG), Hyoscine, Hydroxyzine, Mixt. Carminative, Milk of Magnesia, Multivitamin, Roxithromycin, Salbutamol (oral), Simethicone — กฎตามน้ำหนัก (mg/kg) หรือช่วงอายุ (mg/ml/ช้อนชาต่อครั้ง) พร้อมขั้นตอนคำนวณ · ข้อมูลตาราง รพ.มค เดิมไม่ถูกเขียนทับ
+- Salbutamol พ่น (nebule/MDI) ไม่ใช้กฎยากิน · Erythromycin ไม่จับคู่ erythropoietin
+- แก้บั๊กสำคัญ: "1/2 tab" อ่านเป็น 1 เม็ด (ทุกยา) → 0.5 เม็ด · รองรับ "1 1/2 เม็ด", "3/4 ช้อนชา"
+
 ## v0.36.6
 - Oseltamivir (Tamiflu) เด็ก: ขนาดตามช่วงน้ำหนัก ≤15 kg 30 · >15–23 kg 45 · >23–40 kg 60 · >40 kg 75 mg/ครั้ง BID × 5 วัน · อายุ <1 ปี 3 mg/kg (9–11 เดือน 3.5 mg/kg) · OD = ขนาดป้องกัน 7–10 วัน
 - ขั้นตอนคำนวณ + ml ของ syrup 15 mg/ml (บัญชี รพ.) + จำนวนขวด 40 ml · แท็บยาน้ำเด็กเติมขนาดแนะนำให้อัตโนมัติ

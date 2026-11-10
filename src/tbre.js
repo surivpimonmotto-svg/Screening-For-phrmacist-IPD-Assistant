@@ -69,7 +69,7 @@ function tbrPlan(){ const out=$('tbrOut'); if(!out) return; const st=window.tbrS
    `Monitor: ผื่น/ไข้/เยื่อบุทุกวัน · LFT ทุก 3–7 วัน · ผื่นกลับมา → หยุดตัวที่เพิ่งเพิ่ม แจ้งแพทย์ ปรับสูตร`];
   $('tbrNote').value=ln.join('\n'); }
 (function(){ const box=$('tbrBox'); if(!box) return;
-  box.innerHTML=`<h2>ผื่นแพ้ยาวัณโรค — คัดกรอง SCAR → แผน Rechallenge</h2>
+  box.innerHTML=`<details id="tbrDet"><summary style="cursor:pointer;font-weight:700;font-size:15px">ผื่นแพ้ยาวัณโรค — คัดกรอง SCAR → แผน Rechallenge <span class="hint" style="font-weight:400">(กดเปิดเมื่อผู้ป่วยมีผื่น)</span></summary>
    <p class="hint" style="margin:0 0 6px">ใช้น้ำหนัก/Lab (ALT AST TB WBC Eos) จากแผงผู้ป่วย · ขนาดเต็มจากตาราง TB ด้านบน (แก้ได้) · เม็ดยาตามบัญชี รพ. (H 100 · R 300/450 · E 400 หักครึ่งได้ · Z 500)</p>
    <details open><summary style="cursor:pointer;font-weight:700">① อาการเตือน SCAR / เกณฑ์ RegiSCAR (ติ๊กที่พบ)</summary>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px 12px;margin:6px 0">${TBR_SIGNS.map(([k,t])=>`<label style="display:flex;gap:6px;align-items:flex-start;font-size:13.5px"><input type="checkbox" id="tbr_${k}"${k==='resolved'?' ':''}> ${esc(t)}</label>`).join('')}</div>
@@ -86,7 +86,7 @@ function tbrPlan(){ const out=$('tbrOut'); if(!out) return; const st=window.tbrS
    <div id="tbrOut"></div>
    <label class="f" style="margin-top:8px">ข้อความสำหรับ Pharmacist note (แก้ไขได้)<textarea id="tbrNote" rows="7" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--ink)"></textarea></label>
    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button type="button" class="btn sm pri" id="tbrCp">คัดลอก note</button><button type="button" class="btn sm" id="tbrPr">พิมพ์ตาราง rechallenge (ให้หอผู้ป่วย)</button><button type="button" class="btn sm" id="tbrFill">ดึงยา TB จากคำสั่งที่วาง</button><span class="toast" id="tbrMsg"></span></div>
-   <p class="hint">อ้างอิง: แนวทางการควบคุมวัณโรคประเทศไทย 2564 · WHO TB treatment guideline (management of drug reactions) · ATS/CDC/IDSA 2016 · Kardaun SH, RegiSCAR (Br J Dermatol 2013) · DIC คณะเภสัชศาสตร์ มหิดล — <b>แผนจริงต้องตกลงกับแพทย์</b></p>`;
+   <p class="hint">อ้างอิง: แนวทางการควบคุมวัณโรคประเทศไทย 2564 · WHO TB treatment guideline (management of drug reactions) · ATS/CDC/IDSA 2016 · Kardaun SH, RegiSCAR (Br J Dermatol 2013) · DIC คณะเภสัชศาสตร์ มหิดล — <b>แผนจริงต้องตกลงกับแพทย์</b></p></details>`;
   box.addEventListener('input',e=>{ if(e.target.id==='tbrNote') return; tbrEval(); }); box.addEventListener('change',e=>{ if(e.target.id==='tbrNote') return; tbrEval(); });
   $('tbrCp').onclick=()=>copyRich(txtHtml($('tbrNote').value),$('tbrNote').value,$('tbrMsg'));
   $('tbrPr').onclick=()=>{ const t=$('tbrOut').querySelector('table'); if(!t) return; printHtml(`<div style="font-family:Sarabun,Tahoma,sans-serif"><h3 style="margin:0 0 4px">ตาราง Rechallenge ยาวัณโรค</h3><p style="margin:0 0 6px">หอผู้ป่วย ............ เตียง ......... (ห้ามระบุชื่อในระบบ — เขียนด้วยมือ)</p>${t.outerHTML}<p>ประเมินผื่น/ไข้/เยื่อบุ ทุกเช้าก่อนให้ยา · ผื่นกลับมา: หยุดยาตัวที่เพิ่งเพิ่ม แจ้งแพทย์และเภสัชกร</p><p>เภสัชกร ............................ โทร ............</p></div>`); };

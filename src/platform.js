@@ -72,3 +72,15 @@ tab=(orig=>function(n){ orig(n); if(n==='screen') return; pfBar(n); const L=PF_L
 Object.values(PF_LINK).forEach(L=>{ const ta=L.to&&$(L.to); if(ta) ta.addEventListener('input',e=>{ if(e.isTrusted) delete ta.dataset.pfAuto; }); });
 TABS.forEach(t=>{ if(t!=='screen') $('t-'+t).onclick=()=>tab(t); });
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{ if(e.target&&e.target.closest&&e.target.closest('.pfbar')) return; const cur=TABS.find(t=>$('p-'+t)&&!$('p-'+t).hidden); if(cur&&cur!=='screen'&&$('pf-'+cur)) pfUpdate(cur); }));
+// ---- วางใบสั่งที่ไม่ซ้ำกับใบเดิมเลย → ถามว่าเป็นผู้ป่วยรายใหม่หรือไม่ (กันข้อมูล/Lab ของคนก่อนค้าง)
+var pfPrevRaw=[];
+doParse=(orig=>function(replace){ const prev=pfPrevRaw.slice(), wasEx=typeof EX_TXT!=='undefined'&&prev.join('\n')===joinLines(EX_TXT.split(/\n/)).join('\n');
+  const r=orig.apply(this,arguments); const now=(typeof rows!=='undefined'?rows:[]).map(x=>x.raw.trim());
+  const norm=s=>s.toUpperCase().replace(/\s+/g,' ').slice(0,30), ps=new Set(prev.map(norm)), overlap=now.some(x=>ps.has(norm(x)));
+  const hasPt=['ageIn','bw','scr','allergy'].some(id=>$(id)&&$(id).value)||(typeof LAB_DEF!=='undefined'&&LAB_DEF.some(([k,,,,f])=>{ const el=$(f||('L_'+k)); return el&&el.value!==''; }));
+  pfAsk(replace&&prev.length&&now.length&&!overlap&&!wasEx&&hasPt);
+  pfPrevRaw=now; return r; })(doParse);
+function pfAsk(show){ let b=$('newPtAsk'); if(!b){ const a=$('pasteSt')||$('paste'); if(!a) return; a.insertAdjacentHTML('afterend',`<div id="newPtAsk" class="band w" style="margin:6px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap" hidden><span>⚠ <b>ใบสั่งชุดใหม่ไม่ซ้ำกับชุดเดิมเลย</b> — เป็นผู้ป่วยรายใหม่หรือไม่? ข้อมูลผู้ป่วย/Lab ของคนก่อนยังค้างอยู่</span><button type="button" class="btn sm pri" id="npYes">ใช่ — ล้างข้อมูลผู้ป่วยเดิม (คงใบสั่งใหม่)</button><button type="button" class="btn sm" id="npNo">ไม่ใช่ (คนเดิม)</button></div>`); b=$('newPtAsk');
+    $('npNo').onclick=()=>{ b.hidden=true; };
+    $('npYes').onclick=()=>{ const t=$('paste').value; $('clearAll').click(); Object.keys(PF_LINK).forEach(x=>pfReset(x,true)); PF_SIG={}; if(typeof tbrReset==='function') tbrReset(); $('paste').value=t; pfPrevRaw=[]; doParse(true); b.hidden=true; $('ageIn').focus(); }; }
+  b.hidden=!show; }

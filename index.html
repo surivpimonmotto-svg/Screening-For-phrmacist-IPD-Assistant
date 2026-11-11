@@ -987,6 +987,8 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
         <div class="panel sec" style="margin:0">
           <h2>CRRT — ปริมาณน้ำยาต่อวัน และยาที่ต้องเตรียม (ใบสั่ง CRRT รพ.มหาสารคาม)</h2>
           <div style="margin:0 0 10px;padding:8px 12px;border-radius:10px;border:1px solid #16a34a;background:color-mix(in srgb,#16a34a 10%,transparent);font-size:13.5px">✓ ตรวจตารางสูตรน้ำยา 25 สูตรกับใบสั่ง CRRT ฉบับจริงแล้ว (11/11/69) · ทดสอบใช้งาน — รอเภสัชกร/แพทย์ ICU ยืนยันเกณฑ์</div></div>
+          <div style="margin:0 0 10px"><label class="f" style="display:block">วางใบสั่ง CRRT / หน้าจอ HIS (lab · น้ำหนัก · KCl · MgSO4 · Ca gluconate) — อ่านแล้วเติมช่องด้านล่างให้<textarea id="crPaste" rows="4" placeholder="เช่น&#10;CVVHDF  BFR 120-150 ml/min  IBW 56.9 kg&#10;Pre-dilution 700 ml/hr  Post-dilution 300  Dialysate 1000  UF 140&#10;สูตร 12  KCl 4 mEq/L&#10;Sodium 140  pH 7.584  HCO3 43.6  Hematocrit 32.9&#10;POT.CHLORIDE INJ(20 MEQ/10 ML) 4 meq/L 5&#10;MAG.SULFATE 50% INJ.(1G/2ML) IV DRIP in 24 hr 8 ML 4"></textarea></label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="crRead">อ่านข้อมูล</button><button type="button" class="btn" id="crClr">ล้างแท็บ CRRT</button><span class="toast" id="crMsg"></span></div></div>
           <div class="grid2">
             <label class="f">น้ำหนัก (IBW ตามใบสั่ง) kg<input id="cWt" type="number" step="any" inputmode="decimal"></label>
             <label class="f">น้ำหนักจริง (kg)<input id="cAbw" type="number" step="any" inputmode="decimal"></label>
@@ -3615,7 +3617,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.38.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.38.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -4657,10 +4659,16 @@ function renderCrrt(){ const out=$('crOut'); if(!out) return;
     if(eff>0){ const qp=bfr&&hct?bfr*60*(1-hct/100):null, cf=qp?qp/(qp+pre):null;
       kv.push(['Effluent (pre+post+dialysate+UF)',`${fmtN(pre)} + ${fmtN(post)} + ${fmtN(qd)} + ${fmtN(uf)} = <b>${fmtN(eff)}</b> ml/hr`]);
       const per=(w,lab)=>w?`${lab} ${fmtN(w)} kg → <b>${fmtN(Math.round(eff/w*10)/10)}</b>${cf?` (หลังหัก pre-dilution ×${cf.toFixed(2)} = <b>${fmtN(Math.round(eff*cf/w*10)/10)}</b>)`:''} ml/kg/hr`:'';
-      kv.push(['CRRT dose ที่ได้',[per(abw,'น้ำหนักจริง'),per(wt,'IBW')].filter(Boolean).join('<br>')||'ใส่น้ำหนัก']);
-      const wUse=abw||wt; if(wUse){ const dd=eff*(cf||1)/wUse; if(dd<20) li('warn',`Dose ที่ได้จริง ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr (${abw?'น้ำหนักจริง':'IBW'}) ต่ำกว่า 20 — KDIGO แนะนำ delivered 20–25 ml/kg/hr (สั่ง 25–30) คิดจากน้ำหนักจริง`); else if(dd>35) li('info',`Dose ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr สูงกว่า 25–30 — ไม่ได้ประโยชน์เพิ่ม เสียยา/อิเล็กโทรไลต์และยาปฏิชีวนะถูกขจัดมากขึ้น`); else li('ok',`Dose ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr อยู่ในเป้าหมาย KDIGO (20–25 delivered)`); }
-      if(abw&&wt&&abw/wt>1.3) li('info',`น้ำหนักจริง ${fmtN(abw)} kg สูงกว่า IBW ${fmtN(wt)} kg มาก — dose ต่อ IBW ดูสูง แต่ต่อน้ำหนักจริงอาจต่ำ (KDIGO ใช้น้ำหนักจริง)`);
+      const P0=getPt(), ib=P0.ibw||wt||null, bmi=P0.bmi||null, obese=abw&&ib&&((bmi!=null&&bmi>=30)||(bmi==null&&abw/ib>=1.2)), adj=obese?ib+0.4*(abw-ib):null;
+      kv.push(['CRRT dose ที่ได้',[per(abw,'น้ำหนักจริง'),adj?per(Math.round(adj*10)/10,'AdjBW'):'',per(wt,'IBW')].filter(Boolean).join('<br>')||'ใส่น้ำหนัก']);
+      if(adj) kv.push(['AdjBW (BMI ≥30)',`IBW ${fmtN(Math.round(ib*10)/10)} + 0.4 × (${fmtN(abw)} − ${fmtN(Math.round(ib*10)/10)}) = <b>${fmtN(Math.round(adj*10)/10)}</b> kg${bmi!=null?` <span class="hint">(BMI ${(Math.round(bmi*10)/10)})</span>`:' <span class="hint">(ไม่มีส่วนสูง — ใช้น้ำหนักจริง/IBW ≥1.2)</span>'}`]);
+      if(wt&&P0.ibw&&Math.abs(wt-P0.ibw)/P0.ibw>0.05) li('warn',`IBW ในใบสั่ง ${fmtN(wt)} kg ต่างจาก IBW คำนวณจากส่วนสูง ${$('ht').value} cm (${sex==='F'?'หญิง':'ชาย'}) = ${fmtN(Math.round(P0.ibw*10)/10)} kg — ตรวจน้ำหนัก/ส่วนสูง/เพศ`);
+      if(adj){ const da=eff*(cf||1)/abw, dj=eff*(cf||1)/adj, r=x=>fmtN(Math.round(x*10)/10);
+        li(dj<20?'warn':da<20?'warn':'ok',`ผู้ป่วยอ้วน${bmi!=null?` (BMI ${r(bmi)})`:''}: dose ที่ได้จริง ต่อน้ำหนักจริง ~${r(da)} · ต่อ AdjBW ~${r(dj)} ml/kg/hr${dj>=20&&da<20?' — ต่อ AdjBW อยู่ในเป้า แต่ต่อน้ำหนักจริงต่ำกว่า 20 (KDIGO ไม่ระบุน้ำหนักในผู้ป่วยอ้วน หลายแห่งใช้ AdjBW) — ยืนยันน้ำหนักที่ใช้กับแพทย์':dj<20?' — ต่ำกว่าเป้า 20–25 แม้คิดจาก AdjBW':' — อยู่ในเป้า 20–25'}`); }
+      const wUse=adj?null:(abw||wt); if(wUse){ const dd=eff*(cf||1)/wUse; if(dd<20) li('warn',`Dose ที่ได้จริง ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr (${abw?'น้ำหนักจริง':'IBW'}) ต่ำกว่า 20 — KDIGO แนะนำ delivered 20–25 ml/kg/hr (สั่ง 25–30) คิดจากน้ำหนักจริง`); else if(dd>35) li('info',`Dose ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr สูงกว่า 25–30 — ไม่ได้ประโยชน์เพิ่ม เสียยา/อิเล็กโทรไลต์และยาปฏิชีวนะถูกขจัดมากขึ้น`); else li('ok',`Dose ~${fmtN(Math.round(dd*10)/10)} ml/kg/hr อยู่ในเป้าหมาย KDIGO (20–25 delivered)`); }
+      if(!adj&&abw&&wt&&abw/wt>1.3) li('info',`น้ำหนักจริง ${fmtN(abw)} kg สูงกว่า IBW ${fmtN(wt)} kg มาก — dose ต่อ IBW ดูสูง แต่ต่อน้ำหนักจริงอาจต่ำ (KDIGO ใช้น้ำหนักจริง)`);
       if(qp){ const ff=(pre+post+uf)/(qp+pre); kv.push(['Filtration fraction',`(pre ${fmtN(pre)} + post ${fmtN(post)} + UF ${fmtN(uf)}) ÷ (Qp ${fmtN(Math.round(qp))} + pre ${fmtN(pre)}) = <b>${(ff*100).toFixed(1)}%</b> <span class="hint">(Qp = BFR ${fmtN(bfr)} ml/min × 60 × (1 − Hct ${fmtN(hct)}%))</span>`]);
+        const lo=+($('cBfr').dataset.lo||0); if(lo&&lo<bfr){ const qpl=lo*60*(1-hct/100), ffl=(pre+post+uf)/(qpl+pre); li(ffl>0.2?'warn':'ok',`ใบสั่งระบุ BFR ${fmtN(lo)}–${fmtN(bfr)} ml/min — ที่ BFR ${fmtN(lo)} FF = ${(ffl*100).toFixed(1)}%${ffl>0.2?' > 20% (ควรรักษา BFR ด้านสูง)':''}`); }
         li(ff>0.25?'flag':ff>0.2?'warn':'ok',`Filtration fraction ${(ff*100).toFixed(1)}% ${ff>0.2?'> 20% — เสี่ยง filter อุดตัน (เพิ่ม BFR หรือเพิ่มสัดส่วน pre-dilution/ลด post)':'≤ 20%'}`); }
       else if(post>0) li('info','ใส่ BFR และ Hct เพื่อคำนวณ filtration fraction (เป้า ≤20%)'); } }
   // ---- น้ำยาเทียบกรด-ด่างของผู้ป่วย
@@ -4702,7 +4710,41 @@ function renderCrrt(){ const out=$('crOut'); if(!out) return;
     if(ex.length) tbl+=`<h2 style="margin-top:14px">ยาอื่นในใบสั่ง</h2><ul style="margin:0;padding-left:18px">${ex.map(x=>`<li>${x}</li>`).join('')}</ul>`; }
   if(!totMl){ out.innerHTML='<div class="empty">กรอกน้ำหนัก + CRRT dose หรือ อัตราไหล (pre/post/dialysate)</div>'; return; }
   out.innerHTML=`<h2>ผลคำนวณ</h2><dl class="kv" style="margin-bottom:10px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl><ul class="msgs">${L.join('')}</ul>${tbl}`; }
+// ---- อ่านใบสั่ง CRRT / หน้าจอ HIS ที่วาง → เติมช่อง (ไม่เก็บชื่อ/HN)
+function crrtRead(){ const raw=($('crPaste').value||''); if(!raw.trim()) return 'ยังไม่ได้วางข้อมูล';
+  const t=raw.replace(/\r/g,''), got=[], num=x=>x==null?null:+String(x).replace(/,/g,'');
+  const set=(id,v,lab)=>{ if(v==null||isNaN(v)) return; $(id).value=v; got.push(lab+' '+v); };
+  const g=(re)=>{ const m=t.match(re); return m?m[1]:null; };
+  const md=t.match(/\b(CVVHDF|CVVHD|CVVH|SCUF)\b/i); if(md){ $('cMode').value=md[1].toUpperCase(); got.push(md[1].toUpperCase()); }
+  set('cWt',num(g(/\bIBW\s*[:=]?\s*(\d{2,3}(?:\.\d+)?)/i)),'IBW');
+  const bw=num(g(/(?:น้ำหนัก(?:จริง)?|(?<![A-Za-z])(?:BW|ABW|body\s*weight|weight|Wt))\s*[:=]?\s*(\d{2,3}(?:\.\d+)?)\s*(?:kg|กก)?/i)); if(bw){ set('cAbw',bw,'น้ำหนัก'); if(!$('bw').value){ $('bw').value=bw; $('bw').dispatchEvent(new Event('input',{bubbles:true})); } }
+  const ht=num(g(/(?:ส่วนสูง|สูง|height|(?<![A-Za-z])Ht)\s*[:=]?\s*(1\d{2}(?:\.\d)?)\s*(?:cm|ซม)?/i)); if(ht&&!$('ht').value){ $('ht').value=ht; $('ht').dispatchEvent(new Event('input',{bubbles:true})); got.push('สูง '+ht); }
+  const bf=t.match(/(?:BFR|blood\s*flow(?:\s*rate)?|Qb)\s*[:=]?\s*(\d{2,3})(?:\s*[-–]\s*(\d{2,3}))?/i); if(bf){ const a=+bf[1], b=bf[2]?+bf[2]:null; $('cBfr').value=b?Math.max(a,b):a; $('cBfr').dataset.lo=b?Math.min(a,b):''; got.push('BFR '+bf[1]+(b?'–'+b:'')); }
+  set('cPre',num(g(/pre[\s-]*(?:dilution|filter|replacement)[^\d\n]{0,20}(\d{2,4})/i)),'Pre');
+  set('cPost',num(g(/post[\s-]*(?:dilution|filter|replacement)[^\d\n]{0,20}(\d{2,4})/i)),'Post');
+  set('cQd',num(g(/dialysate[^\d\n]{0,25}(\d{2,4})/i)),'Dialysate');
+  set('cUf',num(g(/(?:set\s*|net\s*)?(?:\bUF\b|ultrafiltration)(?:\s*rate)?[^\d\n]{0,15}(\d{1,4})/i)),'UF');
+  set('cF',num(g(/(?:สูตร(?:น้ำยา)?(?:ที่)?|formula|fluid\s*(?:no\.?|#)?)\s*[:=#]?\s*(\d{1,2})\b/i)),'สูตร');
+  const dz=num(g(/CRRT\s*dose\s*[:=]?\s*(\d+(?:\.\d+)?)/i)); if(dz!=null){ if(dz<=60) set('cDose',dz,'dose'); else got.push(`⚠ CRRT dose ${dz} (น่าจะเป็น ml/hr ไม่ใช่ ml/kg/hr — ใช้อัตราไหลคำนวณ)`); }
+  // labs → ช่อง CRRT + แผง Lab ผู้ป่วย
+  const lb=typeof labParse==='function'?labParse(t):{};
+  const na=lb.na!=null?lb.na:num(g(/(?:sodium|(?<![A-Za-z])Na)\s*[:=]?\s*(1\d{2}(?:\.\d)?)/i)); set('cNa',na,'Na');
+  const ph=lb.ph!=null?lb.ph:num(g(/\bpH\s*[:=]?\s*(\d\.\d{1,3})/i)); set('cPh',ph,'pH');
+  const hc=lb.hco3!=null?lb.hco3:num(g(/(?<!Na)HCO3\s*[:=]?\s*(\d{1,2}(?:\.\d+)?)/i)); set('cHco3',hc,'HCO3');
+  const hct=lb.hct!=null?lb.hct:num(g(/(?:hematocrit|\bhct)\s*[:=]?\s*(\d{2}(?:\.\d+)?)/i)); set('cHct',hct,'Hct');
+  let nl=0; if(typeof LAB_DEF!=='undefined') LAB_DEF.forEach(([k,,,,fld])=>{ if(lb[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=lb[k]; nl++; } }); if(lb.k!=null&&typeof kFromText==='function') kFromText(t,true);
+  // ยาในใบสั่ง (ตัดข้อความในวงเล็บ เช่น (20 MEQ/10 ML) (1G/2ML))
+  t.split(/\n/).forEach(l0=>{ const l=l0.replace(/\([^)]*\)/g,' ');
+    if(/pot\.?\s*chlor|\bkcl\b|potassium\s*chloride/i.test(l)){ const m=l.match(/(\d+(?:\.\d+)?)\s*m?eq\s*\/\s*L\b(?:\s+(\d{1,3})\b(?!\s*(?:ml|cc|amp|mg)))?/i); if(m){ set('cK',+m[1],'KCl mEq/L'); if(m[2]) set('cKOrd',+m[2],'KCl amp'); }
+      const a=l.match(/(\d{1,3})\s*(?:amp|แอมป์|vial)/i); if(a&&!(m&&m[2])) set('cKOrd',+a[1],'KCl amp'); }
+    else if(/mag\.?\s*sulf|mgso4|magnesium\s*sulf/i.test(l)){ const m=l.replace(/(?:5\s*%\s*)?(?:D\s*\/?\s*5\s*W|DW|NSS)\s*\d+\s*ml/ig,' ').match(/(\d+(?:\.\d+)?)\s*(?:ml|cc)\b/i); if(m) set('cMg',+m[1],'MgSO4 ml'); }
+    else if(/calcium\s*gluc|ca\.?\s*gluc/i.test(l)){ const l2=l.replace(/(?:5\s*%\s*)?(?:D\s*\/?\s*5\s*W|DW|NSS)\s*\d+\s*ml/ig,' '); const h=l2.match(/(\d+(?:\.\d+)?)\s*ml\s*\/\s*(?:hr|h|ชม)/i); if(h) set('cCa',+h[1],'Ca ml/hr'); else { const m=l2.match(/(\d+(?:\.\d+)?)\s*(?:ml|cc)\b/i); if(m) set('cCa24',+m[1],'Ca gluconate ml/24h'); } } });
+  if(typeof renderRows==='function'&&nl) try{ renderRows(); }catch(e){}
+  if(!$('cWt').value){ const pt=getPt(); if(pt.ibw){ $('cWt').value=Math.round(pt.ibw*10)/10; got.push('IBW (จากส่วนสูง) '+$('cWt').value); } }
+  renderCrrt(); const msg=got.length?'อ่านได้: '+got.join(' · ')+(nl?` · Lab ${nl} ค่าเข้าแผงผู้ป่วย`:''):'อ่านไม่พบค่า CRRT'; $('crMsg').textContent=msg; return msg; }
+function crrtClear(){ ['cWt','cDose','cPre','cPost','cQd','cF','cNa','cPh','cCa','cMg','cAbw','cBfr','cHct','cUf','cHco3','cKOrd','cCa24','cK','crPaste'].forEach(id=>{ $(id).value=''; }); $('cBfr').dataset.lo=''; $('cHr').value=24; $('crMsg').textContent=''; renderCrrt(); }
 (function(){ if(!$('crOut')) return;
+  $('crRead').onclick=()=>crrtRead(); $('crClr').onclick=crrtClear;
   $('cFt').innerHTML=`<table class="ctbl" style="width:100%;text-align:center;font-size:13px"><thead><tr><th>สูตร</th><th>Serum Na</th><th>pH</th><th>7.5% NaHCO3</th><th>0.45% NaCl</th><th>0.9% NaCl</th><th>3% NaCl</th><th>SW</th><th>Final Na</th></tr></thead><tbody>${CRRT_F.map((f,i)=>`<tr data-cf="${i+1}" style="cursor:pointer"><td><b>${i+1}</b>${f[6]?'':' ⚑'}</td>${i%5===0?`<td rowspan="5">${CRRT_NAG[i/5]}</td>`:''}<td>${CRRT_PH[i%5]}</td>${f.slice(0,5).map(v=>`<td>${v||'0'}</td>`).join('')}<td>${f[5]}</td></tr>`).join('')}</tbody></table><p class="hint" style="margin:4px 0 0">คลิกแถวเพื่อเลือกสูตร · ทุกสูตรรวม 1,000 ml · ⚑ = อ่านจากภาพได้ไม่ครบ คำนวณย้อนจาก Final Na — ยืนยันกับใบสั่งจริง</p>`;
   $('cFt').querySelectorAll('[data-cf]').forEach(r=>r.onclick=()=>{ $('cF').value=r.dataset.cf; renderCrrt(); });
   ['cWt','cDose','cPre','cPost','cQd','cHr','cSet','cK','cF','cNa','cPh','cCa','cMg','cMode','cAbw','cBfr','cHct','cUf','cHco3','cKOrd','cCa24'].forEach(id=>{ $(id).addEventListener('input',renderCrrt); $(id).addEventListener('change',renderCrrt); });
@@ -7279,6 +7321,7 @@ const PF_LINK={
  iou:{to:'iPaste',f:null,run:()=>$('iRead').click(),clr:'iClr',g:'ทุกรายการ'},
  dtl:{to:'dtPaste',f:null,run:null,clr:null,auto:false,g:'ทุกรายการ (กด "เพิ่มจากคำสั่ง")'},
  mr:{to:'mrB',f:null,run:null,clr:'mrClr',auto:false,g:'ยาระหว่างนอน รพ. (ช่อง ③)'},
+ crrt:{to:'crPaste',f:r=>/pot\.?\s*chlor|\bkcl\b|mag\.?\s*sulf|mgso4|calcium\s*gluc|ca\s*gluc|crrt|cvvh/i.test(r.raw),run:()=>$('crRead').click(),clr:'crClr',g:'KCl / MgSO4 / Ca gluconate'},
  pk:{to:null,f:r=>/vancomycin|vancocin|colisti|colomycin|polymyxin\s*e/i.test(r.raw+' '+((masterOf(r)||[])[1]||'')),run:pfPk,clr:()=>{ ['vDose','vTau','vTau2'].forEach(id=>$(id).value=''); PK_SHOW.v=PK_SHOW.c=true; renderPk(); },g:'Vancomycin / Colistin'},
 };
 var PK_SHOW={v:true,c:true}, PF_SIG={};
@@ -7319,6 +7362,7 @@ function pfReset(t,quiet){ const L=PF_LINK[t]; if(L){ if(L.to&&$(L.to)){ $(L.to)
   else { const sec=$('p-'+t); if(sec) sec.querySelectorAll('input[type=number],input:not([type]),input[type=text],textarea').forEach(el=>{ if(el.closest('.pfbar')) return; el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); }); }
   if(!quiet){ pfUpdate(t); pfMsg(t,'เริ่มใหม่แล้ว — กด ⤓ เพื่อดึงใบสั่งอีกครั้ง'); } }
 function pfRead(t){ const b=$('pf-'+t), ta=b.querySelector('.pfpaste textarea'), raw=ta.value; if(!raw.trim()) return; const got=[];
+  if(t==='crrt'&&typeof crrtRead==='function'){ $('crPaste').value=raw; delete $('crPaste').dataset.pfAuto; ta.value=''; const m=crrtRead(); pfUpdate(t); pfMsg(t,m); return; }
   if(typeof demoClear==='function') demoClear();
   if(typeof EX_TXT!=='undefined'&&$('paste').value===EX_TXT){ $('paste').value=''; rows=[]; } // ล้างใบสั่งตัวอย่างก่อน
   const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(v.k!=null&&typeof kFromText==='function') kFromText(raw,true); if(nl) got.push(`Lab ${nl} ค่า`);

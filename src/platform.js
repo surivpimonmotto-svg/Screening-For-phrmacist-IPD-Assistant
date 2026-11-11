@@ -18,6 +18,7 @@ const PF_LINK={
  iou:{to:'iPaste',f:null,run:()=>$('iRead').click(),clr:'iClr',g:'ทุกรายการ'},
  dtl:{to:'dtPaste',f:null,run:null,clr:null,auto:false,g:'ทุกรายการ (กด "เพิ่มจากคำสั่ง")'},
  mr:{to:'mrB',f:null,run:null,clr:'mrClr',auto:false,g:'ยาระหว่างนอน รพ. (ช่อง ③)'},
+ crrt:{to:'crPaste',f:r=>/pot\.?\s*chlor|\bkcl\b|mag\.?\s*sulf|mgso4|calcium\s*gluc|ca\s*gluc|crrt|cvvh/i.test(r.raw),run:()=>$('crRead').click(),clr:'crClr',g:'KCl / MgSO4 / Ca gluconate'},
  pk:{to:null,f:r=>/vancomycin|vancocin|colisti|colomycin|polymyxin\s*e/i.test(r.raw+' '+((masterOf(r)||[])[1]||'')),run:pfPk,clr:()=>{ ['vDose','vTau','vTau2'].forEach(id=>$(id).value=''); PK_SHOW.v=PK_SHOW.c=true; renderPk(); },g:'Vancomycin / Colistin'},
 };
 var PK_SHOW={v:true,c:true}, PF_SIG={};
@@ -58,6 +59,7 @@ function pfReset(t,quiet){ const L=PF_LINK[t]; if(L){ if(L.to&&$(L.to)){ $(L.to)
   else { const sec=$('p-'+t); if(sec) sec.querySelectorAll('input[type=number],input:not([type]),input[type=text],textarea').forEach(el=>{ if(el.closest('.pfbar')) return; el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); }); }
   if(!quiet){ pfUpdate(t); pfMsg(t,'เริ่มใหม่แล้ว — กด ⤓ เพื่อดึงใบสั่งอีกครั้ง'); } }
 function pfRead(t){ const b=$('pf-'+t), ta=b.querySelector('.pfpaste textarea'), raw=ta.value; if(!raw.trim()) return; const got=[];
+  if(t==='crrt'&&typeof crrtRead==='function'){ $('crPaste').value=raw; delete $('crPaste').dataset.pfAuto; ta.value=''; const m=crrtRead(); pfUpdate(t); pfMsg(t,m); return; }
   if(typeof demoClear==='function') demoClear();
   if(typeof EX_TXT!=='undefined'&&$('paste').value===EX_TXT){ $('paste').value=''; rows=[]; } // ล้างใบสั่งตัวอย่างก่อน
   const v=labParse(raw); let nl=0; LAB_DEF.forEach(([k,,,,fld])=>{ if(v[k]==null) return; const el=$(fld||('L_'+k)); if(el){ el.value=v[k]; nl++; } }); if(v.k!=null&&typeof kFromText==='function') kFromText(raw,true); if(nl) got.push(`Lab ${nl} ค่า`);

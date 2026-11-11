@@ -84,3 +84,10 @@ function pfAsk(show){ let b=$('newPtAsk'); if(!b){ const a=$('pasteSt')||$('past
     $('npNo').onclick=()=>{ b.hidden=true; };
     $('npYes').onclick=()=>{ const t=$('paste').value; $('clearAll').click(); Object.keys(PF_LINK).forEach(x=>pfReset(x,true)); PF_SIG={}; if(typeof tbrReset==='function') tbrReset(); $('paste').value=t; pfPrevRaw=[]; doParse(true); b.hidden=true; $('ageIn').focus(); }; }
   b.hidden=!show; }
+// ---- วางแล้วได้แต่ตัวเลข (มักเป็น AN/HN/เลขใบสั่งที่ติดมาจากคลิปบอร์ด) → ลบทันที + บอกวิธีคัดลอกคำสั่งยา
+(function(){ const IDS=['paste','hPaste','lpPaste','dtPaste','xPaste','wOrder','vPaste','nePaste','cPaste','iPaste','mrA1','mrA2','mrB','mrC'];
+  const onlyId=t=>/^[\s\d\-\/.,:]+$/.test(t)&&(t.replace(/\D/g,'').length>=6);
+  IDS.forEach(id=>{ const ta=$(id); if(!ta) return; ta.addEventListener('input',e=>{ const t=ta.value; if(!t.trim()||!onlyId(t)) return;
+    ta.value=''; ta.dispatchEvent(new Event('input',{bubbles:true})); let m=$(id+'IdMsg'); if(!m){ ta.insertAdjacentHTML('afterend',`<div id="${id}IdMsg" class="band w" style="margin:6px 0;font-size:13px"></div>`); m=$(id+'IdMsg'); }
+    m.hidden=false; m.innerHTML=`⚠ <b>ที่วางเป็นตัวเลขอย่างเดียว</b> (น่าจะเป็น AN/HN/เลขใบสั่ง — ลบให้แล้ว ไม่เก็บ) · คลิปบอร์ดไม่มีข้อความคำสั่งยา<br>วิธีคัดลอกคำสั่งยา: ① ลากคลุมตั้งแต่ชื่อยาถึงวิธีใช้ แล้วกด Ctrl+C (ไม่ใช่ดับเบิลคลิกที่เลข) · ② ถ้าหน้า HIS คัดลอกไม่ได้: กด <b>Win+Shift+S</b> ครอบตารางยา แล้วกด Ctrl+V ในช่องนี้ (อ่านจากรูป) <button type="button" class="btn sm" style="margin-left:6px">ปิด</button>`;
+    m.querySelector('button').onclick=()=>{ m.hidden=true; }; setTimeout(()=>{ if(m) m.hidden=true; },20000); }); }); })();

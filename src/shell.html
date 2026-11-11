@@ -420,7 +420,7 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
       <button role="tab" id="t-neo" aria-selected="false">ยาทารกแรกเกิด (รอตรวจ)</button>
       <button role="tab" id="t-tbx" aria-selected="false">ยา TB</button>
       <button role="tab" id="t-iou" aria-selected="false">ใบค้างยา</button>
-      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT (รอปรับปรุง)</button>
+      <button role="tab" id="t-cmt" aria-selected="false">เคมีบำบัด</button><button role="tab" id="t-crrt" aria-selected="false">CRRT</button>
       <button role="tab" id="t-adr" aria-selected="false">ADR / แพ้ยา</button>
       <button role="tab" id="t-rash" aria-selected="false">Atlas ผื่น</button>
       <button role="tab" id="t-rca" aria-selected="false">RCA เหตุการณ์ยา</button>
@@ -986,9 +986,16 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
       <div class="had" style="grid-template-columns:minmax(0,1fr)">
         <div class="panel sec" style="margin:0">
           <h2>CRRT — ปริมาณน้ำยาต่อวัน และยาที่ต้องเตรียม (ใบสั่ง CRRT รพ.มหาสารคาม)</h2>
-          <div style="margin:0 0 10px;padding:10px 12px;border-radius:10px;border:2px solid #f59e0b;background:color-mix(in srgb,#f59e0b 15%,transparent);font-weight:700">⚠ รอปรับปรุง — ยังไม่ใช้คำนวณจ่ายยาจริง<div style="font-weight:400;font-size:.92em;margin-top:4px">รอยืนยัน: ขนาดชุดน้ำยา ("1 set" ผสมสูตรกี่ลิตร) · สูตร 20–25 จากใบสั่งฉบับจริง · ความเข้มข้น HCO3 ในน้ำยา</div></div>
+          <div style="margin:0 0 10px;padding:8px 12px;border-radius:10px;border:1px solid #16a34a;background:color-mix(in srgb,#16a34a 10%,transparent);font-size:13.5px">✓ ตรวจตารางสูตรน้ำยา 25 สูตรกับใบสั่ง CRRT ฉบับจริงแล้ว (11/11/69) · ทดสอบใช้งาน — รอเภสัชกร/แพทย์ ICU ยืนยันเกณฑ์</div></div>
           <div class="grid2">
             <label class="f">น้ำหนัก (IBW ตามใบสั่ง) kg<input id="cWt" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">น้ำหนักจริง (kg)<input id="cAbw" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">BFR (ml/min)<input id="cBfr" type="number" step="any" inputmode="decimal" placeholder="เช่น 150"></label>
+            <label class="f">Hct (%)<input id="cHct" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">Set ultrafiltration (ml/hr)<input id="cUf" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">Serum HCO3 (mEq/L)<input id="cHco3" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">KCl ที่ใบสั่งจ่าย (amp)<input id="cKOrd" type="number" step="any" inputmode="decimal"></label>
+            <label class="f">10% Ca gluconate (ml + D5W 100 ml / 24 ชม.)<input id="cCa24" type="number" step="any" inputmode="decimal"></label>
             <label class="f">CRRT dose (ml/kg/hr)<input id="cDose" type="number" step="any" inputmode="decimal" placeholder="เช่น 30"></label>
             <label class="f">Mode<select id="cMode"><option>CVVHDF</option><option>CVVH</option><option>CVVHD</option><option>SCUF</option></select></label>
             <label class="f">ระยะเวลา (ชม.)<input id="cHr" type="number" step="any" inputmode="decimal" value="24"></label>

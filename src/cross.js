@@ -82,7 +82,7 @@ const XA_GRP={bl:'Beta-lactam',ns:'NSAIDs',aed:'ยากันชัก (AEDs)'
 const XA_FQALT={1:[3,4],2:[4],3:[1,2],4:[1,3]}; const XA_AZST={imid:'imidazole ring',tri:'triazole ring',cl:'Cl atoms',f:'F atoms',arom:'aromatic ring',prop:'propan-2-ol'};
 const XA_SIM=[['amp','amp2'],['mxi','mxi2'],['mxi','atz'],['benz','thie']];
 const XA_SEVERE=/sjs|\bten\b|stevens|toxic\s*epid|dress|dihs|agep|scar|exfoliat|nephritis|hepatitis|hemolytic|ไตอักเสบ|ตับอักเสบ/i;
-function xaFind(text){ const t=(text||'').trim(); if(!t) return []; return XA.filter(x=>x[1].test(t)); }
+function xaFind(text){ const t=(text||'').replace(/([A-Za-z])_([A-Za-z])/g,'$1$2').trim(); /* HIS เขียน CEFA_ZOLIN */ if(!t) return []; return XA.filter(x=>x[1].test(t)); }
 function xaSplit(text){ return (text||'').split(/[,;\n\/]|และ|\+/).map(s=>s.trim()).filter(Boolean); }
 /* เทียบยาแพ้ a กับยาที่จะใช้ b → {lvl:'flag'|'warn'|'ok', txt} หรือ null ถ้าไม่เกี่ยวกัน */
 function xaPair(a,b,o={}){

@@ -121,3 +121,31 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   if(id==='hyoscine'&&ay!=null&&ay<6) add('info','Hyoscine butylbromide ในเด็ก <6 ปี: เอกสารกำกับยาบางผลิตภัณฑ์ไม่แนะนำ — ใช้เมื่อแพทย์พิจารณาแล้ว เฝ้าระวังท้องผูก ปัสสาวะคั่ง หัวใจเต้นเร็ว');
   if(id==='mom') add('info','Milk of Magnesia: ระวังในผู้ป่วยไตบกพร่อง (Mg สะสม) · ห่างจากยาอื่น 2 ชม.');
  }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- Fluconazole ในทารก/เด็ก: prophylaxis สัปดาห์ละ 2 ครั้ง (NICU) · รักษา · นับจำนวนครั้ง/ปริมาตรที่ต้องจ่าย
+// อ้างอิง: IDSA Candidiasis guideline 2016 (Pappas) · NeoFax/Lexicomp pediatric · AAP Red Book
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!r.drug||r.drug.id!=='fluconazole') return r;
+  const am=pedAgeM(), ped=pt.isPed||(am!=null&&am<18*12); if(!ped) return r; const bw=+(pt.dw||pt.bw), raw=row.raw||'';
+  const add=(l,t,top)=>{ if(r.items.some(i=>i.txt===t)) return; const it={lvl:l,txt:t}; top?r.items.unshift(it):r.items.push(it); if(l==='warn'&&(r.status==='ok'||r.status==='none')) r.status='warn'; if(l==='flag') r.status='flag'; if(l==='ok'&&r.status==='none') r.status='ok'; };
+  const form=row.formIdx>=0?r.drug.forms[row.formIdx]:null, mlMg=form&&form[3]==='ml'?form[2]:(+((raw.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*ml/i)||[])[1])||null);
+  const ml=row.doseUnit==='ml'?+row.doseVal:null, mg=ml!=null&&mlMg?ml*mlMg:r.D, nW=row.weekly?row.weekly.covered.length:null, days=row.weekly?row.weekly.segs[0].days.map(d=>DAY_TH[d]).join(' '):'';
+  const du=raw.match(/(?:จนครบ|นาน|ครบ|x|×|for)\s*(\d+)\s*(วัน|สัปดาห์|week|wk|days?|d)(?![a-z])/i), dur=du?(/สัปดาห์|week|wk/i.test(du[2])?+du[1]*7:+du[1]):null;
+  r.items=r.items.filter(i=>!/คำนวณ mg ไม่ได้|ไม่มีกฎขนาดยาเด็ก|จำนวนจ่าย: .*เม็ด\/สัปดาห์/.test(i.txt));
+  if(!(bw>0)){ add('warn','Fluconazole เด็ก/ทารก: ใส่น้ำหนักเพื่อคิด mg/kg'); return r; }
+  const proph=nW&&nW<=3, mk=mg!=null?mg/bw:null, S=[`ขั้นตอนคำนวณ (IDSA Candidiasis 2016 · NeoFax)`,`① น้ำหนัก ${fmtN(bw)} kg${am!=null?` · อายุ ${am<1?fmtN(Math.round(am*30))+' วัน':am<24?fmtN(Math.round(am*10)/10)+' เดือน':fmtN(Math.round(am/12*10)/10)+' ปี'}`:''}`];
+  if(proph){ const lo=3*bw, hi=6*bw;
+    S.push(`② ข้อบ่งใช้: ป้องกัน invasive candidiasis ในทารกน้ำหนักน้อยมาก (ELBW <1,000 g) ใน NICU — 3–6 mg/kg/ครั้ง สัปดาห์ละ 2 ครั้ง นาน 6 สัปดาห์`);
+    S.push(`③ ควรได้: 3–6 × ${fmtN(bw)} = ${fmtN(Math.round(lo*100)/100)}–${fmtN(Math.round(hi*100)/100)} mg/ครั้ง${mlMg?` (${fmtN(Math.round(lo/mlMg*100)/100)}–${fmtN(Math.round(hi/mlMg*100)/100)} ml ของ ${mlMg} mg/ml)`:''}`);
+    S.push(mg!=null?`④ สั่ง: ${ml!=null?fmtN(ml)+' ml × '+mlMg+' mg/ml = ':''}${fmtN(Math.round(mg*100)/100)} mg/ครั้ง ÷ ${fmtN(bw)} kg = ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง · ${days} (สัปดาห์ละ ${nW} ครั้ง)`:'④ อ่านขนาดที่สั่งไม่ได้');
+    if(mk!=null) S.push(`⑤ ผล: ${mk>6.6?'สูงกว่าช่วง':mk<2.7?'ต่ำกว่าช่วง':'อยู่ในช่วง'} (3–6 mg/kg/ครั้ง)`);
+    if(dur&&ml!=null){ const n=Math.round(dur/7*nW), tot=Math.round(n*ml*100)/100; S.push(`⑥ จำนวนครั้ง: ${dur} วัน ≈ ${fmtN(Math.round(dur/7*10)/10)} สัปดาห์ × ${nW} = ${n} ครั้ง → ${fmtN(ml)} ml × ${n} = ${fmtN(tot)} ml (นับจริงตามวันเริ่ม — ดูปฏิทินแท็บ Timeline)`); }
+    add('info',S.join('\n'),true);
+    if(mk!=null) add(mk>6.6?'warn':mk<2.7?'warn':'ok',`Fluconazole prophylaxis: ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง ${mk>6.6?'สูงกว่า':mk<2.7?'ต่ำกว่า':'อยู่ใน'}ช่วง 3–6 mg/kg สัปดาห์ละ 2 ครั้ง`);
+    if(bw>2.5) add('warn',`น้ำหนัก ${fmtN(bw)} kg — prophylaxis แนะนำในทารก ELBW (<1 kg) เป็นหลัก · ตรวจว่าน้ำหนักถูกต้อง/ข้อบ่งใช้`); }
+  else { S.push('② รักษา: ทารก 12 mg/kg/วัน (loading 25 mg/kg) · เด็ก 6–12 mg/kg/วัน (max 800 mg/วัน) · oropharyngeal candidiasis 6 mg/kg วันแรก แล้ว 3 mg/kg/วัน'); if(mk!=null) S.push(`④ สั่ง ${fmtN(Math.round(mg*100)/100)} mg = ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง`); add('info',S.join('\n'),true); }
+  if(mlMg===20||/susp/i.test(raw)) add('info','Fluconazole suspension หลังผสมน้ำเก็บได้ 14 วัน (Diflucan; บางยี่ห้อ 28 วัน — ตรวจฉลาก) · ใช้ 6 สัปดาห์ อาจต้องเปลี่ยนขวดใหม่ทุก 2 สัปดาห์ · ใช้ syringe ตวง 0.1 ml');
+  if(pt.crcl!=null&&pt.crcl<50&&am!=null&&am>=1) add('info',`CrCl ${r1(pt.crcl)} — fluconazole ขับทางไต: ลดขนาด 50% เมื่อ CrCl ≤50 (เด็ก) · ทารกแรกเกิดใช้ช่วงห่างตาม GA/PNA`);
+ }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- ข้อมูลไม่สอดคล้อง: ทารก/เด็กเล็กแต่น้ำหนัก/ส่วนสูงแบบผู้ใหญ่ (มักค้างจากผู้ป่วยรายก่อน)
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ const a0=$('ageIn').value.trim()==='0'&&$('ageU').value==='y', am=a0?6:pedAgeM(), bw=+pt.bw, ht=+$('ht').value;
+  const bad=am!=null&&((am<1&&bw>7)||(am<12&&bw>15)||(am<24&&bw>25)||(am<12&&ht>100));
+  if(bad&&r&&r.items){ const t=`⚠ ข้อมูลผู้ป่วยไม่สอดคล้อง: อายุ ${a0?'0 ปี (ทารก)':am<1?Math.round(am*30)+' วัน':am<24?fmtN(Math.round(am*10)/10)+' เดือน':''} แต่น้ำหนัก ${fmtN(bw)} kg${ht?` สูง ${ht} cm`:''} — อาจค้างจากผู้ป่วยรายก่อน ตรวจ/กรอกน้ำหนักจริงก่อนคำนวณ`; if(!r.items.some(i=>i.txt===t)){ r.items.unshift({lvl:'flag',txt:t}); r.status='flag'; } } }catch(e){} return r; })(evaluate);

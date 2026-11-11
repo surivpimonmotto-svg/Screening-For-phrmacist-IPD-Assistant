@@ -1398,7 +1398,7 @@ const KB=[
   {name:'Induction',bands:[B(70,999,'5 mg/kg q12h',5,10,{kg:true}),B(50,70,'2.5 mg/kg q12h',2.5,5,{kg:true}),B(25,50,'2.5 mg/kg q24h',2.5,2.5,{kg:true}),B(10,25,'1.25 mg/kg q24h',1.25,1.25,{kg:true}),B(0,10,'1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true})],
    HD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์ (วันฟอกให้หลังฟอก)',1.25,0.54,{kg:true}),CAPD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true}),CRRT:M('2.5 mg/kg q24h',2.5,2.5,{kg:true})}],
  note:'ยืนยันแล้ว: "242h" ในคู่มือต้นฉบับ = q24h',src:SRC_RENAL},
-{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/200/,'200 mg cap',200],[/100/,'100 mg',100],[/50/,'50 mg',50],[/400|inj/i,'IV',200,'bottle']],
+{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/susp|syr|20\s*mg\s*\/\s*ml/i,'20 mg/ml susp',20,'ml'],[/inj|100\s*mg\s*\/\s*50\s*ml/i,'IV 100 mg/50 ml',2,'ml'],[/200/,'200 mg cap',200],[/100/,'100 mg',100],[/50/,'50 mg',50],[/400/,'IV',200,'bottle']],
  renal:{bands:[B(50,999,'100-400 mg q24h (Crypto 800-1,200 mg/day)',1200,[400,1200]),B(0,50,'ลด 50% (ปกติ 50-200 mg/day)',600,[200,600])],
   HD:M('วันไม่ฟอกลด 50% / วันฟอกให้ขนาดเต็มหลังฟอก',1200,[400,1200]),CAPD:M('ลด 50%',600,[200,600]),CRRT:M('ขนาดเต็ม',1200,[400,1200])},src:SRC_RENAL},
 
@@ -2217,12 +2217,13 @@ function parseLine(raw){
     wk.segs.filter(s=>s.noDays).forEach(s=>row.issues.push(`ส่วน "${s.raw}" ไม่ระบุวัน — คำสั่งไม่ชัดเจน ยืนยันกับแพทย์`));
     wk.segs.filter(s=>s.noUnits&&!s.noDays).forEach(s=>row.issues.push(`ส่วน "${s.raw}" ไม่ระบุจำนวนเม็ด`));
     const missing=['Mo','Tu','We','Th','Fr','Sa','Su'].filter(d=>!wk.covered.includes(d)&&!wk.off.includes(d));
-    if(missing.length&&missing.length<7) row.issues.push(`ระบุวันไม่ครบ 7 วัน (ไม่ระบุ: ${missing.map(d=>DAY_TH[d]).join(', ')}) — หยุดยาวันดังกล่าว หรือคำสั่งไม่ครบ?`);
+    const wkMl=/(\d)\s*(?:ml|cc|ซีซี|มล)(?![a-z])/i.test(sig), wfLike=drug&&/warfarin/i.test(drug.id||'');
+    if(missing.length&&missing.length<7&&!(wk.segs.length===1&&!wfLike)) row.issues.push(`ระบุวันไม่ครบ 7 วัน (ไม่ระบุ: ${missing.map(d=>DAY_TH[d]).join(', ')}) — หยุดยาวันดังกล่าว หรือคำสั่งไม่ครบ?`);
     const weekUnits=wk.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0);
     wk.weekUnits=weekUnits; wk.mgU=mgU; wk.mgWeek=mgU!=null?weekUnits*mgU:null;
     wk.maxUnits=Math.max(...wk.segs.filter(s=>s.units!=null).map(s=>s.units*(s.tpd||1)));
     const tpdSet=[...new Set(wk.segs.filter(s=>!s.noDays).map(s=>s.tpd||1))];
-    if(unitsSet.length===1&&unitsSet[0]!=null&&tpdSet.length===1){row.doseVal=unitsSet[0];row.doseUnit='unit';row.F=wk.covered.length*tpdSet[0]/7;}
+    if(unitsSet.length===1&&unitsSet[0]!=null&&tpdSet.length===1){row.doseVal=unitsSet[0];row.doseUnit=wkMl?'ml':'unit';row.F=wk.covered.length*tpdSet[0]/7; if(wkMl){ row.weekly.ml=true; row.formIdx=fi; } if(wk.segs.length===1&&!wfLike&&missing.length) row.weekly.nPerWeek=wk.covered.length;}
     else if(mgU!=null){row.doseVal=Math.round(weekUnits*mgU/7*100)/100;row.doseUnit='mg';row.F=1;row.formIdx=fi; wk.avgOnly=true;}
     else {row.F=null;}
   } else {
@@ -2379,8 +2380,8 @@ function evaluate(row,pt,rows){
   if(row.weekly){const w=row.weekly, mu=w.mgU;
     { const wu=w.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0), dp=dispOf(row.raw);
       const tabs=d=>Math.ceil(wu*d/7-1e-9);
-      if(wu>0) add('info',dp?`จ่ายตามคำสั่ง "${dp.txt}": ${fmtN(wu)} เม็ด/สัปดาห์ × ${fmtN(dp.days/7)} สัปดาห์ = ${tabs(dp.days)} เม็ด${mu?` (${mu} mg)`:''}${dp.days%7?' — ไม่ครบสัปดาห์ จำนวนขึ้นกับวันเริ่ม ดูแท็บ Warfarin':''}`:`จำนวนจ่าย: ${fmtN(wu)} เม็ด/สัปดาห์ · 2 สัปดาห์ = ${tabs(14)} · 4 สัปดาห์ = ${tabs(28)} เม็ด${mu?` (${mu} mg)`:''}`); }
-    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>{const t=s.tpd||1;return `${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} เม็ด${t>1?` × ${t} ครั้ง/วัน`:''}${mu!=null&&s.units!=null?` (${t>1?fmtN(s.units*mu)+' mg/ครั้ง = '+fmtN(s.units*mu*t)+' mg/วัน':fmtN(s.units*mu)+' mg'})`:''}`;}).join(' / ');
+      if(wu>0&&!w.ml) add('info',dp?`จ่ายตามคำสั่ง "${dp.txt}": ${fmtN(wu)} เม็ด/สัปดาห์ × ${fmtN(dp.days/7)} สัปดาห์ = ${tabs(dp.days)} เม็ด${mu?` (${mu} mg)`:''}${dp.days%7?' — ไม่ครบสัปดาห์ จำนวนขึ้นกับวันเริ่ม ดูแท็บ Warfarin':''}`:`จำนวนจ่าย: ${fmtN(wu)} เม็ด/สัปดาห์ · 2 สัปดาห์ = ${tabs(14)} · 4 สัปดาห์ = ${tabs(28)} เม็ด${mu?` (${mu} mg)`:''}`); }
+    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>{const t=s.tpd||1;return `${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} ${w.ml?'ml':'เม็ด'}${t>1?` × ${t} ครั้ง/วัน`:''}${mu!=null&&s.units!=null?` (${t>1?fmtN(s.units*mu)+' mg/ครั้ง = '+fmtN(s.units*mu*t)+' mg/วัน':fmtN(s.units*mu)+' mg'})`:''}`;}).join(' / ');
     if(w.off&&w.off.length) add('info',`หยุดยา: ${w.off.map(d=>DAY_TH[d]).join(', ')}`);
     add('info',`สูตรรายวันในสัปดาห์: ${segTxt}${w.mgWeek!=null?` = ${fmtN(w.mgWeek)} mg/สัปดาห์ (เฉลี่ย ${fmtN(w.mgWeek/7)} mg/วัน)`:''}`);
     if(mu!=null&&w.maxUnits*mu>10&&row.drugId==='warfarin') add('warn',`Warfarin วันที่สูงสุด ${fmtN(w.maxUnits*mu)} mg/วัน (>10 mg) — ยืนยันขนาด`);}
@@ -3607,7 +3608,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.37.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.37.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -5588,6 +5589,34 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   if(id==='hyoscine'&&ay!=null&&ay<6) add('info','Hyoscine butylbromide ในเด็ก <6 ปี: เอกสารกำกับยาบางผลิตภัณฑ์ไม่แนะนำ — ใช้เมื่อแพทย์พิจารณาแล้ว เฝ้าระวังท้องผูก ปัสสาวะคั่ง หัวใจเต้นเร็ว');
   if(id==='mom') add('info','Milk of Magnesia: ระวังในผู้ป่วยไตบกพร่อง (Mg สะสม) · ห่างจากยาอื่น 2 ชม.');
  }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- Fluconazole ในทารก/เด็ก: prophylaxis สัปดาห์ละ 2 ครั้ง (NICU) · รักษา · นับจำนวนครั้ง/ปริมาตรที่ต้องจ่าย
+// อ้างอิง: IDSA Candidiasis guideline 2016 (Pappas) · NeoFax/Lexicomp pediatric · AAP Red Book
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!r.drug||r.drug.id!=='fluconazole') return r;
+  const am=pedAgeM(), ped=pt.isPed||(am!=null&&am<18*12); if(!ped) return r; const bw=+(pt.dw||pt.bw), raw=row.raw||'';
+  const add=(l,t,top)=>{ if(r.items.some(i=>i.txt===t)) return; const it={lvl:l,txt:t}; top?r.items.unshift(it):r.items.push(it); if(l==='warn'&&(r.status==='ok'||r.status==='none')) r.status='warn'; if(l==='flag') r.status='flag'; if(l==='ok'&&r.status==='none') r.status='ok'; };
+  const form=row.formIdx>=0?r.drug.forms[row.formIdx]:null, mlMg=form&&form[3]==='ml'?form[2]:(+((raw.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*ml/i)||[])[1])||null);
+  const ml=row.doseUnit==='ml'?+row.doseVal:null, mg=ml!=null&&mlMg?ml*mlMg:r.D, nW=row.weekly?row.weekly.covered.length:null, days=row.weekly?row.weekly.segs[0].days.map(d=>DAY_TH[d]).join(' '):'';
+  const du=raw.match(/(?:จนครบ|นาน|ครบ|x|×|for)\s*(\d+)\s*(วัน|สัปดาห์|week|wk|days?|d)(?![a-z])/i), dur=du?(/สัปดาห์|week|wk/i.test(du[2])?+du[1]*7:+du[1]):null;
+  r.items=r.items.filter(i=>!/คำนวณ mg ไม่ได้|ไม่มีกฎขนาดยาเด็ก|จำนวนจ่าย: .*เม็ด\/สัปดาห์/.test(i.txt));
+  if(!(bw>0)){ add('warn','Fluconazole เด็ก/ทารก: ใส่น้ำหนักเพื่อคิด mg/kg'); return r; }
+  const proph=nW&&nW<=3, mk=mg!=null?mg/bw:null, S=[`ขั้นตอนคำนวณ (IDSA Candidiasis 2016 · NeoFax)`,`① น้ำหนัก ${fmtN(bw)} kg${am!=null?` · อายุ ${am<1?fmtN(Math.round(am*30))+' วัน':am<24?fmtN(Math.round(am*10)/10)+' เดือน':fmtN(Math.round(am/12*10)/10)+' ปี'}`:''}`];
+  if(proph){ const lo=3*bw, hi=6*bw;
+    S.push(`② ข้อบ่งใช้: ป้องกัน invasive candidiasis ในทารกน้ำหนักน้อยมาก (ELBW <1,000 g) ใน NICU — 3–6 mg/kg/ครั้ง สัปดาห์ละ 2 ครั้ง นาน 6 สัปดาห์`);
+    S.push(`③ ควรได้: 3–6 × ${fmtN(bw)} = ${fmtN(Math.round(lo*100)/100)}–${fmtN(Math.round(hi*100)/100)} mg/ครั้ง${mlMg?` (${fmtN(Math.round(lo/mlMg*100)/100)}–${fmtN(Math.round(hi/mlMg*100)/100)} ml ของ ${mlMg} mg/ml)`:''}`);
+    S.push(mg!=null?`④ สั่ง: ${ml!=null?fmtN(ml)+' ml × '+mlMg+' mg/ml = ':''}${fmtN(Math.round(mg*100)/100)} mg/ครั้ง ÷ ${fmtN(bw)} kg = ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง · ${days} (สัปดาห์ละ ${nW} ครั้ง)`:'④ อ่านขนาดที่สั่งไม่ได้');
+    if(mk!=null) S.push(`⑤ ผล: ${mk>6.6?'สูงกว่าช่วง':mk<2.7?'ต่ำกว่าช่วง':'อยู่ในช่วง'} (3–6 mg/kg/ครั้ง)`);
+    if(dur&&ml!=null){ const n=Math.round(dur/7*nW), tot=Math.round(n*ml*100)/100; S.push(`⑥ จำนวนครั้ง: ${dur} วัน ≈ ${fmtN(Math.round(dur/7*10)/10)} สัปดาห์ × ${nW} = ${n} ครั้ง → ${fmtN(ml)} ml × ${n} = ${fmtN(tot)} ml (นับจริงตามวันเริ่ม — ดูปฏิทินแท็บ Timeline)`); }
+    add('info',S.join('\n'),true);
+    if(mk!=null) add(mk>6.6?'warn':mk<2.7?'warn':'ok',`Fluconazole prophylaxis: ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง ${mk>6.6?'สูงกว่า':mk<2.7?'ต่ำกว่า':'อยู่ใน'}ช่วง 3–6 mg/kg สัปดาห์ละ 2 ครั้ง`);
+    if(bw>2.5) add('warn',`น้ำหนัก ${fmtN(bw)} kg — prophylaxis แนะนำในทารก ELBW (<1 kg) เป็นหลัก · ตรวจว่าน้ำหนักถูกต้อง/ข้อบ่งใช้`); }
+  else { S.push('② รักษา: ทารก 12 mg/kg/วัน (loading 25 mg/kg) · เด็ก 6–12 mg/kg/วัน (max 800 mg/วัน) · oropharyngeal candidiasis 6 mg/kg วันแรก แล้ว 3 mg/kg/วัน'); if(mk!=null) S.push(`④ สั่ง ${fmtN(Math.round(mg*100)/100)} mg = ${fmtN(Math.round(mk*100)/100)} mg/kg/ครั้ง`); add('info',S.join('\n'),true); }
+  if(mlMg===20||/susp/i.test(raw)) add('info','Fluconazole suspension หลังผสมน้ำเก็บได้ 14 วัน (Diflucan; บางยี่ห้อ 28 วัน — ตรวจฉลาก) · ใช้ 6 สัปดาห์ อาจต้องเปลี่ยนขวดใหม่ทุก 2 สัปดาห์ · ใช้ syringe ตวง 0.1 ml');
+  if(pt.crcl!=null&&pt.crcl<50&&am!=null&&am>=1) add('info',`CrCl ${r1(pt.crcl)} — fluconazole ขับทางไต: ลดขนาด 50% เมื่อ CrCl ≤50 (เด็ก) · ทารกแรกเกิดใช้ช่วงห่างตาม GA/PNA`);
+ }catch(e){ console.warn(e); } return r; })(evaluate);
+// ---- ข้อมูลไม่สอดคล้อง: ทารก/เด็กเล็กแต่น้ำหนัก/ส่วนสูงแบบผู้ใหญ่ (มักค้างจากผู้ป่วยรายก่อน)
+evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ const a0=$('ageIn').value.trim()==='0'&&$('ageU').value==='y', am=a0?6:pedAgeM(), bw=+pt.bw, ht=+$('ht').value;
+  const bad=am!=null&&((am<1&&bw>7)||(am<12&&bw>15)||(am<24&&bw>25)||(am<12&&ht>100));
+  if(bad&&r&&r.items){ const t=`⚠ ข้อมูลผู้ป่วยไม่สอดคล้อง: อายุ ${a0?'0 ปี (ทารก)':am<1?Math.round(am*30)+' วัน':am<24?fmtN(Math.round(am*10)/10)+' เดือน':''} แต่น้ำหนัก ${fmtN(bw)} kg${ht?` สูง ${ht} cm`:''} — อาจค้างจากผู้ป่วยรายก่อน ตรวจ/กรอกน้ำหนักจริงก่อนคำนวณ`; if(!r.items.some(i=>i.txt===t)){ r.items.unshift({lvl:'flag',txt:t}); r.status='flag'; } } }catch(e){} return r; })(evaluate);
 
 /* ===== hadx.js — แท็บ HAD: Methylprednisolone inj (pulse / mg/kg → vial 40 mg · 1 g, การผสม, เทียบสเตียรอยด์) · rt-PA Alteplase (Actilyse 50 mg)
  ⚑ อ้างอิงทั่วไป: Solu-Medrol SPC · Actilyse SPC · AHA/ASA stroke 2019 · ACC/AHA STEMI · ESC PE — ยืนยันกับแนวทาง รพ.มค */

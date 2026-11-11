@@ -284,12 +284,13 @@ function parseLine(raw){
     wk.segs.filter(s=>s.noDays).forEach(s=>row.issues.push(`ส่วน "${s.raw}" ไม่ระบุวัน — คำสั่งไม่ชัดเจน ยืนยันกับแพทย์`));
     wk.segs.filter(s=>s.noUnits&&!s.noDays).forEach(s=>row.issues.push(`ส่วน "${s.raw}" ไม่ระบุจำนวนเม็ด`));
     const missing=['Mo','Tu','We','Th','Fr','Sa','Su'].filter(d=>!wk.covered.includes(d)&&!wk.off.includes(d));
-    if(missing.length&&missing.length<7) row.issues.push(`ระบุวันไม่ครบ 7 วัน (ไม่ระบุ: ${missing.map(d=>DAY_TH[d]).join(', ')}) — หยุดยาวันดังกล่าว หรือคำสั่งไม่ครบ?`);
+    const wkMl=/(\d)\s*(?:ml|cc|ซีซี|มล)(?![a-z])/i.test(sig), wfLike=drug&&/warfarin/i.test(drug.id||'');
+    if(missing.length&&missing.length<7&&!(wk.segs.length===1&&!wfLike)) row.issues.push(`ระบุวันไม่ครบ 7 วัน (ไม่ระบุ: ${missing.map(d=>DAY_TH[d]).join(', ')}) — หยุดยาวันดังกล่าว หรือคำสั่งไม่ครบ?`);
     const weekUnits=wk.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0);
     wk.weekUnits=weekUnits; wk.mgU=mgU; wk.mgWeek=mgU!=null?weekUnits*mgU:null;
     wk.maxUnits=Math.max(...wk.segs.filter(s=>s.units!=null).map(s=>s.units*(s.tpd||1)));
     const tpdSet=[...new Set(wk.segs.filter(s=>!s.noDays).map(s=>s.tpd||1))];
-    if(unitsSet.length===1&&unitsSet[0]!=null&&tpdSet.length===1){row.doseVal=unitsSet[0];row.doseUnit='unit';row.F=wk.covered.length*tpdSet[0]/7;}
+    if(unitsSet.length===1&&unitsSet[0]!=null&&tpdSet.length===1){row.doseVal=unitsSet[0];row.doseUnit=wkMl?'ml':'unit';row.F=wk.covered.length*tpdSet[0]/7; if(wkMl){ row.weekly.ml=true; row.formIdx=fi; } if(wk.segs.length===1&&!wfLike&&missing.length) row.weekly.nPerWeek=wk.covered.length;}
     else if(mgU!=null){row.doseVal=Math.round(weekUnits*mgU/7*100)/100;row.doseUnit='mg';row.F=1;row.formIdx=fi; wk.avgOnly=true;}
     else {row.F=null;}
   } else {
@@ -446,8 +447,8 @@ function evaluate(row,pt,rows){
   if(row.weekly){const w=row.weekly, mu=w.mgU;
     { const wu=w.segs.filter(s=>!s.noDays&&s.units!=null).reduce((a,s)=>a+s.units*(s.tpd||1)*s.days.length,0), dp=dispOf(row.raw);
       const tabs=d=>Math.ceil(wu*d/7-1e-9);
-      if(wu>0) add('info',dp?`จ่ายตามคำสั่ง "${dp.txt}": ${fmtN(wu)} เม็ด/สัปดาห์ × ${fmtN(dp.days/7)} สัปดาห์ = ${tabs(dp.days)} เม็ด${mu?` (${mu} mg)`:''}${dp.days%7?' — ไม่ครบสัปดาห์ จำนวนขึ้นกับวันเริ่ม ดูแท็บ Warfarin':''}`:`จำนวนจ่าย: ${fmtN(wu)} เม็ด/สัปดาห์ · 2 สัปดาห์ = ${tabs(14)} · 4 สัปดาห์ = ${tabs(28)} เม็ด${mu?` (${mu} mg)`:''}`); }
-    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>{const t=s.tpd||1;return `${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} เม็ด${t>1?` × ${t} ครั้ง/วัน`:''}${mu!=null&&s.units!=null?` (${t>1?fmtN(s.units*mu)+' mg/ครั้ง = '+fmtN(s.units*mu*t)+' mg/วัน':fmtN(s.units*mu)+' mg'})`:''}`;}).join(' / ');
+      if(wu>0&&!w.ml) add('info',dp?`จ่ายตามคำสั่ง "${dp.txt}": ${fmtN(wu)} เม็ด/สัปดาห์ × ${fmtN(dp.days/7)} สัปดาห์ = ${tabs(dp.days)} เม็ด${mu?` (${mu} mg)`:''}${dp.days%7?' — ไม่ครบสัปดาห์ จำนวนขึ้นกับวันเริ่ม ดูแท็บ Warfarin':''}`:`จำนวนจ่าย: ${fmtN(wu)} เม็ด/สัปดาห์ · 2 สัปดาห์ = ${tabs(14)} · 4 สัปดาห์ = ${tabs(28)} เม็ด${mu?` (${mu} mg)`:''}`); }
+    const segTxt=w.segs.filter(s=>!s.noDays).map(s=>{const t=s.tpd||1;return `${s.days.map(d=>DAY_TH[d]).join(',')} ${s.units??'?'} ${w.ml?'ml':'เม็ด'}${t>1?` × ${t} ครั้ง/วัน`:''}${mu!=null&&s.units!=null?` (${t>1?fmtN(s.units*mu)+' mg/ครั้ง = '+fmtN(s.units*mu*t)+' mg/วัน':fmtN(s.units*mu)+' mg'})`:''}`;}).join(' / ');
     if(w.off&&w.off.length) add('info',`หยุดยา: ${w.off.map(d=>DAY_TH[d]).join(', ')}`);
     add('info',`สูตรรายวันในสัปดาห์: ${segTxt}${w.mgWeek!=null?` = ${fmtN(w.mgWeek)} mg/สัปดาห์ (เฉลี่ย ${fmtN(w.mgWeek/7)} mg/วัน)`:''}`);
     if(mu!=null&&w.maxUnits*mu>10&&row.drugId==='warfarin') add('warn',`Warfarin วันที่สูงสุด ${fmtN(w.maxUnits*mu)} mg/วัน (>10 mg) — ยืนยันขนาด`);}

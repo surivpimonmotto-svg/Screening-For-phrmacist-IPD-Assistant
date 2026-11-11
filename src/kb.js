@@ -198,7 +198,7 @@ const KB=[
   {name:'Induction',bands:[B(70,999,'5 mg/kg q12h',5,10,{kg:true}),B(50,70,'2.5 mg/kg q12h',2.5,5,{kg:true}),B(25,50,'2.5 mg/kg q24h',2.5,2.5,{kg:true}),B(10,25,'1.25 mg/kg q24h',1.25,1.25,{kg:true}),B(0,10,'1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true})],
    HD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์ (วันฟอกให้หลังฟอก)',1.25,0.54,{kg:true}),CAPD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true}),CRRT:M('2.5 mg/kg q24h',2.5,2.5,{kg:true})}],
  note:'ยืนยันแล้ว: "242h" ในคู่มือต้นฉบับ = q24h',src:SRC_RENAL},
-{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/200/,'200 mg cap',200],[/100/,'100 mg',100],[/50/,'50 mg',50],[/400|inj/i,'IV',200,'bottle']],
+{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/susp|syr|20\s*mg\s*\/\s*ml/i,'20 mg/ml susp',20,'ml'],[/inj|100\s*mg\s*\/\s*50\s*ml/i,'IV 100 mg/50 ml',2,'ml'],[/200/,'200 mg cap',200],[/100/,'100 mg',100],[/50/,'50 mg',50],[/400/,'IV',200,'bottle']],
  renal:{bands:[B(50,999,'100-400 mg q24h (Crypto 800-1,200 mg/day)',1200,[400,1200]),B(0,50,'ลด 50% (ปกติ 50-200 mg/day)',600,[200,600])],
   HD:M('วันไม่ฟอกลด 50% / วันฟอกให้ขนาดเต็มหลังฟอก',1200,[400,1200]),CAPD:M('ลด 50%',600,[200,600]),CRRT:M('ขนาดเต็ม',1200,[400,1200])},src:SRC_RENAL},
 

@@ -256,7 +256,7 @@ function parseLine(raw){
       if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
       // รูปแบบ paperless "ปริมาณยา : ปริมาตรรวม rate x ml/hr" เช่น "1.6 ML : 20 ml rate 1.6 ml/hr" (ยา 1.6 ml) หรือ "81 mg : 50 ml rate 1.1 ml/hr"
       // คำสั่งเดียวมีหลายชุด (ปรับสูตร/rate) → เก็บทุกชุดใน segs ใช้ชุดสุดท้ายเป็นค่าเริ่มต้น
-      { const segs=[]; for(const m of line.matchAll(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?|ml|cc)\s*:\s*(\d+(?:\.\d+)?)\s*(?:ml|cc)?([^:]*?)(?=\d+(?:\.\d+)?\s*(?:mg|mcg|meq|g|units?|ml|cc)\s*:|$)/gi)){
+      { const segs=[]; for(const m of line.matchAll(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?|ml|cc)\s*:\s*(?:(?:5\s*%\s*D\s*\/?\s*[WN]\s*[SW]?|0\.9\s*%\s*NaCl|D5W|NSS|NS|SWI|SW|สารน้ำ|ผสม(?:ใน)?|in|ใน)\s*)*(\d+(?:\.\d+)?)\s*(?:ml|cc)?([^:]*?)(?=\d+(?:\.\d+)?\s*(?:mg|mcg|meq|g|units?|ml|cc)\s*:|$)/gi)){
           const u=m[2].toLowerCase(), hu=H.u.toLowerCase(), q=+m[1]; let a=null;
           if(/^(ml|cc)$/.test(u)){ const cm=row.had.amp&&am?row.had.amp/(+am[3]):null; a=cm?Math.round(q*cm*1000)/1000:null; }
           else a=u===hu||(u.startsWith('unit')&&hu==='unit')?q:u==='mg'&&hu==='mcg'?q*1000:u==='g'&&hu==='mg'?q*1000:u==='mcg'&&hu==='mg'?q/1000:q;
@@ -768,7 +768,13 @@ function hadCalc(key,inp){
   if(h.maxDay&&h.dose==='mcgkgmin'&&out.perDay>h.maxDay) add('flag',`ต่อวัน ${fmtN(out.perDay)} mg เกิน ${h.maxDay} mg/day`);
   // dispensing
   const per1=inp.amp||h.amp; out.ampDay=out.perDay/per1; out.ampTxt=inp.ampTxt||h.ampTxt;
-  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0){
+  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0&&vol>0&&vol<=60&&conc>0){
+    // syringe pump (เด็ก/ทารก หรือสั่งปริมาตรน้อย) — เตรียมเป็น syringe ตามปริมาตรที่สั่ง ไม่ใช่ถุง 100/250 ml
+    const nS=Math.max(1,Math.ceil(out.volDay/vol-1e-9)), apS=Math.ceil(vol*conc/per1-1e-9);
+    out.bottle=[`syringe ${fmtN(vol)} ml × ${nS}`,'']; out.ampDispense=apS*nS; out.alt=null;
+    out.prep=`syringe ${fmtN(vol)} ml (ยา ${fmtN(vol*conc)} ${h.u} = ${fmtN(Math.round(vol*conc/per1*100)/100)} amp) × ${nS} ครั้ง/วัน — ใช้ ${fmtN(out.volDay)} ml/24 ชม. · syringe 1 อันหมดใน ~${fmtN(Math.round(vol/rate*10)/10)} ชม.`;
+    out.prepAlt=''; if(vol/rate>24) add('info',`Syringe ${fmtN(vol)} ml ที่ rate ${fmtN(rate)} ml/h ใช้ได้ ~${fmtN(Math.round(vol/rate*10)/10)} ชม. — ยาผสมแล้วส่วนใหญ่คงตัว 24 ชม. ควรเปลี่ยน syringe ทุก 24 ชม. (จ่าย ${apS*nS} amp/วัน)`); }
+  else if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0){
     // ห้องยาเลือกถุงที่มีจริง (100 / 250 ml) ให้พอใช้ 24 ชม. แล้วใส่ยาให้ได้ความเข้มข้นเท่าคำสั่ง
     // ยาที่เปิดแล้วไม่แบ่งข้ามถุง → ปัด amp ขึ้นต่อถุง · เลือกชุดถุง (250/100 ml ผสมกันได้) ที่ใช้ยาน้อยที่สุด
     const ampPer=bag=>{let p=bag*conc/per1; return h.tenth?Math.ceil(p/10-1e-9)*10:Math.ceil(p-1e-9);};

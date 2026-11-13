@@ -354,6 +354,12 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
 .pfpaste textarea{width:100%;box-sizing:border-box;font:13px ui-monospace,monospace;color:var(--ink)}
 @media print{.pfbar{display:none}}
 .wblank{outline:2px dashed #dc2626!important;background:#fef2f2!important}
+#ptPaste,#labPaste{min-height:58px!important}
+.ptsum{font-size:12.5px;line-height:1.7;padding:8px 10px;border-radius:10px;border:1px solid var(--line,#cbd5e1);background:color-mix(in srgb,#16a34a 6%,transparent)}
+.ptsum:empty{display:none}
+.ptsum b.k{font-weight:600;color:var(--muted,#475569)}
+.ptsum .chip{display:inline-block;margin:1px 3px 1px 0;padding:0 7px;border-radius:999px;background:color-mix(in srgb,currentColor 7%,transparent);white-space:nowrap}
+.ptsum .chip.hi{color:#b91c1c}.ptsum .chip.lo{color:#1d4ed8}
 </style>
 
 <header class="top">
@@ -368,10 +374,17 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
     <h2>ข้อมูลผู้ป่วย</h2>
     <div id="demoBadge" class="band w" style="margin:0 0 8px;font-size:13px" hidden>⚠ กำลังแสดง <b>ผู้ป่วยตัวอย่าง</b> (อายุ 72 · BW 55 · SCr 2 · K 4.1) — ค่าจะถูกล้างเองเมื่อวางคำสั่งของผู้ป่วยจริง <button type="button" class="btn sm" onclick="demoClear();renderRows();renderHad()">ล้างเดี๋ยวนี้</button></div>
     <div style="display:grid;gap:10px">
-      <details class="labbox" id="ptBox" open><summary>วางข้อมูลจากหน้าจอ HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
-        <textarea id="ptPaste" rows="5" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
+      <details class="labbox" id="ptBox" open><summary>① วางข้อมูลผู้ป่วยจาก HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
+        <textarea id="ptPaste" rows="2" placeholder="Ctrl+V หน้าจอผู้ป่วยทั้งก้อน — อ่านให้ทันทีเมื่อวาง · ชื่อ/HN/AN/เลขบัตรไม่ถูกเก็บ ข้อความถูกลบหลังอ่าน"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
       </details>
+      <details class="labbox" id="labBox" open><summary>② วางผล Lab (วางต่อได้หลายครั้ง) <span id="labSum" class="hint"></span></summary>
+        <textarea id="labPaste" rows="2" placeholder="Ctrl+V ผล Lab — อ่านให้ทันทีเมื่อวาง วางชุดถัดไปต่อได้เลย"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
+        <div id="labGrid" hidden></div>
+        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
+      </details>
+      <div id="ptSum" class="ptsum" aria-live="polite"></div>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
       <fieldset class="grp g-gen"><legend><span class="gi">👤</span>ข้อมูลทั่วไป</legend><div class="grid2">
         <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>
@@ -395,12 +408,6 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
       </div></fieldset>
       <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
-      <details class="labbox" open><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
-        <textarea id="labPaste" rows="5" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
-        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
-        <div id="labGrid" hidden></div>
-        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
-      </details>
     </div>
     <div class="calc" id="calc"></div>
   </aside>

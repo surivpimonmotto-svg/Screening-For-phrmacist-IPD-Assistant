@@ -354,6 +354,12 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
 .pfpaste textarea{width:100%;box-sizing:border-box;font:13px ui-monospace,monospace;color:var(--ink)}
 @media print{.pfbar{display:none}}
 .wblank{outline:2px dashed #dc2626!important;background:#fef2f2!important}
+#ptPaste,#labPaste{min-height:58px!important}
+.ptsum{font-size:12.5px;line-height:1.7;padding:8px 10px;border-radius:10px;border:1px solid var(--line,#cbd5e1);background:color-mix(in srgb,#16a34a 6%,transparent)}
+.ptsum:empty{display:none}
+.ptsum b.k{font-weight:600;color:var(--muted,#475569)}
+.ptsum .chip{display:inline-block;margin:1px 3px 1px 0;padding:0 7px;border-radius:999px;background:color-mix(in srgb,currentColor 7%,transparent);white-space:nowrap}
+.ptsum .chip.hi{color:#b91c1c}.ptsum .chip.lo{color:#1d4ed8}
 </style>
 
 <header class="top">
@@ -368,10 +374,17 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
     <h2>ข้อมูลผู้ป่วย</h2>
     <div id="demoBadge" class="band w" style="margin:0 0 8px;font-size:13px" hidden>⚠ กำลังแสดง <b>ผู้ป่วยตัวอย่าง</b> (อายุ 72 · BW 55 · SCr 2 · K 4.1) — ค่าจะถูกล้างเองเมื่อวางคำสั่งของผู้ป่วยจริง <button type="button" class="btn sm" onclick="demoClear();renderRows();renderHad()">ล้างเดี๋ยวนี้</button></div>
     <div style="display:grid;gap:10px">
-      <details class="labbox" id="ptBox" open><summary>วางข้อมูลจากหน้าจอ HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
-        <textarea id="ptPaste" rows="5" placeholder="คัดลอกหน้าจอผู้ป่วยของเภสัช (ส่วนข้อมูลผู้ป่วย + Laboratory Results) มาวางได้ทั้งก้อน — ชื่อ/HN/AN/เลขบัตร จะไม่ถูกเก็บ และข้อความจะถูกลบทันทีหลังอ่าน"></textarea>
+      <details class="labbox" id="ptBox" open><summary>① วางข้อมูลผู้ป่วยจาก HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
+        <textarea id="ptPaste" rows="2" placeholder="Ctrl+V หน้าจอผู้ป่วยทั้งก้อน — อ่านให้ทันทีเมื่อวาง · ชื่อ/HN/AN/เลขบัตรไม่ถูกเก็บ ข้อความถูกลบหลังอ่าน"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
       </details>
+      <details class="labbox" id="labBox" open><summary>② วางผล Lab (วางต่อได้หลายครั้ง) <span id="labSum" class="hint"></span></summary>
+        <textarea id="labPaste" rows="2" placeholder="Ctrl+V ผล Lab — อ่านให้ทันทีเมื่อวาง วางชุดถัดไปต่อได้เลย"></textarea>
+        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
+        <div id="labGrid" hidden></div>
+        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
+      </details>
+      <div id="ptSum" class="ptsum" aria-live="polite"></div>
       <div class="seg" role="group" aria-label="เพศ"><button type="button" id="sexM" aria-pressed="true">ชาย</button><button type="button" id="sexF" aria-pressed="false">หญิง</button></div>
       <fieldset class="grp g-gen"><legend><span class="gi">👤</span>ข้อมูลทั่วไป</legend><div class="grid2">
         <label class="f">อายุ<span style="display:flex;gap:4px"><input id="ageIn" type="number" inputmode="decimal" min="0" step="any" style="min-width:0;flex:1"><select id="ageU" style="width:auto;flex:none"><option value="y">ปี</option><option value="m">เดือน</option><option value="d">วัน</option></select></span><input id="age" type="hidden"></label>
@@ -395,12 +408,6 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
         <label class="f">Mg (mg/dL)<input id="mgl" type="number" inputmode="decimal" step="0.1"></label>
       </div></fieldset>
       <fieldset class="grp g-cbc"><legend><span class="gi">🔬</span>เม็ดเลือด / อื่นๆ <span class="gs" id="gs-cbc"></span></legend><div class="grid2" id="lg-cbc"></div></fieldset>
-      <details class="labbox" open><summary>วางผล Lab อย่างเดียว <span id="labSum" class="hint"></span></summary>
-        <textarea id="labPaste" rows="5" placeholder="วางผล Lab ที่คัดลอกจากหน้าจอเภสัช HIS (ไม่ต้องมีชื่อ/HN)"></textarea>
-        <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
-        <div id="labGrid" hidden></div>
-        <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
-      </details>
     </div>
     <div class="calc" id="calc"></div>
   </aside>
@@ -2198,7 +2205,7 @@ function parseLine(raw){
       if(am&&H.neat&&row.had.vol==null&&row.had.amt>0&&row.had.amp>0){ row.had.vol=Math.round(row.had.amt/row.had.amp*(+am[3])*100)/100; row.had.how='undiluted'; }
       // รูปแบบ paperless "ปริมาณยา : ปริมาตรรวม rate x ml/hr" เช่น "1.6 ML : 20 ml rate 1.6 ml/hr" (ยา 1.6 ml) หรือ "81 mg : 50 ml rate 1.1 ml/hr"
       // คำสั่งเดียวมีหลายชุด (ปรับสูตร/rate) → เก็บทุกชุดใน segs ใช้ชุดสุดท้ายเป็นค่าเริ่มต้น
-      { const segs=[]; for(const m of line.matchAll(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?|ml|cc)\s*:\s*(\d+(?:\.\d+)?)\s*(?:ml|cc)?([^:]*?)(?=\d+(?:\.\d+)?\s*(?:mg|mcg|meq|g|units?|ml|cc)\s*:|$)/gi)){
+      { const segs=[]; for(const m of line.matchAll(/(\d+(?:\.\d+)?)\s*(mg|mcg|meq|g|units?|ml|cc)\s*:\s*(?:(?:5\s*%\s*D\s*\/?\s*[WN]\s*[SW]?|0\.9\s*%\s*NaCl|D5W|NSS|NS|SWI|SW|สารน้ำ|ผสม(?:ใน)?|in|ใน)\s*)*(\d+(?:\.\d+)?)\s*(?:ml|cc)?([^:]*?)(?=\d+(?:\.\d+)?\s*(?:mg|mcg|meq|g|units?|ml|cc)\s*:|$)/gi)){
           const u=m[2].toLowerCase(), hu=H.u.toLowerCase(), q=+m[1]; let a=null;
           if(/^(ml|cc)$/.test(u)){ const cm=row.had.amp&&am?row.had.amp/(+am[3]):null; a=cm?Math.round(q*cm*1000)/1000:null; }
           else a=u===hu||(u.startsWith('unit')&&hu==='unit')?q:u==='mg'&&hu==='mcg'?q*1000:u==='g'&&hu==='mg'?q*1000:u==='mcg'&&hu==='mg'?q/1000:q;
@@ -2710,7 +2717,13 @@ function hadCalc(key,inp){
   if(h.maxDay&&h.dose==='mcgkgmin'&&out.perDay>h.maxDay) add('flag',`ต่อวัน ${fmtN(out.perDay)} mg เกิน ${h.maxDay} mg/day`);
   // dispensing
   const per1=inp.amp||h.amp; out.ampDay=out.perDay/per1; out.ampTxt=inp.ampTxt||h.ampTxt;
-  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0){
+  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0&&vol>0&&vol<=60&&conc>0){
+    // syringe pump (เด็ก/ทารก หรือสั่งปริมาตรน้อย) — เตรียมเป็น syringe ตามปริมาตรที่สั่ง ไม่ใช่ถุง 100/250 ml
+    const nS=Math.max(1,Math.ceil(out.volDay/vol-1e-9)), apS=Math.ceil(vol*conc/per1-1e-9);
+    out.bottle=[`syringe ${fmtN(vol)} ml × ${nS}`,'']; out.ampDispense=apS*nS; out.alt=null;
+    out.prep=`syringe ${fmtN(vol)} ml (ยา ${fmtN(vol*conc)} ${h.u} = ${fmtN(Math.round(vol*conc/per1*100)/100)} amp) × ${nS} ครั้ง/วัน — ใช้ ${fmtN(out.volDay)} ml/24 ชม. · syringe 1 อันหมดใน ~${fmtN(Math.round(vol/rate*10)/10)} ชม.`;
+    out.prepAlt=''; if(vol/rate>24) add('info',`Syringe ${fmtN(vol)} ml ที่ rate ${fmtN(rate)} ml/h ใช้ได้ ~${fmtN(Math.round(vol/rate*10)/10)} ชม. — ยาผสมแล้วส่วนใหญ่คงตัว 24 ชม. ควรเปลี่ยน syringe ทุก 24 ชม. (จ่าย ${apS*nS} amp/วัน)`); }
+  else if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0){
     // ห้องยาเลือกถุงที่มีจริง (100 / 250 ml) ให้พอใช้ 24 ชม. แล้วใส่ยาให้ได้ความเข้มข้นเท่าคำสั่ง
     // ยาที่เปิดแล้วไม่แบ่งข้ามถุง → ปัด amp ขึ้นต่อถุง · เลือกชุดถุง (250/100 ml ผสมกันได้) ที่ใช้ยาน้อยที่สุด
     const ampPer=bag=>{let p=bag*conc/per1; return h.tenth?Math.ceil(p/10-1e-9)*10:Math.ceil(p-1e-9);};
@@ -3617,7 +3630,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.38.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -7301,6 +7314,30 @@ function alertMsg(t){ const m=$('rxMsg'); if(m){ m.textContent=t; setTimeout(()=
   $('rxRed').innerHTML=`<ul style="margin:0;padding-left:20px">${RX_RED.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p class="hint" style="margin:6px 0 0">พบข้อใดข้อหนึ่ง → นึกถึงผื่นแพ้ยารุนแรง (SCAR) หยุดยาที่สงสัย แจ้งแพทย์</p>`;
   $('rxQ').addEventListener('input',rxRender); $('rxCat').addEventListener('change',rxRender); rxRender(); })();
 
+/* ===== quickpaste.js — แผงผู้ป่วย: วางข้อมูลผู้ป่วย + Lab ต่อกันด้านบน · อ่านทันทีเมื่อวาง · สรุปค่าที่อ่านได้ให้เห็นในที่เดียว ===== */
+const QP_RNG={scr:[0.5,1.2],bun:[7,20],wbc:[4000,11000],neu:[40,75],hb:[12,17],hct:[36,50],plt:[150000,450000],alb:[3.5,5],ast:[0,40],alt:[0,40],tbil:[0,1.2],dbil:[0,0.3],ca:[8.5,10.5],phos:[2.5,4.5],mgl:[1.8,2.4],na:[135,145],k:[3.5,5],hco3:[22,28],ph:[7.35,7.45],lact:[0,2],inr:[0,1.2],cpk:[0,200],uric:[2.5,7],alp:[40,130],egfrIn:[60,999],crclIn:[60,999]};
+function qpVal(k,fld){ const el=$(fld||('L_'+k)); return el&&el.value!==''?+el.value:null; }
+function qpSum(){ const box=$('ptSum'); if(!box) return; const P=[], age=$('ageIn').value;
+  P.push(`<span class="chip">${typeof sex!=='undefined'&&sex==='F'?'หญิง':'ชาย'}</span>`);
+  if(age) P.push(`<span class="chip">อายุ ${age} ${({y:'ปี',m:'เดือน',d:'วัน'})[$('ageU').value]}</span>`);
+  if($('bw').value) P.push(`<span class="chip">BW ${$('bw').value} kg</span>`); else P.push('<span class="chip hi">ไม่มีน้ำหนัก</span>');
+  if($('ht').value) P.push(`<span class="chip">สูง ${$('ht').value} cm</span>`);
+  if($('mode').value) P.push(`<span class="chip hi">${$('mode').value}</span>`);
+  const al=$('allergy').value.trim(); if(al) P.push(`<span class="chip hi">แพ้: ${esc(al)}</span>`);
+  const L=[]; LAB_DEF.forEach(([k,nm,u,,fld])=>{ const v=qpVal(k,fld); if(v==null) return; const r=QP_RNG[k], c=r?(v>r[1]?' hi':v<r[0]?' lo':''):'';
+    L.push(`<span class="chip${c}" title="${esc(nm)} ${u||''}">${esc(nm.replace('Total Bilirubin','TB').replace('Direct Bilirubin','DB').replace('Hemoglobin','Hb').replace('Hematocrit','Hct').replace('Creatinine','Cr').replace('Platelet','Plt').replace('Neutrophil','Neu').replace('Lymphocyte','Lym').replace('Eosinophil','Eos').replace('Magnesium','Mg').replace('Phosphorus','PO4').replace('Calcium','Ca').replace('Sodium','Na').replace('Potassium','K').replace('Albumin','Alb'))} ${v>=1000?fmtN(v):v}${c===' hi'?'↑':c===' lo'?'↓':''}</span>`); });
+  const pt=typeof getPt==='function'?getPt():{}; if(pt.crcl!=null&&$('crclIn').value==='') L.push(`<span class="chip">CrCl (คำนวณ) ${Math.round(pt.crcl)}</span>`);
+  box.innerHTML=`<div><b class="k">ผู้ป่วย</b> ${P.join('')}</div>`+(L.length?`<div><b class="k">Lab ${L.length} ค่า</b> ${L.join('')}</div>`:'<div class="hint">ยังไม่มี Lab — วางในช่อง ② ได้เลย</div>'); }
+(function(){ if(!$('ptSum')) return;
+  // อ่านทันทีเมื่อวาง (ข้อความ) — ช่องว่างพร้อมวางชุดต่อไป
+  [['ptPaste','ptParse'],['labPaste','labParse']].forEach(([ta,btn])=>{ $(ta).addEventListener('paste',()=>setTimeout(()=>{ if(!$(ta).value.trim()) return; $(btn).click(); if(ta==='labPaste') $('labPaste').value=''; qpSum(); },0)); });
+  $('labParse').addEventListener('click',()=>setTimeout(()=>{ $('labPaste').value=''; qpSum(); },0));
+  $('ptParse').addEventListener('click',()=>setTimeout(qpSum,0));
+  const aside=document.querySelector('aside.pt'); aside.addEventListener('input',e=>{ if(e.target&&/ptPaste|labPaste/.test(e.target.id)) return; qpSum(); }); aside.addEventListener('change',()=>qpSum()); aside.addEventListener('click',e=>{ if(e.target.closest('#sexM,#sexF,#labClear')) setTimeout(qpSum,0); });
+  document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#clearAll,[data-pf="newpt"],#npYes')) setTimeout(qpSum,50); });
+  if(typeof renderRows==="function") renderRows=(o=>function(){ const r=o.apply(this,arguments); try{ qpSum(); }catch(e){} return r; })(renderRows);
+  qpSum(); })();
+
 /* ===== platform.js — เชื่อมทุกแท็บเป็นแพลตฟอร์มเดียว
  · ข้อมูลผู้ป่วย/Lab อยู่ที่แผงซ้ายชุดเดียว ทุกแท็บใช้ร่วมกัน
  · ใบสั่งยาที่วางในแท็บ "ตรวจใบสั่งยา" = ข้อมูลตั้งต้น → เปิดแท็บอื่น ดึงยาที่เกี่ยวข้องให้อัตโนมัติ
@@ -7452,7 +7489,7 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   ta.addEventListener('paste',ev=>{ const it=[...(ev.clipboardData||{}).items||[]].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; const hasText=(ev.clipboardData.getData('text')||'').trim(); if(hasText) return; ev.preventDefault(); ev.stopImmediatePropagation(); ocrImage(it.getAsFile(),ta,msgEl); },true);
   ta.addEventListener('dragover',ev=>{ if([...ev.dataTransfer.items].some(x=>x.type.startsWith('image/'))) ev.preventDefault(); });
   ta.addEventListener('drop',ev=>{ const f=[...ev.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(!f) return; ev.preventDefault(); ocrImage(f,ta,msgEl); }); }
-['mrA1','mrA2','mrB','mrC','paste','labPaste','ptPaste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste','lpPaste','nePaste'].forEach(ocrAttach);
+['mrA1','mrA2','mrB','mrC','paste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste','lpPaste','nePaste'].forEach(ocrAttach);
 
 /* ===== copy.js — ปุ่มคัดลอก: รายส่วน (หัวข้อ h2) · รายช่อง · ทั้งหน้า (ปุ่มลอยมุมขวาล่าง) =====
  คัดลอกทั้งแบบ rich (วางใน Word/LINE/อีเมลเห็นตาราง) และข้อความล้วน · ช่องกรอกถูกแทนด้วยค่าที่กรอก · ไม่คัดลอกปุ่ม */

@@ -270,6 +270,30 @@ function hadNote(k,h,o,cu,V){
   if(S.usual||S.maxDose||S.maxConc) L.push('','  มาตรฐาน',`   Usual dose : ${S.usual||'ยังไม่มีข้อมูล'}`,`   Max dose   : ${S.maxDose||'ยังไม่มีข้อมูล'}`,`   Max conc   : ${S.maxConc||'ยังไม่มีข้อมูล'}`);
   L.push('','  ผู้ตรวจ ............................ (check2)');
   return L.join('\n'); }
+// วิธีคำนวณทีละขั้น (ให้ตรวจย้อนได้)
+function hadSteps(k,h,o,cu){ try{
+  const amt=+$('hAmt').value, vol=+$('hVol').value, rate=+$('hRate').value, bw=+$('hBw').value, A=hadAmp(k), u=h.u, S=[], f=x=>fmtN(Math.round(x*1000)/1000);
+  const am=String(A.t||'').match(/([\d.,]+)\s*(mg|mcg|g|meq|unit|units|iu)\s*\/\s*([\d.]+)\s*ml/i), c0=am?(+am[1].replace(/,/g,''))/(+am[3]):null;
+  const cur=hadList[hadSel], g=cur&&cur.had&&cur.had.key===k?cur.had:null, seg=g&&g.segs?g.segs[(g.segNo||g.segs.length)-1]:null;
+  let dml=g&&g.segTxt&&/^\s*[\d.]+\s*(ml|cc)\s*:/i.test(g.segTxt)?+g.segTxt.match(/^\s*([\d.]+)/)[1]:null;
+  if(dml==null&&g&&!g.segs&&cur&&/([\d.]+)\s*(?:ml|cc)\s*:/i.test(cur.raw)&&c0&&Math.abs(+cur.raw.match(/([\d.]+)\s*(?:ml|cc)\s*:/i)[1]*c0-amt)<0.01) dml=+cur.raw.match(/([\d.]+)\s*(?:ml|cc)\s*:/i)[1];
+  if(c0) S.push(`ความแรงยา: ${esc(A.t)} → ${f(+am[1].replace(/,/g,''))} ÷ ${f(+am[3])} = <b>${f(c0)} ${u}/ml</b>`);
+  if(dml!=null&&c0) S.push(`ปริมาณยาที่ผสม: ${f(dml)} ml × ${f(c0)} ${u}/ml = <b>${f(amt)} ${u}</b>${A.v?` (= ${f(amt)} ÷ ${f(A.v)} = ${f(amt/A.v)} amp)`:''}`);
+  else if(A.v&&amt) S.push(`ปริมาณยา: ${f(amt)} ${u}${A.v?` = ${f(amt)} ÷ ${f(A.v)} ${u}/amp = ${f(amt/A.v)} amp`:''}`);
+  if(vol&&!h.neat) S.push(`ความเข้มข้น: ${f(amt)} ${u} ÷ ${f(vol)} ml = <b>${f(o.conc)} ${cu}</b>${dml!=null?` <span class="hint">(ถ้า ${f(vol)} ml เป็นสารน้ำที่เติมเพิ่ม ปริมาตรรวม = ${f(vol+dml)} ml → ${f(amt/(vol+dml))} ${cu})</span>`:''}`);
+  if(rate) S.push(`ยาต่อชั่วโมง: ${f(rate)} ml/h × ${f(o.conc)} ${cu} = <b>${f(o.perH)} ${u}/h</b>`);
+  const du=String(o.doseU||''); if(o.dose!=null&&rate){ const m=du.match(/^(mg|mcg|g|meq|mEq|unit|units)\s*\/\s*(?:(kg)\s*\/\s*)?(min|h|hr)$/i);
+    if(m){ const tu=m[1].toLowerCase(), fu=u.toLowerCase(); let x=o.perH, st=`${f(o.perH)} ${u}/h`;
+      const conv={'mg>mcg':1000,'mcg>mg':0.001,'g>mg':1000,'mg>g':0.001}[fu+'>'+tu]; if(conv){ x*=conv; st+=` × ${conv>=1?fmtN(conv):'1/'+fmtN(1/conv)} (${u}→${m[1]})`; }
+      if(/min/i.test(m[3])){ x/=60; st+=' ÷ 60 นาที'; } if(m[2]&&bw){ x/=bw; st+=` ÷ ${f(bw)} kg`; }
+      S.push(`Dose: ${st} = <b>${f(x)} ${esc(du)}</b>`); }
+    else S.push(`Dose: <b>${f(o.dose)} ${esc(du)}</b>`); }
+  if(rate) S.push(`ต่อวัน: ${f(rate)} ml/h × 24 = ${f(rate*24)} ml · ยา ${f(o.perH)} × 24 = <b>${f(o.perDay)} ${u}/วัน</b>${A.v?` = ${f(o.perDay/A.v)} amp`:''}`);
+  if(o.bottle&&/syringe/.test(o.bottle[0])&&A.v) S.push(`จ่าย: ${esc(o.bottle[0])} — ต่อ syringe ใช้ยา ${f(vol*o.conc)} ${u} = ${f(vol*o.conc/A.v)} amp → ปัดขึ้น ${Math.ceil(vol*o.conc/A.v-1e-9)} amp/syringe → <b>${o.ampDispense} amp/วัน</b>`);
+  else if(o.bottle&&A.v) S.push(`จ่าย: เตรียม ${esc(o.bottle[0])} ที่ความเข้มข้น ${f(o.conc)} ${cu} (amp ที่เปิดแล้วไม่แบ่งข้ามถุง ปัดขึ้นต่อถุง) → <b>${o.ampDispense} amp/วัน</b>`);
+  if(!S.length) return '';
+  return `<details open class="labbox" style="margin:0 0 12px"><summary><b>วิธีคำนวณ (ตรวจย้อนได้)</b></summary><ol style="margin:6px 0 0;padding-left:20px;line-height:1.7">${S.map(x=>`<li>${x}</li>`).join('')}</ol></details>`;
+ }catch(e){ return ''; } }
 function renderHad(){
   const k=$('hDrug').value,h=HAD[k];
   $('hAmtLab').textContent=`ปริมาณยาในขวด (${h.u})`; $('hInfo').textContent=[hadAmp(k).t,h.dil,h.note].filter(Boolean).join(' · ');
@@ -294,6 +318,7 @@ function renderHad(){
   $('hOut').innerHTML=multi+head+`<h2>ผลคำนวณ</h2>
    <div class="big" style="margin-bottom:12px"><span class="n">${fmtN(o.dose)}</span><span class="u">${esc(o.doseU||'')}</span></div>
    <dl class="kv" style="margin-bottom:12px">${kv.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
+   ${hadSteps(k,h,o,cu)}
    <ul class="msgs">${o.checks.map(m=>`<li data-l="${m.lvl}"><span class="tag ${m.lvl}">${LVL_TXT[m.lvl]}</span><span>${esc(m.txt)}</span></li>`).join('')}</ul>
    <p class="hint" style="margin:12px 0 4px">ข้อความ note</p>
    <div class="inrow" style="justify-content:flex-end;margin:-26px 0 4px"><button class="btn sm pri" id="hCopy" type="button">คัดลอก</button><span class="toast" id="hToast"></span></div>
@@ -461,7 +486,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

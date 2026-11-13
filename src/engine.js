@@ -237,7 +237,7 @@ function parseLine(raw){
     // ใช้ "xx ml/hr" ก่อน แล้วค่อย "rate xx" (ต้องเป็นคำ rate แยก — กัน "TRINITRATE 25" อ่านเป็น rate 25)
     const rate=L.match(/(\d+(?:\.\d+)?)\s*(?:cc|ml|mcd|µd|ud)\s*\/\s*(?:hr|h|ชม|min)()/i)||L.match(/()\brate\s*(\d+(?:\.\d+)?)/i);
     const dil=(L.match(/\b(nss|0\.9\s*%?\s*nss|ns|d5w|d5s|d5|d10w|swfi|sterile water|nss\/2)\b/i)||[])[1]||'';
-    const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*)?(?:nss|ns|d5w|d5s|d5|swfi)?\s*(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i)||L.match(/\b(?:nss|d5w|d5s|swfi)\s*\(\s*(\d+)\s*(?:ml)?\s*\)/i);
+    const dvol=L.match(/(?:\+|in|ผสม(?:ใน)?)\s*(?:0\.9\s*%?\s*|(?:0\.45|5|10)\s*%\s*)?(?:nss|ns|d5w|d5s|d5|swfi|d\s*\/?\s*n\s*\/?\s*s(?:\s*\/\s*2)?|d\s*\/?\s*w|nacl)?\s*(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)\s*(?:ml|cc)?(?![\d.]*\s*(?:mg|mcg|meq|unit|:))/i)||L.match(/(?:สารน้ำ|น้ำเกลือ|\bnss\b|\bd5w\b|\bd5s\b|\bswfi\b)[\s.:=…]*?(?:\(\s*\d+\s*(?:ml)?\s*\)\s*)?(\d+(?:\.\d+)?)[\s.…]*(?:ml|cc|มล)/i)||L.match(/\b(?:nss|d5w|d5s|swfi)\s*\(\s*(\d+)\s*(?:ml)?\s*\)/i);
     let amt=null,vol=null,how='';
     const dvolBad=dvol&&+dvol[1]<20&&(ratio||/สารน้ำ/.test(L)); // "สารน้ำ..1...ml" ในคำสั่ง 2:1 ไม่ใช่ปริมาตรถุง
     // Dopamine/Dobutamine "2:1" = ความเข้มข้น 2 mg/ml → เลือกถุง ≤100 ml/วัน → 100 · ≤750 → 250 (หลายถุงได้ — ถุง 500 ไม่ค่อยมีของ) · >750 → 1000 แล้วคิดปริมาณยา เช่น rate 5 → 120 ml/วัน → 250 ml + 500 mg

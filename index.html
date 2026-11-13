@@ -3655,7 +3655,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -7514,7 +7514,13 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   ta.addEventListener('paste',ev=>{ const it=[...(ev.clipboardData||{}).items||[]].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; const hasText=(ev.clipboardData.getData('text')||'').trim(); if(hasText) return; ev.preventDefault(); ev.stopImmediatePropagation(); ocrImage(it.getAsFile(),ta,msgEl); },true);
   ta.addEventListener('dragover',ev=>{ if([...ev.dataTransfer.items].some(x=>x.type.startsWith('image/'))) ev.preventDefault(); });
   ta.addEventListener('drop',ev=>{ const f=[...ev.dataTransfer.files].find(x=>x.type.startsWith('image/')); if(!f) return; ev.preventDefault(); ocrImage(f,ta,msgEl); }); }
-['mrA1','mrA2','mrB','mrC','paste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste','lpPaste','nePaste'].forEach(ocrAttach);
+['mrA1','mrA2','mrB','mrC','paste','ptPaste','labPaste','wOrder','rImT','vPaste','hPaste','xPaste','iPaste','lpPaste','nePaste'].forEach(ocrAttach);
+
+// แผงผู้ป่วย: ปุ่มอ่านจากรูปเล็ก ไม่เด่น วางท้ายแถวปุ่มอ่าน (ยังวางรูปด้วย Ctrl+V ได้)
+[['ptPaste','ptParse'],['labPaste','labParse']].forEach(([id,btn])=>{ const ta=$(id), bar=ta&&ta.nextElementSibling, row=$(btn)&&$(btn).parentElement; if(!bar||!row||!ta.dataset.ocr) return;
+  bar.style.cssText='display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 0;font-size:11.5px;opacity:.75';
+  const b=bar.querySelector('button'); b.textContent='📷 รูป'; b.style.cssText='padding:1px 8px;font-size:11.5px;min-height:0;background:transparent;border:1px dashed currentColor;color:var(--muted,#64748b)';
+  bar.querySelectorAll('.hint').forEach((h,i)=>{ if(i===0) h.remove(); }); row.after(bar); });
 
 /* ===== copy.js — ปุ่มคัดลอก: รายส่วน (หัวข้อ h2) · รายช่อง · ทั้งหน้า (ปุ่มลอยมุมขวาล่าง) =====
  คัดลอกทั้งแบบ rich (วางใน Word/LINE/อีเมลเห็นตาราง) และข้อความล้วน · ช่องกรอกถูกแทนด้วยค่าที่กรอก · ไม่คัดลอกปุ่ม */

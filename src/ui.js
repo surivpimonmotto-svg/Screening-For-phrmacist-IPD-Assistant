@@ -482,11 +482,11 @@ function jumpTo(root,sel,btn){ const L=[...root.querySelectorAll(sel)]; if(!L.le
 /* ---- สถานะช่องวาง: รู้ทันทีว่าวางแล้ว/อ่านแล้ว */
 function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); if(!c){ ta.insertAdjacentHTML('afterend',`<div class="pstate" id="${id}St" hidden></div>`); c=$(id+'St'); }
   const n=ta.value.split(/\n/).filter(l=>l.trim()).length; ta.classList.toggle('pasted',n>0); c.hidden=!n;
-  if(n) c.innerHTML=`<b>✓ วางแล้ว ${n} บรรทัด</b>${info?` · ${info}`:' · กดปุ่ม "อ่าน" เพื่อคำนวณ'}`; }
+  if(n) c.innerHTML=`<b>✓ วางสำเร็จ ${n} บรรทัด</b>${info?`<span class="ps2"> · ${info}</span>`:'<span class="ps2"> · กดปุ่ม "อ่าน" เพื่อคำนวณ</span>'}`; }
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

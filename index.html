@@ -344,17 +344,18 @@ ul.msgs li:has(.tag.ok){background:#dcfce7;border-left-color:#22c55e} ul.msgs li
 .ohead{border:1px solid var(--line,#e2e8f0);border-radius:10px;padding:8px 10px;margin-bottom:10px;background:var(--panel2,rgba(148,163,184,.08))}.ojump{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 textarea#hPaste,textarea#paste,textarea#lpPaste,textarea#dtPaste,textarea#ptPaste,textarea#labPaste,textarea#mrA1,textarea#mrA2,textarea#mrB,textarea#mrC{color:var(--ink,#0f172a)}
 textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;color:#0f172a!important}
-.pstate{margin-top:4px;padding:4px 10px;border-radius:999px;display:inline-block;background:#dcfce7;color:#166534;font-size:12.5px}
+.pstate{margin-top:6px;padding:6px 14px;border-radius:999px;display:inline-block;background:#16a34a;color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 2px 6px rgba(22,163,74,.35)}
+.pstate b{color:#fff}.pstate .ps2{font-weight:400;opacity:.95}
 #hClr{border-color:#dc2626;color:#b91c1c}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root:not([data-theme="light"]) .pstate{background:#14532d;color:#dcfce7}}
-:root[data-theme="dark"] textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root[data-theme="dark"] .pstate{background:#14532d;color:#dcfce7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root:not([data-theme="light"]) .pstate{background:#15803d;color:#fff}}
+:root[data-theme="dark"] textarea.pasted{background:#052e16!important;color:#ecfdf5!important}:root[data-theme="dark"] .pstate{background:#15803d;color:#fff}
 .pfbar{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:8px 12px;margin:0 0 12px;background:var(--surface);display:grid;gap:4px;font-size:13.5px}
 .pfl{line-height:1.5}.pfk{display:inline-block;min-width:52px;font-weight:700;color:var(--muted);font-size:12px}
 .pfbtn{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}.pfreset{border-color:#dc2626!important;color:#b91c1c!important}
 .pfpaste textarea{width:100%;box-sizing:border-box;font:13px ui-monospace,monospace;color:var(--ink)}
 @media print{.pfbar{display:none}}
 .wblank{outline:2px dashed #dc2626!important;background:#fef2f2!important}
-#ptPaste,#labPaste{min-height:58px!important}
+#ptPaste,#labPaste{min-height:120px!important}
 .ptsum{font-size:12.5px;line-height:1.7;padding:8px 10px;border-radius:10px;border:1px solid var(--line,#cbd5e1);background:color-mix(in srgb,#16a34a 6%,transparent)}
 .ptsum:empty{display:none}
 .ptsum b.k{font-weight:600;color:var(--muted,#475569)}
@@ -375,11 +376,11 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
     <div id="demoBadge" class="band w" style="margin:0 0 8px;font-size:13px" hidden>⚠ กำลังแสดง <b>ผู้ป่วยตัวอย่าง</b> (อายุ 72 · BW 55 · SCr 2 · K 4.1) — ค่าจะถูกล้างเองเมื่อวางคำสั่งของผู้ป่วยจริง <button type="button" class="btn sm" onclick="demoClear();renderRows();renderHad()">ล้างเดี๋ยวนี้</button></div>
     <div style="display:grid;gap:10px">
       <details class="labbox" id="ptBox" open><summary>① วางข้อมูลผู้ป่วยจาก HIS (อายุ · เพศ · น้ำหนัก · ส่วนสูง · แพ้ยา · Lab)</summary>
-        <textarea id="ptPaste" rows="2" placeholder="Ctrl+V หน้าจอผู้ป่วยทั้งก้อน — อ่านให้ทันทีเมื่อวาง · ชื่อ/HN/AN/เลขบัตรไม่ถูกเก็บ ข้อความถูกลบหลังอ่าน"></textarea>
+        <textarea id="ptPaste" rows="5" placeholder="Ctrl+V หน้าจอผู้ป่วยทั้งก้อน — อ่านให้ทันทีเมื่อวาง · ชื่อ/HN/AN/เลขบัตรไม่ถูกเก็บ ข้อความถูกลบหลังอ่าน"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0 0;flex-wrap:wrap"><button type="button" id="ptParse" class="btn sm pri">อ่านข้อมูล</button><span id="ptMsg" class="hint"></span></div>
       </details>
       <details class="labbox" id="labBox" open><summary>② วางผล Lab (วางต่อได้หลายครั้ง) <span id="labSum" class="hint"></span></summary>
-        <textarea id="labPaste" rows="2" placeholder="Ctrl+V ผล Lab — อ่านให้ทันทีเมื่อวาง วางชุดถัดไปต่อได้เลย"></textarea>
+        <textarea id="labPaste" rows="5" placeholder="Ctrl+V ผล Lab — อ่านให้ทันทีเมื่อวาง วางชุดถัดไปต่อได้เลย"></textarea>
         <div style="display:flex;gap:6px;align-items:center;margin:6px 0"><button type="button" id="labParse" class="btn sm pri">อ่านค่า Lab</button><button type="button" id="labClear" class="btn sm">ล้าง</button><span id="labMsg" class="hint"></span></div>
         <div id="labGrid" hidden></div>
         <p class="hint" style="margin:6px 0 0">ANC = WBC × Neutrophil% · Corrected Ca = Ca + 0.8×(4 − Alb) · ค่าที่อ่านได้จะเติมลงช่องในแต่ละกลุ่มด้านบน</p>
@@ -3651,11 +3652,11 @@ function jumpTo(root,sel,btn){ const L=[...root.querySelectorAll(sel)]; if(!L.le
 /* ---- สถานะช่องวาง: รู้ทันทีว่าวางแล้ว/อ่านแล้ว */
 function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); if(!c){ ta.insertAdjacentHTML('afterend',`<div class="pstate" id="${id}St" hidden></div>`); c=$(id+'St'); }
   const n=ta.value.split(/\n/).filter(l=>l.trim()).length; ta.classList.toggle('pasted',n>0); c.hidden=!n;
-  if(n) c.innerHTML=`<b>✓ วางแล้ว ${n} บรรทัด</b>${info?` · ${info}`:' · กดปุ่ม "อ่าน" เพื่อคำนวณ'}`; }
+  if(n) c.innerHTML=`<b>✓ วางสำเร็จ ${n} บรรทัด</b>${info?`<span class="ps2"> · ${info}</span>`:'<span class="ps2"> · กดปุ่ม "อ่าน" เพื่อคำนวณ</span>'}`; }
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -7355,8 +7356,10 @@ function qpSum(){ const box=$('ptSum'); if(!box) return; const P=[], age=$('ageI
   box.innerHTML=`<div><b class="k">ผู้ป่วย</b> ${P.join('')}</div>`+(L.length?`<div><b class="k">Lab ${L.length} ค่า</b> ${L.join('')}</div>`:'<div class="hint">ยังไม่มี Lab — วางในช่อง ② ได้เลย</div>'); }
 (function(){ if(!$('ptSum')) return;
   // อ่านทันทีเมื่อวาง (ข้อความ) — ช่องว่างพร้อมวางชุดต่อไป
-  [['ptPaste','ptParse'],['labPaste','labParse']].forEach(([ta,btn])=>{ $(ta).addEventListener('paste',()=>setTimeout(()=>{ if(!$(ta).value.trim()) return; $(btn).click(); if(ta==='labPaste') $('labPaste').value=''; qpSum(); },0)); });
-  $('labParse').addEventListener('click',()=>setTimeout(()=>{ $('labPaste').value=''; qpSum(); },0));
+  const done=(ta,n)=>{ if(!$(ta+'St')) $(ta).insertAdjacentHTML('afterend',`<div class="pstate" id="${ta}St" hidden></div>`); const c=$(ta+'St'); $(ta).classList.remove('pasted'); if(!c) return; c.hidden=false; c.innerHTML=`<b>✓ วางสำเร็จ อ่านแล้ว ${n} บรรทัด</b><span class="ps2"> · ช่องว่างพร้อมวางชุดต่อไป</span>`; };
+  [['ptPaste','ptParse'],['labPaste','labParse']].forEach(([ta,btn])=>{ const go=()=>{ const v=$(ta).value; if(!v.trim()) return; const n=v.split(/\n/).filter(l=>l.trim()).length; $(btn).click(); $(ta).value=''; done(ta,n); qpSum(); };
+    $(ta).addEventListener('paste',()=>setTimeout(go,0)); $(btn).addEventListener('click',()=>{ const v=$(ta).value; if(v.trim()) setTimeout(()=>done(ta,v.split(/\n/).filter(l=>l.trim()).length),0); },true); });
+  $('labParse').addEventListener('click',()=>setTimeout(()=>{ $('labPaste').value=''; $('labPaste').classList.remove('pasted'); qpSum(); },0));
   $('ptParse').addEventListener('click',()=>setTimeout(qpSum,0));
   const aside=document.querySelector('aside.pt'); aside.addEventListener('input',e=>{ if(e.target&&/ptPaste|labPaste/.test(e.target.id)) return; qpSum(); }); aside.addEventListener('change',()=>qpSum()); aside.addEventListener('click',e=>{ if(e.target.closest('#sexM,#sexF,#labClear')) setTimeout(qpSum,0); });
   document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#clearAll,[data-pf="newpt"],#npYes')) setTimeout(qpSum,50); });

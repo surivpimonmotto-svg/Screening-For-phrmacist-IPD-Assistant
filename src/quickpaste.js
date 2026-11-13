@@ -14,8 +14,10 @@ function qpSum(){ const box=$('ptSum'); if(!box) return; const P=[], age=$('ageI
   box.innerHTML=`<div><b class="k">ผู้ป่วย</b> ${P.join('')}</div>`+(L.length?`<div><b class="k">Lab ${L.length} ค่า</b> ${L.join('')}</div>`:'<div class="hint">ยังไม่มี Lab — วางในช่อง ② ได้เลย</div>'); }
 (function(){ if(!$('ptSum')) return;
   // อ่านทันทีเมื่อวาง (ข้อความ) — ช่องว่างพร้อมวางชุดต่อไป
-  [['ptPaste','ptParse'],['labPaste','labParse']].forEach(([ta,btn])=>{ $(ta).addEventListener('paste',()=>setTimeout(()=>{ if(!$(ta).value.trim()) return; $(btn).click(); if(ta==='labPaste') $('labPaste').value=''; qpSum(); },0)); });
-  $('labParse').addEventListener('click',()=>setTimeout(()=>{ $('labPaste').value=''; qpSum(); },0));
+  const done=(ta,n)=>{ if(!$(ta+'St')) $(ta).insertAdjacentHTML('afterend',`<div class="pstate" id="${ta}St" hidden></div>`); const c=$(ta+'St'); $(ta).classList.remove('pasted'); if(!c) return; c.hidden=false; c.innerHTML=`<b>✓ วางสำเร็จ อ่านแล้ว ${n} บรรทัด</b><span class="ps2"> · ช่องว่างพร้อมวางชุดต่อไป</span>`; };
+  [['ptPaste','ptParse'],['labPaste','labParse']].forEach(([ta,btn])=>{ const go=()=>{ const v=$(ta).value; if(!v.trim()) return; const n=v.split(/\n/).filter(l=>l.trim()).length; $(btn).click(); $(ta).value=''; done(ta,n); qpSum(); };
+    $(ta).addEventListener('paste',()=>setTimeout(go,0)); $(btn).addEventListener('click',()=>{ const v=$(ta).value; if(v.trim()) setTimeout(()=>done(ta,v.split(/\n/).filter(l=>l.trim()).length),0); },true); });
+  $('labParse').addEventListener('click',()=>setTimeout(()=>{ $('labPaste').value=''; $('labPaste').classList.remove('pasted'); qpSum(); },0));
   $('ptParse').addEventListener('click',()=>setTimeout(qpSum,0));
   const aside=document.querySelector('aside.pt'); aside.addEventListener('input',e=>{ if(e.target&&/ptPaste|labPaste/.test(e.target.id)) return; qpSum(); }); aside.addEventListener('change',()=>qpSum()); aside.addEventListener('click',e=>{ if(e.target.closest('#sexM,#sexF,#labClear')) setTimeout(qpSum,0); });
   document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#clearAll,[data-pf="newpt"],#npYes')) setTimeout(qpSum,50); });

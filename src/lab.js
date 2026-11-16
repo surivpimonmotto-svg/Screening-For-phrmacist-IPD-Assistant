@@ -93,6 +93,7 @@ function arvOf(row){ const mm=masterOf(row); const s=row.raw+' '+(mm?mm[1]+' '+m
   if(set.has('TAF')&&!/tenofovir\s*(disoproxil|df\b)|\btdf\b/i.test(s)) set.delete('TDF');
   return [...set]; }
 const RE_RIF=/rifampi|\brifam/i, RE_PPI=/omeprazole|esomeprazole|pantoprazole|lansoprazole|rabeprazole|\bppi\b/i, RE_INDUCER=/phenytoin|dilantin|carbamazepine|tegretol|phenobarb/i;
+const RIF_STOP=/(?:last\s*dose|หยุด|off|stop(?:ped)?)\s*(?:of\s*)?(?:rifampi\w*|rifam\w*|\brif\b)|(?:rifampi\w*|rifam\w*)\s*(?:last\s*dose|หยุด|off)/i;
 function arvChk(row,rows,pt,add){
   const mine=arvOf(row); if(!mine.length) return false;
   const all=rows.map(r=>({r,c:arvOf(r)})).filter(x=>x.c.length);
@@ -100,17 +101,20 @@ function arvChk(row,rows,pt,add){
   const nm=r=>{const mm=masterOf(r);return mm?mm[1]:r.raw.slice(0,40);};
   // ซ้ำ
   const comp=new Set(all.flatMap(x=>x.c));
-  const otherTxt=rows.filter(r=>r!==row).map(r=>r.raw+' '+((masterOf(r)||[])[1]||'')).join(' | ');
+  const otherTxt=rows.filter(r=>r!==row&&!RIF_STOP.test(r.raw)).map(r=>r.raw+' '+((masterOf(r)||[])[1]||'')).join(' | ');
   const BID=/วันละ\s*2\s*ครั้ง|\bbid\b|\bq\s*12|ทุก\s*12|เช้า\s*-?\s*เย็น|1\s*[x×]\s*2/i;
   for(const o of others){ const sh=mine.filter(c=>o.c.includes(c)); if(!sh.length) continue;
     // DTG 50 mg วันละ 2 ครั้ง: TLD (หรือ DTG) 1 เม็ด + DTG 50 เดี่ยว 1 เม็ด ห่างกัน ~12 ชม. — ตั้งใจเพิ่มขนาด ไม่ใช่สั่งซ้ำ
     const dtgOnly=sh.length===1&&sh[0]==='DTG', single=r=>{ const c=arvOf(r); return c.length===1&&c[0]==='DTG'; };
     if(dtgOnly&&(single(row)||single(o.r))&&!BID.test(row.raw)&&!BID.test(o.r.raw)){
-      const ind=[RE_RIF.test(otherTxt+' '+row.raw)&&'Rifampicin',RE_INDUCER.test(otherTxt)&&'Phenytoin/Carbamazepine/Phenobarbital',comp.has('EFV')&&'EFV'].filter(Boolean);
+      const ind=[RE_RIF.test(otherTxt)&&'Rifampicin',RE_INDUCER.test(otherTxt)&&'Phenytoin/Carbamazepine/Phenobarbital',comp.has('EFV')&&'EFV'].filter(Boolean);
       const tm=[row.raw,o.r.raw].map(x=>(x.match(/(?:เวลา\.?\s*)(\d{1,2})[.:](\d{2})/)||[])[1]).filter(Boolean);
       const gap=tm.length===2?Math.abs((+tm[0])-(+tm[1])):null, gapTxt=gap!=null?` (เวลา ${tm.join(' และ ')} น. ห่าง ${gap} ชม.${gap!==12?' — ควรห่าง 12 ชม.':''})`:'';
       if(ind.length) add(gap!=null&&gap!==12?'warn':'ok',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: เหมาะสม เนื่องจากใช้ร่วม ${ind.join(', ')} (inducer ลดระดับ DTG) — ไม่ใช่การสั่งซ้ำ`);
-      else add('warn',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: ไม่พบ rifampicin/inducer ในใบสั่ง — ยืนยันข้อบ่งชี้: เพิ่งหยุด rifampicin (ให้ DTG วันละ 2 ครั้งต่อจนครบ 2 สัปดาห์หลังหยุด), INSTI resistance, หรือยา inducer ที่ไม่ได้อยู่ในใบสั่งนี้ — ถ้าไม่มีข้อบ่งชี้ ให้หยุด DTG เดี่ยว`);
+      else { const src=(($('paste')||{}).value||'')+' '+rows.map(r=>r.raw).join(' '), m=src.match(/(?:last\s*dose|หยุด|off|stop(?:ped)?)\s*(?:of\s*)?(?:rifampi\w*|rifam\w*|\brif\b|R)\s*(?:เมื่อ|on|date)?\s*:?\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/i)||src.match(/(?:rifampi\w*|rifam\w*)\s*(?:last\s*dose|หยุด|off)\s*:?\s*(\d{1,2})\s*\/\s*(\d{1,2})\s*\/\s*(\d{2,4})/i);
+        if(m){ let y=+m[3]; if(y<100) y+=2500; if(y>2400) y-=543; const d0=new Date(y,+m[2]-1,+m[1]), end=new Date(d0.getTime()+14*864e5), off=new Date(d0.getTime()+15*864e5), now=new Date(), th=d=>`${d.getDate()}/${d.getMonth()+1}/${String(d.getFullYear()+543).slice(-2)}`, left=Math.ceil((end-now)/864e5);
+          add(left>=0?'ok':'warn',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: หยุด rifampicin ${th(d0)} → ให้ DTG วันละ 2 ครั้งต่อถึง ${th(end)} (ครบ 2 สัปดาห์) · หยุด DTG เดี่ยวได้ ${th(off)}${left>=0?` (อีก ${left} วัน)`:' — เลยกำหนดแล้ว ควรหยุด DTG เดี่ยว เหลือ TLD วันละครั้ง'}`); }
+        else add('warn',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: ไม่พบ rifampicin/inducer ในใบสั่ง — ยืนยันข้อบ่งชี้: เพิ่งหยุด rifampicin (ให้ DTG วันละ 2 ครั้งต่อจนครบ 2 สัปดาห์หลังหยุด), INSTI resistance, หรือยา inducer ที่ไม่ได้อยู่ในใบสั่งนี้ — ถ้าไม่มีข้อบ่งชี้ ให้หยุด DTG เดี่ยว`); }
       continue; }
     add('flag',`ARV ซ้ำ: ${sh.join(', ')} อยู่ใน "${nm(o.r)}" ด้วย — ระวังยาเม็ดรวม (combined) ซ้ำกับยาเดี่ยว`); }
   if(mine.includes('3TC')||mine.includes('FTC')){ if(comp.has('3TC')&&comp.has('FTC')) add('flag','ARV: 3TC + FTC ห้ามใช้ร่วมกัน (ยากลุ่มเดียวกัน)'); }

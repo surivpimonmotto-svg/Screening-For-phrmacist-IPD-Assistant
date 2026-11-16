@@ -2,6 +2,10 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.39.6
+- DTG วันละ 2 ครั้งหลังหยุด rifampicin: อ่านข้อความ "last dose rifampicin dd/mm/yy" / "หยุด rifampicin …" / "off rifam …" ที่วางมาด้วย → บอกวันครบ 2 สัปดาห์ และวันที่หยุด DTG เดี่ยวได้ พร้อมจำนวนวันที่เหลือ (เลยกำหนด → เตือน)
+- บรรทัดที่บอกว่าหยุด rifampicin ไม่นับเป็นการใช้ rifampicin อยู่
+
 ## v0.39.5 — DTG วันละ 2 ครั้ง (TLD + DTG 50)
 - TLD/ยาที่มี DTG + DTG 50 mg เดี่ยว อย่างละวันละครั้ง → อ่านเป็น DTG 50 mg q12h ไม่ขึ้น "ARV ซ้ำ" อีก
   - มี rifampicin / phenytoin / carbamazepine / phenobarbital / EFV → OK (เหมาะสม)

@@ -486,7 +486,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.8 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.9 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -908,7 +908,9 @@ function cmtParse(){
   const items=[]; rows.forEach(row=>{ const mm=masterOf(row); const s=row.raw+' '+(mm?mm[1]+' '+mm[2]:'');
     const h=CHEMO_MATCH.find(([,re])=>re.test(s)); if(!h) return;
     const cd=chemoDose(row); items.push({drug:h[0],dose:cd.mg??(cd.perM2&&getPt().bsa?Math.round(cd.perM2*getPt().bsa*10)/10:null),F:row.F,raw:row.raw}); });
-  if(!items.length){ $('cMsg').textContent='ไม่พบยาเคมีบำบัดในคำสั่ง'; return; }
+  // ยาเดียวกันขนาดเดียวกันหลายแถว = แยกตามขนาดขวด (เช่น Gemcitabine 1 g + 200 mg สั่ง 1760 mg ทั้งคู่) → นับเป็นรายการเดียว
+  for(let k=items.length-1;k>0;k--){ const j=items.findIndex((x,q)=>q<k&&x.drug===items[k].drug&&x.dose!=null&&x.dose===items[k].dose); if(j>=0){ items[j].raw+=' ‖ '+items[k].raw; items.splice(k,1); } }
+  if(!items.length){ $('cMsg').innerHTML='<b style="color:#b91c1c">ไม่พบยาเคมีบำบัดในคำสั่ง</b> — ต้องมีชื่อยา (เช่น GEMCITABINE …) และขนาด mg ในข้อความที่วาง · บรรทัดค่าเตรียมยา/ยาก่อนให้เคมีไม่ใช้คำนวณ'; renderCmt(); return; }
   const names=[...new Set(items.map(x=>x.drug))];
   const score=r=>{const rs=new Set(r.d.map(x=>chemoBase(x[0]))); const hit=names.filter(n=>rs.has(n)).length; return [hit, -(rs.size-hit)];};
   const best=[...CHEMO_REG].sort((a,b)=>{const A=score(a),B=score(b);return B[0]-A[0]||B[1]-A[1];})[0];
@@ -920,12 +922,13 @@ function cmtParse(){
       pick=cand.find(it=>bol?/push|bolus/i.test(it.raw):inf?/\d+\s*(hr|h|ชม)|infus|drip/i.test(it.raw)&&!/push|bolus/i.test(it.raw):true)||cand[0]; }
     if(pick){ const k=items.indexOf(pick); used.add(k); if(pick.dose!=null) cmtOrd[i]=pick.dose; if(pick.F) cmtF[i]=pick.F; cmtRaw[i]=pick.raw; } });
   cmtExtra=items.filter((_,k)=>!used.has(k));
-  $('cMsg').textContent=`พบยาเคมีบำบัด ${items.length} รายการ → เลือกสูตร ${best.name} ให้อัตโนมัติ (เปลี่ยนสูตรได้)`;
+  const miss=best.d.filter((x,i)=>cmtOrd[i]==null).map(x=>`${x[0]} (${x[3]||''})`);
+  $('cMsg').innerHTML=`<b style="color:#15803d">✓ พบยาเคมีบำบัด ${items.length} รายการ → เลือกสูตร ${esc(best.name)} ให้อัตโนมัติ</b> (เปลี่ยนสูตรได้)${miss.length?`<br>วันนี้ไม่มีคำสั่ง: ${esc(miss.join(', '))} — ถ้าเป็นวันที่สูตรไม่ได้ให้ยานี้ (เช่น Day 8 ของ Cis/Gem ให้เฉพาะ Gemcitabine) ถือว่าถูกต้อง`:''}`;
   renderCmt();
 }
 (function(){ if(!$('cReg')) return;
   $('cReg').innerHTML=[...new Set(CHEMO_REG.map(r=>r.ca))].map(ca=>`<optgroup label="${ca}">${CHEMO_REG.filter(r=>r.ca===ca).map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}</optgroup>`).join('');
-  $('cReg').addEventListener('change',()=>{ cmtOrd={}; cmtF={}; cmtRaw={}; cmtExtra=[]; renderCmt(); }); $('cParse').onclick=cmtParse; $('cClr').onclick=()=>{$('cPaste').value='';$('cMsg').textContent='';cmtOrd={};cmtF={};cmtRaw={};cmtExtra=[];renderCmt();}; $('cAuc').addEventListener('input',renderCmt);
+  $('cReg').addEventListener('change',()=>{ cmtOrd={}; cmtF={}; cmtRaw={}; cmtExtra=[]; renderCmt(); }); $('cParse').onclick=cmtParse; $('cPaste').addEventListener('paste',()=>setTimeout(cmtParse,0)); $('cClr').onclick=()=>{$('cPaste').value='';$('cMsg').textContent='';cmtOrd={};cmtF={};cmtRaw={};cmtExtra=[];renderCmt();}; $('cAuc').addEventListener('input',renderCmt);
   $('t-cmt').addEventListener('click',renderCmt);
   ['bw','ht','scr','crclIn','age'].forEach(id=>$(id).addEventListener('input',()=>{ if(!$('p-cmt').hidden) renderCmt(); }));
 })();

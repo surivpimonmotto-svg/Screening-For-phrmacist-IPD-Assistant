@@ -3671,7 +3671,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.7 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -7517,6 +7517,9 @@ async function ocrImage(blob,ta,msgEl){ const msg=t=>{ if(msgEl){ msgEl.textCont
     if(drugBox&&conf<70){ const L0=t.split('\n'); t=L0.filter(l=>/[A-Za-z]{4,}/.test(l)&&/\d|\b(mg|ml|tab|cap|syr|inj|iv|po|od|bid|tid|qid|prn|hs)\b/i.test(l)).join('\n'); drop+=L0.length-t.split('\n').filter(Boolean).length; }
     if(drugBox&&conf<50){ msg(`ภาพนี้อ่านไม่ชัด (ความมั่นใจ ${conf}%) — ไม่ได้ใส่ข้อความให้ เพื่อกันรายการยาขยะ · ใช้ภาพหน้าจอ HIS/paperless (Snipping Tool ตัดชิดรายการยา) แทนภาพถ่ายหรือลายมือ`); if(msgEl) msgEl.style.color='#b91c1c'; return; }
     if(msgEl) msgEl.style.color='';
+    // ใบสั่งลายมือ (แบบฟอร์ม Progress note / Order for 1 day) หรือข้อความที่ไม่ใช่ชื่อยา → ไม่ใส่ (ตัวอ่านในเบราว์เซอร์อ่านลายมือไม่ได้)
+    if(drugBox&&t.trim()){ const L=t.split('\n').filter(l=>l.trim()), hit=L.filter(l=>{ try{ const r=parseLine(l); return r&&(r.drugId||(typeof masterOf==='function'&&masterOf(r))); }catch(e){ return false; } }).length, form=/progress\s*note|order\s*for\s*(1|one)\s*day|order\s*for\s*continu/i.test(t);
+      if(form||hit<Math.max(2,L.length*0.3)){ msg(`${form?'ภาพนี้เป็นใบสั่งยาลายมือ (Progress note / Order for 1 day)':'ข้อความที่อ่านได้ส่วนใหญ่ไม่ใช่ชื่อยา'} — ตัวอ่านภาพในเบราว์เซอร์อ่านลายมือไม่ได้ (พบชื่อยาที่รู้จัก ${hit}/${L.length} บรรทัด) จึงไม่ได้ใส่ข้อความให้ · คีย์เองที่แท็บ "คีย์จาก scan order" หรือ copy รายการยาจากหน้าจอ paperless (Prescription Details) แทน`); if(msgEl) msgEl.style.color='#b91c1c'; return; } }
     if(!t.trim()){ msg(conf<70?`ภาพนี้อ่านไม่ชัด (ความมั่นใจ ${conf}%) และไม่พบบรรทัดที่เป็นรายการยา — ใช้ภาพหน้าจอ HIS ตัดชิดรายการยา`:'อ่านตัวอักษรจากภาพไม่ได้ — ลองตัดภาพให้ชิดรายการยา หรือใช้ Text actions ของ Snipping Tool'); return; }
     const s=ta.selectionStart??ta.value.length, e=ta.selectionEnd??ta.value.length, pre=ta.value.slice(0,s), post=ta.value.slice(e);
     ta.value=pre+(pre&&!pre.endsWith('\n')?'\n':'')+t+(post&&!post.startsWith('\n')?'\n':'')+post; ta.dispatchEvent(new Event('input',{bubbles:true})); if(ta.id==='wOrder'&&typeof wfParse==='function') wfParse();

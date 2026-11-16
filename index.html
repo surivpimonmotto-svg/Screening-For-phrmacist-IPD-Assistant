@@ -994,7 +994,7 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
       <div class="had" style="grid-template-columns:minmax(0,1fr)">
         <div class="panel sec" style="margin:0">
           <h2>CRRT — ปริมาณน้ำยาต่อวัน และยาที่ต้องเตรียม (ใบสั่ง CRRT รพ.มหาสารคาม)</h2>
-          <div style="margin:0 0 10px;padding:8px 12px;border-radius:10px;border:1px solid #16a34a;background:color-mix(in srgb,#16a34a 10%,transparent);font-size:13.5px">✓ ตรวจตารางสูตรน้ำยา 25 สูตรกับใบสั่ง CRRT ฉบับจริงแล้ว (11/11/69) · ทดสอบใช้งาน — รอเภสัชกร/แพทย์ ICU ยืนยันเกณฑ์</div></div>
+          <div style="margin:0 0 10px;padding:8px 12px;border-radius:10px;border:1px solid #16a34a;background:color-mix(in srgb,#16a34a 10%,transparent);font-size:13.5px">✓ ตรวจตารางสูตรน้ำยา 25 สูตรกับใบสั่ง CRRT ฉบับจริงแล้ว (11/11/69) · ทดสอบใช้งาน — รอเภสัชกร/แพทย์ ICU ยืนยันเกณฑ์</div>
           <div style="margin:0 0 10px"><label class="f" style="display:block">วางใบสั่ง CRRT / หน้าจอ HIS (lab · น้ำหนัก · KCl · MgSO4 · Ca gluconate) — อ่านแล้วเติมช่องด้านล่างให้<textarea id="crPaste" rows="4" placeholder="เช่น&#10;CVVHDF  BFR 120-150 ml/min  IBW 56.9 kg&#10;Pre-dilution 700 ml/hr  Post-dilution 300  Dialysate 1000  UF 140&#10;สูตร 12  KCl 4 mEq/L&#10;Sodium 140  pH 7.584  HCO3 43.6  Hematocrit 32.9&#10;POT.CHLORIDE INJ(20 MEQ/10 ML) 4 meq/L 5&#10;MAG.SULFATE 50% INJ.(1G/2ML) IV DRIP in 24 hr 8 ML 4"></textarea></label>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><button type="button" class="btn pri" id="crRead">อ่านข้อมูล</button><button type="button" class="btn" id="crClr">ล้างแท็บ CRRT</button><span class="toast" id="crMsg"></span></div></div>
           <div class="grid2">
@@ -3656,7 +3656,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.39.3 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.39.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

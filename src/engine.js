@@ -695,8 +695,8 @@ function evalSpecial(d,row,D,F,T,pt,add,rows=[]){
     case 'had': add('info','HAD: ตรวจข้อบ่งใช้ + คำนวณ conc/rate/max ในแท็บ "คำนวณ HAD" แล้ว note "ok (check2)"'); break;
     case 'dtg':{
       const ind=rows.filter(r=>r!==row).map(r=>r.drugId).filter(id=>['rifam','rifinah','phenytoin','efvfdc','phenobarb'].includes(id));
-      if(D!=null&&F!=null){ const T2=D*F;
-        if(ind.length&&T2<95) add('flag',`ใช้ร่วม ${ind.map(i=>KB.find(k=>k.id===i).name).join(', ')}: DTG ต้องเป็น 50 mg q12h (ให้ต่อหลังหยุด inducer 2 สัปดาห์)`);
+      if(D!=null&&F!=null){ const T2=D*F, xD=typeof arvOf==='function'?rows.filter(r=>r!==row&&arvOf(r).includes('DTG')).reduce((a,r)=>a+50*(r.F||1),0):0;
+        if(ind.length&&T2+xD<95) add('flag',`ใช้ร่วม ${ind.map(i=>KB.find(k=>k.id===i).name).join(', ')}: DTG ต้องเป็น 50 mg q12h (ให้ต่อหลังหยุด inducer 2 สัปดาห์)`);
         else if(!ind.length&&T2>55) add('warn','DTG 50 mg q12h ใช้เฉพาะเมื่อใช้ร่วม inducer (Rifampicin, Phenytoin, EFV) หรือดื้อ INSTI — ยืนยันข้อบ่งใช้');
         else add('ok',ind.length?'DTG 50 mg q12h เหมาะกับการใช้ร่วม inducer':'DTG 50 mg q24h'); }
       break;}

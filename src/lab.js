@@ -99,14 +99,25 @@ function arvChk(row,rows,pt,add){
   const others=all.filter(x=>x.r!==row);
   const nm=r=>{const mm=masterOf(r);return mm?mm[1]:r.raw.slice(0,40);};
   // ซ้ำ
-  for(const o of others){ const sh=mine.filter(c=>o.c.includes(c)); if(sh.length) add('flag',`ARV ซ้ำ: ${sh.join(', ')} อยู่ใน "${nm(o.r)}" ด้วย — ระวังยาเม็ดรวม (combined) ซ้ำกับยาเดี่ยว`); }
   const comp=new Set(all.flatMap(x=>x.c));
   const otherTxt=rows.filter(r=>r!==row).map(r=>r.raw+' '+((masterOf(r)||[])[1]||'')).join(' | ');
+  const BID=/วันละ\s*2\s*ครั้ง|\bbid\b|\bq\s*12|ทุก\s*12|เช้า\s*-?\s*เย็น|1\s*[x×]\s*2/i;
+  for(const o of others){ const sh=mine.filter(c=>o.c.includes(c)); if(!sh.length) continue;
+    // DTG 50 mg วันละ 2 ครั้ง: TLD (หรือ DTG) 1 เม็ด + DTG 50 เดี่ยว 1 เม็ด ห่างกัน ~12 ชม. — ตั้งใจเพิ่มขนาด ไม่ใช่สั่งซ้ำ
+    const dtgOnly=sh.length===1&&sh[0]==='DTG', single=r=>{ const c=arvOf(r); return c.length===1&&c[0]==='DTG'; };
+    if(dtgOnly&&(single(row)||single(o.r))&&!BID.test(row.raw)&&!BID.test(o.r.raw)){
+      const ind=[RE_RIF.test(otherTxt+' '+row.raw)&&'Rifampicin',RE_INDUCER.test(otherTxt)&&'Phenytoin/Carbamazepine/Phenobarbital',comp.has('EFV')&&'EFV'].filter(Boolean);
+      const tm=[row.raw,o.r.raw].map(x=>(x.match(/(?:เวลา\.?\s*)(\d{1,2})[.:](\d{2})/)||[])[1]).filter(Boolean);
+      const gap=tm.length===2?Math.abs((+tm[0])-(+tm[1])):null, gapTxt=gap!=null?` (เวลา ${tm.join(' และ ')} น. ห่าง ${gap} ชม.${gap!==12?' — ควรห่าง 12 ชม.':''})`:'';
+      if(ind.length) add(gap!=null&&gap!==12?'warn':'ok',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: เหมาะสม เนื่องจากใช้ร่วม ${ind.join(', ')} (inducer ลดระดับ DTG) — ไม่ใช่การสั่งซ้ำ`);
+      else add('warn',`DTG 50 mg วันละ 2 ครั้ง — "${nm(row)}" + "${nm(o.r)}"${gapTxt}: ไม่พบ rifampicin/inducer ในใบสั่ง — ยืนยันข้อบ่งชี้: เพิ่งหยุด rifampicin (ให้ DTG วันละ 2 ครั้งต่อจนครบ 2 สัปดาห์หลังหยุด), INSTI resistance, หรือยา inducer ที่ไม่ได้อยู่ในใบสั่งนี้ — ถ้าไม่มีข้อบ่งชี้ ให้หยุด DTG เดี่ยว`);
+      continue; }
+    add('flag',`ARV ซ้ำ: ${sh.join(', ')} อยู่ใน "${nm(o.r)}" ด้วย — ระวังยาเม็ดรวม (combined) ซ้ำกับยาเดี่ยว`); }
   if(mine.includes('3TC')||mine.includes('FTC')){ if(comp.has('3TC')&&comp.has('FTC')) add('flag','ARV: 3TC + FTC ห้ามใช้ร่วมกัน (ยากลุ่มเดียวกัน)'); }
   if((mine.includes('TDF')||mine.includes('TAF'))&&comp.has('TDF')&&comp.has('TAF')) add('flag','ARV: TDF + TAF ห้ามใช้ร่วมกัน (tenofovir ซ้ำ)');
   // ปฏิกิริยาระหว่างยา
   if(mine.includes('DTG')){ const ind=[RE_RIF.test(otherTxt)&&'Rifampicin',RE_INDUCER.test(otherTxt)&&'Phenytoin/Carbamazepine/Phenobarbital',comp.has('EFV')&&'EFV'].filter(Boolean);
-    if(ind.length){ const F=row.F; if(F!=null&&F<2) add('flag',`ARV: DTG ใช้ร่วม ${ind.join(', ')} ต้องเป็น 50 mg q12h (ARV Screening IPD 2568) — คำสั่งเป็นวันละ ${fmtN(F)} ครั้ง`); else add('info',`ARV: DTG ใช้ร่วม ${ind.join(', ')} → 50 mg q12h และให้ q12h ต่ออีก 2 สัปดาห์หลังหยุด rifampicin (ARV Screening IPD 2568)`); } }
+    if(ind.length){ const F=row.F, dtgN=all.filter(x=>x.c.includes('DTG')).length; if(F!=null&&F<2&&dtgN>=2){} else if(F!=null&&F<2) add('flag',`ARV: DTG ใช้ร่วม ${ind.join(', ')} ต้องเป็น 50 mg q12h (ARV Screening IPD 2568) — คำสั่งเป็นวันละ ${fmtN(F)} ครั้ง`); else add('info',`ARV: DTG ใช้ร่วม ${ind.join(', ')} → 50 mg q12h และให้ q12h ต่ออีก 2 สัปดาห์หลังหยุด rifampicin (ARV Screening IPD 2568)`); } }
   if(mine.includes('RPV')){ if(RE_PPI.test(otherTxt)) add('flag','ARV: Rilpivirine + PPI ห้ามใช้ร่วม (RPV ดูดซึมลดลงมาก) ⚑'); if(RE_RIF.test(otherTxt)) add('flag','ARV: Rilpivirine + Rifampicin ห้ามใช้ร่วม ⚑'); }
   if(mine.some(c=>ARV_CLS[c]==='PI')&&RE_RIF.test(otherTxt)) add('flag','ARV: PI + Rifampicin ห้ามใช้ร่วม (ระดับ PI ลดลงมาก — พิจารณา rifabutin) ⚑');
   if(mine.includes('ATV')&&RE_PPI.test(otherTxt)) add('warn','ARV: Atazanavir + PPI — ATV ดูดซึมลดลง หลีกเลี่ยง ⚑');

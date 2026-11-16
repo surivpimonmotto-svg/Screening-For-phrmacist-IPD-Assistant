@@ -361,6 +361,9 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
 .ptsum b.k{font-weight:600;color:var(--muted,#475569)}
 .ptsum .chip{display:inline-block;margin:1px 3px 1px 0;padding:0 7px;border-radius:999px;background:color-mix(in srgb,currentColor 7%,transparent);white-space:nowrap}
 .ptsum .chip.hi{color:#b91c1c}.ptsum .chip.lo{color:#1d4ed8}
+.scanwrap{margin:0 0 10px;padding:8px;border:1px dashed var(--line,#cbd5e1);border-radius:10px;position:sticky;top:6px;z-index:5;background:var(--card,#fff)}
+.scanview{max-height:48vh;overflow:auto;border-radius:8px;background:#f1f5f9;text-align:center;cursor:grab}
+.scanview img{display:block;margin:0 auto;transform-origin:center center;max-width:none}
 </style>
 
 <header class="top">
@@ -450,6 +453,13 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
           </div>
         </div>
         <div id="keyBox" hidden>
+          <div id="scanWrap" class="scanwrap" hidden>
+            <div class="inrow" style="justify-content:space-between;margin-bottom:6px"><b style="font-size:13.5px">ภาพใบสั่ง (scan / snip) — อ่านแล้วคีย์ด้านล่าง</b>
+              <div class="inrow"><button type="button" class="btn sm" id="scZo" title="ย่อ">−</button><button type="button" class="btn sm" id="scZi" title="ขยาย">+</button><button type="button" class="btn sm" id="scRot" title="หมุน 90°">⟳</button><button type="button" class="btn sm" id="scFit" title="พอดีกรอบ">พอดี</button><button type="button" class="btn sm" id="scClr" title="ลบภาพ">✕ ลบภาพ</button></div></div>
+            <div id="scanView" class="scanview"><img id="scanImg" alt="ภาพใบสั่งยา"></div>
+            <p class="hint" style="margin:4px 0 0">ภาพอยู่ในเบราว์เซอร์นี้เท่านั้น ไม่ถูกส่งหรือบันทึก · ลบอัตโนมัติเมื่อกด "เริ่มเคสใหม่"</p>
+          </div>
+          <p class="hint" id="scanHint" style="margin:0 0 8px">ใบสั่งที่ยังไม่คีย์ในระบบ: กด Win+Shift+S ครอบใบ scan แล้วคลิกตรงนี้กด <b>Ctrl+V</b> — ภาพจะแสดงไว้ข้างบนให้อ่านไปคีย์ไป (พิมพ์ชื่อยา → Enter)</p>
           <div class="ed" style="grid-template-columns:minmax(160px,2fr) 90px 110px minmax(120px,1fr) auto">
             <input class="ctl" id="kDrug" list="dmList" placeholder="พิมพ์ชื่อยาหรือรหัสยา HIS" aria-label="ยา" autocomplete="off"><datalist id="dmList"></datalist>
             <input class="ctl" id="kDose" type="number" step="any" placeholder="ขนาด" aria-label="ขนาด">

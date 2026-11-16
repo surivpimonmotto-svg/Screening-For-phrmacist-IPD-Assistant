@@ -40,7 +40,7 @@ async function ocrImage(blob,ta,msgEl){ const msg=t=>{ if(msgEl){ msgEl.textCont
     if(msgEl) msgEl.style.color='';
     // ใบสั่งลายมือ (แบบฟอร์ม Progress note / Order for 1 day) หรือข้อความที่ไม่ใช่ชื่อยา → ไม่ใส่ (ตัวอ่านในเบราว์เซอร์อ่านลายมือไม่ได้)
     if(drugBox&&t.trim()){ const L=t.split('\n').filter(l=>l.trim()), hit=L.filter(l=>{ try{ const r=parseLine(l); return r&&(r.drugId||(typeof masterOf==='function'&&masterOf(r))); }catch(e){ return false; } }).length, form=/progress\s*note|order\s*for\s*(1|one)\s*day|order\s*for\s*continu/i.test(t);
-      if(form||hit<Math.max(2,L.length*0.3)){ msg(`${form?'ภาพนี้เป็นใบสั่งยาลายมือ (Progress note / Order for 1 day)':'ข้อความที่อ่านได้ส่วนใหญ่ไม่ใช่ชื่อยา'} — ตัวอ่านภาพในเบราว์เซอร์อ่านลายมือไม่ได้ (พบชื่อยาที่รู้จัก ${hit}/${L.length} บรรทัด) จึงไม่ได้ใส่ข้อความให้ · คีย์เองที่แท็บ "คีย์จาก scan order" หรือ copy รายการยาจากหน้าจอ paperless (Prescription Details) แทน`); if(msgEl) msgEl.style.color='#b91c1c'; return; } }
+      if(form||hit<Math.max(2,L.length*0.3)){ if(ta.id==='paste'&&typeof scanShow==='function'){ scanShow(blob); msg(`${form?'ภาพนี้เป็นใบสั่งยาลายมือ':'ข้อความที่อ่านได้ส่วนใหญ่ไม่ใช่ชื่อยา'} (พบชื่อยา ${hit}/${L.length} บรรทัด) — สลับไปหน้า "คีย์จาก scan order" และแสดงภาพไว้ให้อ่านไปคีย์ไปแล้ว`); if(msgEl) msgEl.style.color='#b45309'; return; } msg(`${form?'ภาพนี้เป็นใบสั่งยาลายมือ (Progress note / Order for 1 day)':'ข้อความที่อ่านได้ส่วนใหญ่ไม่ใช่ชื่อยา'} — ตัวอ่านภาพในเบราว์เซอร์อ่านลายมือไม่ได้ (พบชื่อยาที่รู้จัก ${hit}/${L.length} บรรทัด) จึงไม่ได้ใส่ข้อความให้ · คีย์เองที่แท็บ "คีย์จาก scan order" หรือ copy รายการยาจากหน้าจอ paperless (Prescription Details) แทน`); if(msgEl) msgEl.style.color='#b91c1c'; return; } }
     if(!t.trim()){ msg(conf<70?`ภาพนี้อ่านไม่ชัด (ความมั่นใจ ${conf}%) และไม่พบบรรทัดที่เป็นรายการยา — ใช้ภาพหน้าจอ HIS ตัดชิดรายการยา`:'อ่านตัวอักษรจากภาพไม่ได้ — ลองตัดภาพให้ชิดรายการยา หรือใช้ Text actions ของ Snipping Tool'); return; }
     const s=ta.selectionStart??ta.value.length, e=ta.selectionEnd??ta.value.length, pre=ta.value.slice(0,s), post=ta.value.slice(e);
     ta.value=pre+(pre&&!pre.endsWith('\n')?'\n':'')+t+(post&&!post.startsWith('\n')?'\n':'')+post; ta.dispatchEvent(new Event('input',{bubbles:true})); if(ta.id==='wOrder'&&typeof wfParse==='function') wfParse();
@@ -63,3 +63,21 @@ function ocrAttach(id){ const ta=$(id); if(!ta||ta.dataset.ocr) return; ta.datas
   bar.style.cssText='display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 0;font-size:11.5px;opacity:.75';
   const b=bar.querySelector('button'); b.textContent='📷 รูป'; b.style.cssText='padding:1px 8px;font-size:11.5px;min-height:0;background:transparent;border:1px dashed currentColor;color:var(--muted,#64748b)';
   bar.querySelectorAll('.hint').forEach((h,i)=>{ if(i===0) h.remove(); }); row.after(bar); });
+
+// ---- แสดงภาพ scan/snip ในหน้า "คีย์จาก scan order" (ไม่อ่านอักษร · อยู่ในหน่วยความจำเบราว์เซอร์เท่านั้น)
+let scanUrl=null, scanZ=1, scanR=0;
+function scanApply(){ const im=$('scanImg'); if(!im) return; const w=$('scanView').clientWidth||600; im.style.width=Math.round(w*scanZ)+'px'; im.style.transform=`rotate(${scanR}deg)`; im.style.margin=(scanR%180?Math.round(w*scanZ*0.2):0)+'px auto'; }
+function scanShow(blob){ if(!$('scanWrap')) return; if(scanUrl) URL.revokeObjectURL(scanUrl); scanUrl=URL.createObjectURL(blob); $('scanImg').src=scanUrl; scanZ=1; scanR=0; $('scanWrap').hidden=false; $('scanHint').hidden=true; if(typeof setMode==='function') setMode(false); setTimeout(()=>{ scanApply(); $('kDrug').focus(); },50); }
+function scanClear(){ if(scanUrl) URL.revokeObjectURL(scanUrl); scanUrl=null; if($('scanImg')) $('scanImg').removeAttribute('src'); if($('scanWrap')){ $('scanWrap').hidden=true; $('scanHint').hidden=false; } }
+(function(){ if(!$('scanWrap')) return;
+  $('scZi').onclick=()=>{ scanZ=Math.min(4,scanZ*1.25); scanApply(); }; $('scZo').onclick=()=>{ scanZ=Math.max(0.3,scanZ/1.25); scanApply(); }; $('scRot').onclick=()=>{ scanR=(scanR+90)%360; scanApply(); }; $('scFit').onclick=()=>{ scanZ=1; scanApply(); }; $('scClr').onclick=scanClear;
+  // วางรูปตอนอยู่หน้า "คีย์จาก scan order"
+  document.addEventListener('paste',e=>{ if($('keyBox').hidden||$('p-screen').hidden) return; const it=[...(e.clipboardData&&e.clipboardData.items||[])].find(x=>x.type&&x.type.startsWith('image/')); if(!it) return; e.preventDefault(); scanShow(it.getAsFile()); });
+  // ลากเลื่อนภาพ
+  let dg=null; const v=$('scanView'); v.addEventListener('mousedown',e=>{ dg={x:e.clientX,y:e.clientY,l:v.scrollLeft,t:v.scrollTop}; v.style.cursor='grabbing'; e.preventDefault(); });
+  window.addEventListener('mousemove',e=>{ if(!dg) return; v.scrollLeft=dg.l-(e.clientX-dg.x); v.scrollTop=dg.t-(e.clientY-dg.y); }); window.addEventListener('mouseup',()=>{ dg=null; v.style.cursor='grab'; });
+  v.addEventListener('wheel',e=>{ if(!e.ctrlKey) return; e.preventDefault(); scanZ=Math.max(0.3,Math.min(4,scanZ*(e.deltaY<0?1.15:1/1.15))); scanApply(); },{passive:false});
+  // คีย์เร็ว: Enter ในช่องยา/ขนาด = กดเพิ่ม
+  ['kDrug','kDose'].forEach(id=>$(id).addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.isComposing){ e.preventDefault(); if(id==='kDrug'&&!$('kDose').value){ $('kDose').focus(); return; } $('kAdd').click(); setTimeout(()=>$('kDrug').focus(),0); } }));
+  $('clearAll').addEventListener('click',scanClear);
+})();

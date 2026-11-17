@@ -31,8 +31,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top h1{font-size:1.35rem;margin:0;letter-spacing:-.01em;font-weight:700}
 .top .sub{color:var(--muted);font-size:.9rem}
 .top .ver{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
-.wrap{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.wrap{--ptw:320px;max-width:max(1360px,calc(var(--ptw) + 1060px));margin:0 auto;display:grid;grid-template-columns:var(--ptw) 12px minmax(0,1fr);gap:0 6px;align-items:stretch}
+.wrap>main{align-self:start;min-width:0}.wrap>aside{align-self:start;min-width:0}
+.wrap.ptc{grid-template-columns:0 12px minmax(0,1fr);max-width:1360px}.wrap.ptc>aside{visibility:hidden;overflow:hidden;padding:0;border:0;height:0;min-height:0}
+.split{position:relative;cursor:col-resize;border-radius:8px;touch-action:none}
+.split::before{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;border-radius:2px;background:var(--line,#cbd5e1);transition:background .15s}
+.split:hover::before,.split.drag::before{background:var(--accent,#4f46e5);width:3px}
+.split button{position:sticky;top:45vh;left:0;width:22px;height:46px;margin-left:-5px;padding:0;border-radius:8px;border:1px solid var(--line,#cbd5e1);background:var(--panel,#fff);color:var(--muted,#475569);font-size:12px;cursor:pointer;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.split button:hover{color:var(--accent,#4f46e5);border-color:var(--accent,#4f46e5)}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.split{display:none}.wrap.ptc>aside{visibility:visible;height:auto;padding:16px}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 .pt{position:sticky;top:max(12px,env(safe-area-inset-top,0px));padding:16px}
 @media (max-width:900px){.pt{position:static}}
@@ -416,6 +423,7 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
     <div class="calc" id="calc"></div>
   </aside>
 
+  <div class="split" id="ptSplit" role="separator" aria-orientation="vertical" aria-label="ปรับความกว้างแผงข้อมูลผู้ป่วย" title="ลากเพื่อปรับความกว้าง · ดับเบิลคลิก = ค่าเริ่มต้น"><button type="button" id="ptTog" title="ซ่อน/แสดงแผงข้อมูลผู้ป่วย" aria-label="ซ่อนหรือแสดงแผงข้อมูลผู้ป่วย">◀</button></div>
   <main>
     <div class="tabs" role="tablist">
       <button role="tab" id="t-screen" aria-selected="true">ตรวจใบสั่งยา</button><button role="tab" id="t-mr" aria-selected="false">MR ยากลับบ้าน</button>
@@ -3683,7 +3691,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.40.0 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.40.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -7395,6 +7403,22 @@ function qpSum(){ const box=$('ptSum'); if(!box) return; const P=[], age=$('ageI
   document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#clearAll,[data-pf="newpt"],#npYes')) setTimeout(qpSum,50); });
   if(typeof renderRows==="function") renderRows=(o=>function(){ const r=o.apply(this,arguments); try{ qpSum(); }catch(e){} return r; })(renderRows);
   qpSum(); })();
+
+// ---- ตัวกั้นแผงผู้ป่วย: ลากปรับความกว้าง · ปุ่มซ่อน/แสดง · จำค่าไว้ในเบราว์เซอร์นี้
+(function(){ const sp=$('ptSplit'), W=document.querySelector('.wrap'); if(!sp||!W) return; const MIN=240, MAX=()=>Math.min(720,Math.round(innerWidth*0.55)), DEF=320;
+  const ls=(k,v)=>{ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } };
+  const setW=w=>{ w=Math.max(MIN,Math.min(MAX(),Math.round(w))); W.style.setProperty('--ptw',w+'px'); return w; };
+  const setC=c=>{ W.classList.toggle('ptc',c); $('ptTog').textContent=c?'▶':'◀'; $('ptTog').title=c?'แสดงแผงข้อมูลผู้ป่วย':'ซ่อนแผงข้อมูลผู้ป่วย'; };
+  const w0=+ls('ipd.ptw'); if(w0) setW(w0); setC(ls('ipd.ptc')==='1');
+  let st=null;
+  sp.addEventListener('pointerdown',e=>{ if(e.target.closest('button')||W.classList.contains('ptc')) return; st={x:e.clientX,w:document.querySelector('aside.pt').getBoundingClientRect().width}; sp.classList.add('drag'); sp.setPointerCapture(e.pointerId); document.body.style.userSelect='none'; });
+  sp.addEventListener('pointermove',e=>{ if(!st) return; setW(st.w+(e.clientX-st.x)); });
+  const end=()=>{ if(!st) return; st=null; sp.classList.remove('drag'); document.body.style.userSelect=''; ls('ipd.ptw',parseInt(getComputedStyle(W).getPropertyValue('--ptw'))); };
+  sp.addEventListener('pointerup',end); sp.addEventListener('pointercancel',end);
+  sp.addEventListener('dblclick',e=>{ if(e.target.closest('button')) return; setW(DEF); ls('ipd.ptw',DEF); });
+  sp.addEventListener('keydown',e=>{ if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight') return; const cur=parseInt(getComputedStyle(W).getPropertyValue('--ptw'))||DEF; ls('ipd.ptw',setW(cur+(e.key==='ArrowRight'?20:-20))); e.preventDefault(); }); sp.tabIndex=0;
+  $('ptTog').onclick=()=>{ const c=!W.classList.contains('ptc'); setC(c); ls('ipd.ptc',c?'1':'0'); };
+})();
 
 /* ===== platform.js — เชื่อมทุกแท็บเป็นแพลตฟอร์มเดียว
  · ข้อมูลผู้ป่วย/Lab อยู่ที่แผงซ้ายชุดเดียว ทุกแท็บใช้ร่วมกัน

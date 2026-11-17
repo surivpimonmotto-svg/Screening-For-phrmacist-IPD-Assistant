@@ -31,8 +31,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .top h1{font-size:1.35rem;margin:0;letter-spacing:-.01em;font-weight:700}
 .top .sub{color:var(--muted);font-size:.9rem}
 .top .ver{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
-.wrap{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:320px minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+.wrap{--ptw:320px;max-width:max(1360px,calc(var(--ptw) + 1060px));margin:0 auto;display:grid;grid-template-columns:var(--ptw) 12px minmax(0,1fr);gap:0 6px;align-items:stretch}
+.wrap>main{align-self:start;min-width:0}.wrap>aside{align-self:start;min-width:0}
+.wrap.ptc{grid-template-columns:0 12px minmax(0,1fr);max-width:1360px}.wrap.ptc>aside{visibility:hidden;overflow:hidden;padding:0;border:0;height:0;min-height:0}
+.split{position:relative;cursor:col-resize;border-radius:8px;touch-action:none}
+.split::before{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;border-radius:2px;background:var(--line,#cbd5e1);transition:background .15s}
+.split:hover::before,.split.drag::before{background:var(--accent,#4f46e5);width:3px}
+.split button{position:sticky;top:45vh;left:0;width:22px;height:46px;margin-left:-5px;padding:0;border-radius:8px;border:1px solid var(--line,#cbd5e1);background:var(--panel,#fff);color:var(--muted,#475569);font-size:12px;cursor:pointer;z-index:3;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.split button:hover{color:var(--accent,#4f46e5);border-color:var(--accent,#4f46e5)}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}.split{display:none}.wrap.ptc>aside{visibility:visible;height:auto;padding:16px}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 .pt{position:sticky;top:max(12px,env(safe-area-inset-top,0px));padding:16px}
 @media (max-width:900px){.pt{position:static}}
@@ -416,6 +423,7 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
     <div class="calc" id="calc"></div>
   </aside>
 
+  <div class="split" id="ptSplit" role="separator" aria-orientation="vertical" aria-label="ปรับความกว้างแผงข้อมูลผู้ป่วย" title="ลากเพื่อปรับความกว้าง · ดับเบิลคลิก = ค่าเริ่มต้น"><button type="button" id="ptTog" title="ซ่อน/แสดงแผงข้อมูลผู้ป่วย" aria-label="ซ่อนหรือแสดงแผงข้อมูลผู้ป่วย">◀</button></div>
   <main>
     <div class="tabs" role="tablist">
       <button role="tab" id="t-screen" aria-selected="true">ตรวจใบสั่งยา</button><button role="tab" id="t-mr" aria-selected="false">MR ยากลับบ้าน</button>

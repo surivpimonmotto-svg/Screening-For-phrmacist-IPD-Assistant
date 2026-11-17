@@ -770,7 +770,13 @@ function hadCalc(key,inp){
   if(h.maxDay&&h.dose==='mcgkgmin'&&out.perDay>h.maxDay) add('flag',`ต่อวัน ${fmtN(out.perDay)} mg เกิน ${h.maxDay} mg/day`);
   // dispensing
   const per1=inp.amp||h.amp; out.ampDay=out.perDay/per1; out.ampTxt=inp.ampTxt||h.ampTxt;
-  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0&&vol>0&&vol<=60&&conc>0){
+  if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0&&vol>0&&vol<5&&conc>0){
+    // "2 mg / 1 ml" = บอกความเข้มข้น ไม่ใช่ปริมาตรที่เตรียม → คิดจาก ml/วัน แล้วปัด amp ต่อวัน
+    const apD=Math.max(1,Math.ceil(out.perDay/per1-1e-9)), mgP=apD*per1, vP=mgP/conc;
+    out.bottle=[`ผสม ${apD} amp ได้ ${fmtN(Math.round(vP))} ml`,'']; out.ampDispense=apD; out.alt=null; out.prepAlt='';
+    out.prep=`"${fmtN(amt)} ${h.u} / ${fmtN(vol)} ml" อ่านเป็นความเข้มข้น ${fmtN(conc)} ${h.u}/ml · ใช้ ${fmtN(out.volDay)} ml/24 ชม. = ยา ${fmtN(out.perDay)} ${h.u} → ผสม ${apD} amp (${fmtN(mgP)} ${h.u}) ให้ได้ ${fmtN(Math.round(vP))} ml ที่ ${fmtN(conc)} ${h.u}/ml`;
+    add('info',`คำสั่ง "${fmtN(amt)} ${h.u} : ${fmtN(vol)} ml" เป็นการบอกความเข้มข้น (${fmtN(conc)} ${h.u}/ml) — ยืนยันปริมาตรที่ผสมจริงกับหอผู้ป่วย (เช่น ${fmtN(Math.round(vP))} ml/${apD} amp หรือ syringe 50 ml = ${fmtN(50*conc)} ${h.u})`); }
+  else if(!['fenta','kcl','mg','hep'].includes(key)&&!h.noBag&&rate>0&&vol>0&&vol<=60&&conc>0){
     // syringe pump (เด็ก/ทารก หรือสั่งปริมาตรน้อย) — เตรียมเป็น syringe ตามปริมาตรที่สั่ง ไม่ใช่ถุง 100/250 ml
     const nS=Math.max(1,Math.ceil(out.volDay/vol-1e-9)), apS=Math.ceil(vol*conc/per1-1e-9);
     out.bottle=[`syringe ${fmtN(vol)} ml × ${nS}`,'']; out.ampDispense=apS*nS; out.alt=null;

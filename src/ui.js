@@ -289,7 +289,8 @@ function hadSteps(k,h,o,cu){ try{
       S.push(`Dose: ${st} = <b>${f(x)} ${esc(du)}</b>`); }
     else S.push(`Dose: <b>${f(o.dose)} ${esc(du)}</b>`); }
   if(rate) S.push(`ต่อวัน: ${f(rate)} ml/h × 24 = ${f(rate*24)} ml · ยา ${f(o.perH)} × 24 = <b>${f(o.perDay)} ${u}/วัน</b>${A.v?` = ${f(o.perDay/A.v)} amp`:''}`);
-  if(o.bottle&&/syringe/.test(o.bottle[0])&&A.v) S.push(`จ่าย: ${esc(o.bottle[0])} — ต่อ syringe ใช้ยา ${f(vol*o.conc)} ${u} = ${f(vol*o.conc/A.v)} amp → ปัดขึ้น ${Math.ceil(vol*o.conc/A.v-1e-9)} amp/syringe → <b>${o.ampDispense} amp/วัน</b>`);
+  if(o.bottle&&/^ผสม/.test(o.bottle[0])&&A.v) S.push(`จ่าย: "${f(amt)} ${u}/${f(vol)} ml" = ความเข้มข้น ไม่ใช่ปริมาตรเตรียม · ยาต่อวัน ${f(o.perDay)} ${u} ÷ ${f(A.v)} = ${f(o.perDay/A.v)} amp → ปัดขึ้น <b>${o.ampDispense} amp/วัน</b>`);
+  else if(o.bottle&&/syringe/.test(o.bottle[0])&&A.v) S.push(`จ่าย: ${esc(o.bottle[0])} — ต่อ syringe ใช้ยา ${f(vol*o.conc)} ${u} = ${f(vol*o.conc/A.v)} amp → ปัดขึ้น ${Math.ceil(vol*o.conc/A.v-1e-9)} amp/syringe → <b>${o.ampDispense} amp/วัน</b>`);
   else if(o.bottle&&A.v) S.push(`จ่าย: เตรียม ${esc(o.bottle[0])} ที่ความเข้มข้น ${f(o.conc)} ${cu} (amp ที่เปิดแล้วไม่แบ่งข้ามถุง ปัดขึ้นต่อถุง) → <b>${o.ampDispense} amp/วัน</b>`);
   if(!S.length) return '';
   return `<details open class="labbox" style="margin:0 0 12px"><summary><b>วิธีคำนวณ (ตรวจย้อนได้)</b></summary><ol style="margin:6px 0 0;padding-left:20px;line-height:1.7">${S.map(x=>`<li>${x}</li>`).join('')}</ol></details>`;
@@ -486,7 +487,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.40.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.40.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

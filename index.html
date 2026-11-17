@@ -3704,7 +3704,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.42.1 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.42.2 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();
@@ -5691,7 +5691,7 @@ const IVIG_IND=[
  [/kawasaki/i,'Kawasaki','2 g/kg ครั้งเดียว drip 10–12 ชม.',2,2],
  [/gbs|guillain|cidp|myasthen|\bmg\b/i,'GBS/CIDP/Myasthenia','0.4 g/kg/วัน × 5 วัน (รวม 2 g/kg)',2,1],
  [/hypogamma|\bcvid|immunodefic|replacement/i,'Replacement (ภูมิคุ้มกันบกพร่อง)','0.4–0.6 g/kg ทุก 3–4 สัปดาห์',0.8,0.8]];
-function ivigDays(s){ let m=s.match(/(?:[x×*]\s*|นาน\s*|ติดต่อกัน\s*)(\d+)\s*(?:วัน|days?|d\b)/i); if(m) return +m[1];
+function ivigDays(s){ let m=s.match(/(?:[x×*]\s*|นาน\s*|ติดต่อกัน\s*|แบ่ง(?:ให้)?\s*)(\d+)\s*(?:วัน|days?|d\b)/i); if(m) return +m[1];
   m=s.match(/(\d{1,2})\s*[-–]\s*(\d{1,2})\s*\/\s*(\d{1,2})/); if(m&&+m[2]>=+m[1]&&+m[2]-+m[1]<10) return +m[2]-+m[1]+1; return null; }
 evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r.items||!IVIG_RE.test(row.raw||'')) return r; const raw=String(row.raw), add=(l,t)=>{ if(r.items.some(i=>i.txt===t)) return; r.items.push({lvl:l,txt:t}); if(l==='flag') r.status='flag'; else if(l==='warn'&&r.status!=='flag') r.status='warn'; else if(l==='ok'&&(!r.status||r.status==='none'||r.status==='nr')) r.status='ok'; };
   r.items=r.items.filter(i=>!/ยังไม่มีกฎในฐาน|ไม่พบยานี้ในบัญชี|อ่านความถี่ไม่ได้|ไม่ระบุจำนวนต่อครั้ง|เทียบ max conc\/rate/.test(i.txt)); if(r.status==='none'||r.status==='nr') r.status='ok';
@@ -5700,11 +5700,12 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   const pct=/10\s*%/.test(raw)?10:5, perB=pct===10?10:5, days=ivigDays(raw);
   const ind=IVIG_IND.find(x=>x[0].test(all)), indTxt=ind?`${ind[1]}: ${ind[2]}`:'ระบุข้อบ่งใช้เพื่อเทียบขนาด (pemphigus/ITP/GBS 2 g/kg/รอบ · Kawasaki 2 g/kg ครั้งเดียว · replacement 0.4–0.6 g/kg)';
   if(g==null){ add('warn',`IVIG — อ่านขนาด (g) จากคำสั่งไม่ได้ · ${indTxt}`); return r; }
-  add('info',`จ่าย: ${f(g)} g ÷ ${perB} g/ขวด (${pct}% 100 ml) = ${f(g/perB)} → ${Math.ceil(g/perB-1e-9)} ขวด/ครั้ง · ปริมาตร ${f(g/pct*100)} ml${days?` · ${days} วัน = ${Math.ceil(g/perB-1e-9)*days} ขวด/รอบ`:''}`);
+  { const n=Math.floor(g/perB+1e-9), rem=Math.round((g-n*perB)*100)/100, half=rem>0&&rem<=perB/2+1e-9, nB=n+(rem>0&&!half?1:0), txt=`${nB?`${perB} g (100 ml) × ${nB}`:''}${half?`${nB?' + ':''}${f(perB/2)} g (50 ml) × 1`:''}`;
+    add('info',`จ่าย: ${f(g)} g = ${txt} ขวด/ครั้ง · ปริมาตร ${f(g/pct*100)} ml${days?` · ${days} วัน = ${f(g*days)} g/รอบ`:''}${half?' (ถ้าไม่มีขวด 50 ml ใช้ '+(n+1)+' ขวด 100 ml เหลือทิ้ง '+f(perB-rem)+' g)':''}`); }
   if(!bw){ add('warn',`IVIG ${f(g)} g — ใส่น้ำหนักเพื่อคิด g/kg · ${indTxt}`); return r; }
   const gk=g/bw, maxD=ind?ind[4]:1, maxC=ind?ind[3]:2;
   add(gk>maxD*1.05&&!(ind&&ind[1]==='Kawasaki')?'warn':'ok',`ขนาดต่อวัน: ${f(g)} g ÷ ${f(bw)} kg = ${f(gk)} g/kg/วัน${ind?` (สูงสุด ${maxD} g/kg/วัน สำหรับ ${ind[1]})`:''}`);
-  if(days){ const tot=gk*days; add(tot>maxC*1.05?'flag':tot<maxC*0.8&&maxC>=2?'warn':'ok',`ต่อรอบ: ${f(gk)} × ${days} วัน = ${f(tot)} g/kg/รอบ (${f(g*days)} g) — เป้า ${f(maxC)} g/kg = ${f(maxC*bw)} g${tot>maxC*1.05?' · เกินขนาดต่อรอบ':''}`); }
+  if(days){ const tot=gk*days; add(tot>maxC*1.05?'flag':tot<maxC*0.9&&maxC>=2?'warn':'ok',`ต่อรอบ: ${f(gk)} × ${days} วัน = ${f(tot)} g/kg/รอบ (${f(g*days)} g) — เป้า ${f(maxC)} g/kg = ${f(maxC*bw)} g${tot>maxC*1.05?' · เกินขนาดต่อรอบ':''}`); }
   else if(ind&&ind[1]==='Kawasaki') add(gk>2.1?'flag':gk<1.9?'warn':'ok',`Kawasaki: ให้ครั้งเดียว ${f(gk)} g/kg (เป้า 2 g/kg = ${f(2*bw)} g)`);
   else add('warn',`คำสั่งไม่ระบุจำนวนวัน — ยืนยันกับแพทย์: ${indTxt} → ${f(maxC)} g/kg = ${f(maxC*bw)} g/รอบ · ขนาดที่สั่ง ${f(g)} g/วัน → ให้ ${Math.max(1,Math.round(maxC*bw/g))} วันจะได้ ${f(g*Math.max(1,Math.round(maxC*bw/g))/bw)} g/kg`);
   if(age>=18&&bw<35) add('warn',`น้ำหนัก ${f(bw)} kg ในผู้ใหญ่อายุ ${age} ปี — ต่ำมาก ตรวจว่าชั่งจริง (ขนาด IVIG คิดตามน้ำหนัก)`);
@@ -5715,6 +5716,9 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   if(rs.length){ let left=vol, t=0; rs.forEach((x,i)=>{ if(i<rs.length-1){ const v=Math.min(left,x*0.5); left-=v; t+=v/x; } }); const last=rs[rs.length-1]; t+=left/last;
     const mk=x=>f(x/bw), gh=x=>f(x*pct/100/bw);
     add('info',`อัตรา: ${rs.map(x=>`${fmtN(x)} ml/h (${mk(x)} ml/kg/h)`).join(' → ')} · ขั้นละ 30 นาที แล้ว ${fmtN(last)} ml/h จนหมด · ${fmtN(Math.round(vol))} ml ใช้เวลา ~${f(t)} ชม.`);
+    if(age<18){ const mfH=(bw<=10?100*bw:bw<=20?1000+50*(bw-10):1500+20*(bw-20))/24, st=0.6*bw, steps=[]; for(let x=st;x<mfH-1e-9;x+=st) steps.push(Math.round(x*10)/10); steps.push(Math.round(mfH*10)/10);
+      const jump=rs.slice(1).some((x,i)=>x-rs[i]>st*1.15), over=Math.max(...rs)>mfH*1.05;
+      add(jump||over?'warn':'ok',`แบบฟอร์ม: เริ่ม 0.6 ml/kg/h = ${f(st)} ml/h เพิ่มครั้งละ 0.6 ml/kg/h ทุก 30 นาที ไม่เกิน maintenance ${f(mfH)} ml/h → ${steps.map(fmtN).join(' → ')} ml/h${jump?' · คำสั่งเพิ่มเกินขั้นละ 0.6 ml/kg/h':''}${over?' · rate สูงสุดเกิน maintenance':''}`); }
     if(rs[0]/bw>1.05) add('warn',`rate เริ่มต้น ${mk(rs[0])} ml/kg/h — สูงกว่าที่แนะนำ (เริ่ม 0.5–1 ml/kg/h ของ ${pct}% ใน 30 นาทีแรก) ⚑`);
     const mx=Math.max(...rs)/bw, lim=pct===10?2:4; if(mx>lim*1.05) add('warn',`rate สูงสุด ${f(mx)} ml/kg/h (${gh(Math.max(...rs))} g/kg/h) — เกิน ${lim} ml/kg/h ของ IVIG ${pct}% (ตรวจตามยี่ห้อ) ⚑`);
     if(ind&&ind[1]==='Kawasaki'&&(t<8||t>14)) add('info',`Kawasaki: ปกติ drip 10–12 ชม. — คำนวณได้ ~${f(t)} ชม.`); }

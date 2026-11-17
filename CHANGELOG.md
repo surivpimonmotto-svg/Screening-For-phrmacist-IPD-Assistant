@@ -2,6 +2,9 @@
 
 รูปแบบการเขียน (เพิ่มรายการใหม่ไว้ **บนสุด**):
 ```
+## v0.41.1
+- แก้ HAD: "Nicardipine 1 mg : สารน้ำ 5 ml rate 15 ml/hr" เดิมคิดเป็น syringe 5 ml × 72 อัน = 72 amp/วัน → ถ้าปริมาตรที่สั่งหมดภายใน <2 ชม. ถือเป็นความเข้มข้น (0.2 mg/ml) → ยา 72 mg/วัน = 8 amp/วัน
+
 ## v0.41.0 — Amphotericin B + Fluconazole (Cryptococcal)
 - กฎใหม่ Amphotericin B (conventional / liposomal): mg/kg/วัน (conventional 0.7–1 · >1.5 ต้อง consult · liposomal 3–4 crypto, 5–10 mould, single 10 mg/kg) · จำนวน vial · ห้ามผสม NSS · ความเข้มข้นใน D5W ≤0.1 mg/ml (peripheral) แนะนำขนาดถุง · เวลา drip 4–6 ชม. · prehydration NSS · เสริม KCl 20 mEq + Mg 8 mEq/วัน · One Day + Continuous ซ้ำ · ไม่ปรับตาม CrCl
 - Fluconazole ≥600 mg/วัน + AmB → induction crypto (WHO 1,200 mg/วัน · IDSA/ไทย 800) · >1,200 ต้อง consult · CrCl <50 ลด 50% · ระยะ consolidation/maintenance

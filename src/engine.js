@@ -156,6 +156,12 @@ function relLabs(row,pt){ if(!row) return []; const d=row.drugId&&KB.find(k=>k.i
     o.st=o.v==null?'none':o.v<n[1]?'low':o.v>n[2]?'high':'ok';
     if(k==='ca'&&L.cacorr!=null) o.corr=L.cacorr; return o; }); }
 function joinLines(lines){ const out=[];
+  // paperless (Prescription Details) แบบ "1Database ID: 6 / ชื่อยา / วิธีใช้ / จำนวน One Day" → 1 รายการต่อ 1 บล็อก
+  const MK=/^\s*\d+\s*Database\s*ID\s*:?\s*\d+\s*$/i;
+  if(lines.filter(l=>MK.test(l)).length>=2){ let cur=null; const blk=[];
+    for(const l0 of lines){ if(MK.test(l0)){ if(cur) blk.push(cur); cur=[]; continue; } if(cur==null) continue; const l=String(l0).replace(/\s+/g,' ').trim(); if(!l||/^(verify|#|drug name|drug usage|amount|drug type)(\s|$)/i.test(l)) continue; cur.push(l); }
+    if(cur) blk.push(cur);
+    return blk.map(b=>b.join(' ').replace(/\s*(?:\.\s*){2,}/g,' ').replace(/\s+/g,' ').trim()).filter(x=>/[A-Za-z\u0E01-\u0E2E]/.test(x)); }
   for(const raw0 of lines){ const raw=raw0.replace(/\s*\d*\s*Database\s*ID\s*:?\s*\d+\s*$/i,''); if(PL_JUNK.test(raw0)) continue;
     const l=raw.replace(/\s+/g,' ').trim(); if(!l) continue;
     if(!/[A-Za-z\u0E01-\u0E2E]/.test(l)) continue; // มีแต่จุด/ตัวเลข/สัญลักษณ์

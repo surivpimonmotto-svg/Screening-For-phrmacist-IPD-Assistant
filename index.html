@@ -307,8 +307,8 @@ fieldset.grp .grid2{gap:6px 8px} fieldset.grp label.f{font-size:.8rem;gap:2px} f
 /* ช่องวางข้อความ (paste) — กรอบชัด พื้นมีสี */
 #ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#nePaste,#lpPaste,#iPaste{display:block;width:100%;box-sizing:border-box;min-height:120px;resize:vertical;margin-top:8px;padding:10px 12px;border-radius:10px;border:2px dashed #60a5fa;background:#eff6ff;color:var(--ink);font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;transition:border-color .15s,box-shadow .15s}
 #ptPaste{border-color:#a78bfa;background:#f5f3ff}
-#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
-#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste::placeholder{color:#64748b;font-family:inherit}
+#ptPaste:focus,#labPaste:focus,#cPaste:focus,#dtPaste:focus,#aPaste:focus,#vPaste:focus,#hPaste:focus,#xPaste:focus,#nePaste:focus,#lpPaste:focus,#iPaste:focus,#crPaste:focus{outline:none;border-style:solid;box-shadow:0 0 0 4px rgba(96,165,250,.25)}
+#ptPaste::placeholder,#labPaste::placeholder,#cPaste::placeholder,#dtPaste::placeholder,#aPaste::placeholder,#vPaste::placeholder,#hPaste::placeholder,#xPaste::placeholder,#nePaste::placeholder,#lpPaste::placeholder,#iPaste::placeholder,#crPaste::placeholder{color:#64748b;font-family:inherit}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root:not([data-theme="light"]) #ptPaste{background:#211a3d;border-color:#8b5cf6} :root:not([data-theme="light"]) :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste)::placeholder{color:#8ea0c4}}
 :root[data-theme="dark"] :is(#ptPaste,#labPaste,#cPaste,#dtPaste,#aPaste,#vPaste,#hPaste,#xPaste,#iPaste){background:#13233f;border-color:#3b82f6;color:#e6ecfa} :root[data-theme="dark"] #ptPaste{background:#211a3d;border-color:#8b5cf6}
 #ptBox{border:1.5px solid #8b5cf6;background:linear-gradient(180deg,color-mix(in srgb,#8b5cf6 12%,var(--surface)),var(--surface))}
@@ -383,6 +383,7 @@ textarea.pasted{border:2px solid #16a34a!important;background:#f0fdf4!important;
 .lpc-s{font-weight:700;font-size:13.5px}.lpc-s.ok{color:#15803d}.lpc-s.warn{color:#b45309}.lpc-s.flag{color:#b91c1c}
 .lpc-pt{padding:8px 12px;border-radius:10px;background:color-mix(in srgb,#f59e0b 12%,transparent);font-size:13px;margin:0 0 10px}
 @media (max-width:600px){.lpc-dl{grid-template-columns:1fr}}
+textarea[data-pf-auto="1"]{border:2px solid #16a34a!important;background:color-mix(in srgb,#16a34a 5%,var(--panel,#fff))!important}
 </style>
 
 <header class="top">
@@ -3717,7 +3718,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.42.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.42.6 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

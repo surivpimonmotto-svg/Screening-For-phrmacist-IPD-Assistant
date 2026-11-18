@@ -27,14 +27,14 @@ const KB=[
   HD:M('250-500 mg q24h (+ extra dose AD)',500,500),CAPD:M('250-500 mg q12h',500,1000),CRRT:M('250-500 mg q8-12h',500,[1000,1500]),hdNote:HDN.hs},
  peds:{type:'day',kg:[20,40],kgHi:90,note:'AOM 80-90 mg/kg/day q12h',src:SRC_PED},src:SRC_RENAL},
 
-{id:'augiv',name:'Amoxicillin/clavulanate IV (Augmentin 1.2 g)',match:/(augmentin|cavumox|amoxy?.{0,4}clav|amoxiclav).*(inj|\biv\b|1\.2\s*g)/i,fam:'penicillin',cls:'blbi',unit:'mg',
+{id:'augiv',name:'Amoxicillin/clavulanate IV (Augmentin 1.2 g)',match:/(augmentin|cavumox|amoxy?.{0,10}clav|amoxiclav|co-?amoxiclav).*(inj|\biv\b|1\.2\s*g)/i,fam:'penicillin',cls:'blbi',unit:'mg',
  forms:[[/1\.2/,'1.2 g vial',1200,'vial']],
  peds:{type:'dose',kg:[25,30],kgHi:30,max:3600,note:'30 mg/kg/ครั้ง (คิดรวม amox+clav ตามขวด 1.2 g) q8h · max 1.2 g/ครั้ง · ทารก <3 เดือน: q12h (แรกเกิด) – q8h',src:'⚑ BNFc (co-amoxiclav IV) — ไม่มีในคู่มือขนาดยาเด็ก รพ. 2568 รอยืนยัน'},
  renal:{bands:[B(30,999,'1.2 g (1 ขวด) IV q8h (ไม่ต้องปรับ)',1200,3600),B(10,30,'1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q12h',1200,1200),B(0,10,'1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q24h',1200,600)],
   HD:M('1.2 g (1 ขวด) load แล้ว 600 mg (½ ขวด) IV q24h (+ extra dose AD) [ต้นฉบับพิมพ์ "1.2 mg" น่าจะเป็น g]',1200,600),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:{txt:'ไม่มีข้อมูล',nodata:true},hdNote:HDN.extra},src:SRC_RENAL},
 
-{id:'augpo',name:'Amoxicillin/clavulanate PO',match:/(augmentin|amoksiklav|amoxy?.{0,4}clav|amoxiclav)/i,fam:'penicillin',cls:'blbi',unit:'mg (amox)',
- forms:[[/1\s*g|1000|875/i,'1 g tab (875/125)',875],[/625/,'625 mg tab (500/125)',500],[/457/,'457 mg/5 ml susp (amox 400)',80,'ml'],[/228|156/,'susp',50,'ml']],
+{id:'augpo',name:'Amoxicillin/clavulanate PO',match:/(augmentin|amoksiklav|amoxy?.{0,10}clav|amoxiclav|co-?amoxiclav)/i,fam:'penicillin',cls:'blbi',unit:'mg (amox)',
+ forms:[[/1\s*g|1000|875/i,'1 g tab (875/125)',875],[/625/,'625 mg tab (500/125)',500],[/457/,'457 mg/5 ml susp (amox 400)',80,'ml'],[/228/,'228 mg/5 ml susp (amox 200)',40,'ml'],[/156/,'156 mg/5 ml susp (amox 125)',25,'ml']],
  renal:{bands:[B(30,999,'500/125 mg q8h หรือ 875/125 mg q12h (ไม่ต้องปรับ)',875,1750,{rx:'Augmentin 1 g 1x2 pc หรือ Amoksiklav 625 mg 1x3 pc'}),B(10,30,'250-500 mg (amox) q12h — ห้ามใช้เม็ด 1 g (875 mg)',500,1000,{rx:'Amoksiklav 625 mg 1x2 pc (ห้ามใช้เม็ด 1 g)'}),B(0,10,'250-500 mg (amox) q24h',500,500,{rx:'Amoksiklav 625 mg 1x1 pc (ห้ามใช้เม็ด 1 g)'})],
   HD:M('250-500 mg (amox) q24h (+ extra dose AD)',500,500,{rx:'Amoksiklav 625 mg 1x1 หลังฟอก (วันฟอกให้หลังฟอก) ห้ามใช้เม็ด 1 g'}),CAPD:{txt:'ไม่มีข้อมูล',nodata:true},CRRT:{txt:'ไม่มีข้อมูล',nodata:true},hdNote:HDN.extra},
  peds:{type:'day',kg:[25,45],kgHi:90,note:'Sinusitis 45, Otitis media 90 mg/kg/day (ของ amoxicillin) q12h',src:SRC_PED},src:SRC_RENAL},

@@ -8,3 +8,8 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
   // ABC/3TC (600/300) และยาเม็ดรวม ARV วันละครั้ง — ถ้าวันละ 2 ครั้ง = ขนาดซ้ำสองเท่า
   if(/abc\s*600|ala-?co-?vir|kivexa|epzicom|abacavir\s*600/i.test(row.raw)&&(row.F===2||g.freqs.includes('2'))) add('flag',`ABC/3TC (600/300) ให้วันละ 1 ครั้ง — ${row.F===2?'คำสั่งเป็น':'พบ'} "วันละ 2 ครั้ง" = ABC 1,200 mg + 3TC 600 mg/วัน (ซ้ำสองเท่า) · ยืนยันกับแพทย์`);
  }catch(e){} return r; })(evaluate);
+// "Augmentin 250 mg iv q 8 hr" — mg ที่ไม่ตรงความแรงขวดใดเลย = ขนาดต่อครั้ง (ไม่ใช่ความแรงผลิตภัณฑ์) → แสดงเป็น 250 mg แทน "1 หน่วย / เลือกความแรง"
+parseLine=(orig=>function(line){ const r=orig.apply(this,arguments); try{ if(!r||!r.drugId||r.doseUnit!=='unit'||+r.doseVal!==1||r.strength==null) return r;
+  const d=KB.find(k=>k.id===r.drugId); if(!d||!d.forms||!d.forms.length) return r; if(!/\b(iv|im|sc|inj|injection|drip|push)\b|ฉีด/i.test(r.raw)) return r;
+  if(d.forms.some(f=>Math.abs(+f[2]-r.strength)<0.01)) return r; if(/(?:ครั้งละ\s*)?\d+(?:\.\d+)?\s*(?:vial|amp|ขวด|เม็ด|tab|cap)/i.test(r.raw)) return r;
+  r.doseVal=r.strength; r.doseUnit='mg'; r.strength=null; r.form=null; r.issues=(r.issues||[]).filter(x=>!/สมมุติ 1 หน่วย/.test(x)); r.parsed=true; }catch(e){} return r; })(parseLine);

@@ -9,7 +9,7 @@ const PF_LIQ=/\bsyr\b|syrup|susp|suspension|drops?\b|elixir|dry\s*syr|ยาน�
 // [แท็บ, ช่องปลายทาง, ตัวกรองแถว (null = ทุกแถว), ฟังก์ชันหลังเติม, ฟังก์ชันเริ่มใหม่, ชื่อกลุ่ม]
 const PF_LINK={
  had:{to:'hPaste',f:r=>r.had,run:()=>hadFromText($('hPaste').value),clr:'hClr',g:'ยา HAD'},
- liq:{to:'lpPaste',f:r=>PF_LIQ.test(r.raw),run:()=>$('lpRead').click(),clr:'lpClr',g:'ยาน้ำ'},
+ liq:{to:'lpPaste',f:r=>PF_LIQ.test(r.raw)||(r.doseUnit==='ml'&&!/\b(iv|im|sc|inj|drip|infusion|neb|พ่น)\b/i.test(r.raw))||(typeof lpFind==='function'&&!!lpFind(r)),run:()=>$('lpRead').click(),clr:'lpClr',g:'ยาน้ำ'},
  wf:{to:'wOrder',f:r=>r.drugId==='warfarin'||/warfarin|orfarin/i.test(r.raw),run:()=>$('wParse').click(),clr:'wClr',g:'Warfarin'},
  tbx:{to:'xPaste',f:r=>PF_TB.test(r.raw+' '+((masterOf(r)||[])[1]||'')),run:()=>$('xRun').click(),clr:'xClr',g:'ยา TB'},
  arv:{to:'vPaste',f:r=>PF_ARV.test(r.raw+' '+((masterOf(r)||[])[1]||'')),run:()=>$('vRun').click(),clr:'vClr',g:'ยา ARV'},

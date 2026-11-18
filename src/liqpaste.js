@@ -1,7 +1,8 @@
 /* ===== liqpaste.js — แท็บยาน้ำเด็ก: วางใบสั่งยา (หลายรายการ) → คำนวณทุกตัว · ตรวจขนาดด้วยกฎหน้าคัดกรอง · โหลดเข้าเครื่องคำนวณ · เพิ่มลงแผ่นพับทีเดียว */
 let lpRows=[];
 function lpFind(r){ const m=masterOf(r); let x=m?LIQ.find(l=>l.code===m[0]):null;
-  if(!x){ const w=(r.raw.match(/[A-Za-z][A-Za-z\-]{3,}/g)||[]).map(s=>s.toUpperCase()).filter(s=>!/^(SYR|SUSP|DROP|DROPS|TAB|DRY|SYRUP|ORAL)$/.test(s)); if(w.length) x=LIQ.find(l=>l.name.toUpperCase().includes(w[0])&&(!w[1]||l.name.toUpperCase().includes(w[1])))||LIQ.find(l=>l.name.toUpperCase().includes(w[0])); }
+  if(!x&&r.drugId){ const c=LIQ.filter(l=>l.kb&&l.kb.id===r.drugId&&l.conc); const sm=(r.raw.match(/(\d+(?:\.\d+)?)\s*mg\s*\/\s*(\d+(?:\.\d+)?)\s*ml/i)); x=(sm&&c.find(l=>Math.abs(l.conc-(+sm[1]/+sm[2]))<0.01))||c[0]||null; if(x&&c.length>1&&!sm) r._lpMulti=c.map(l=>l.name); }
+  if(!x){ const w=(r.raw.match(/[A-Za-z][A-Za-z\-]{3,}/g)||[]).map(s=>s.toUpperCase()).filter(s=>!/^(SYR|SUSP|DROP|DROPS|TAB|DRY|SYRUP|ORAL)$/.test(s)); if(w.length){ const N=l=>(l.name+' '+(l.gname||'')).toUpperCase(); x=LIQ.find(l=>N(l).includes(w[0])&&(!w[1]||N(l).includes(w[1])))||LIQ.find(l=>N(l).includes(w[0])); } }
   return x; }
 function lpCalc(r){ const x=lpFind(r), conc=x&&x.conc?x.conc:null; let ml=null, amt=null;
   const dv=+r.doseVal; if(r.doseUnit==='ml') ml=dv; else if(/tsp|ช้อนชา/i.test(r.doseUnit||'')) ml=dv*5; else if(conc&&dv>0&&/^(mg|mcg|iu|unit|g)$/i.test(r.doseUnit||'')) ml=dv*(r.doseUnit==='g'?1000:1)/conc;
@@ -13,12 +14,14 @@ function lpCalc(r){ const x=lpFind(r), conc=x&&x.conc?x.conc:null; let ml=null, 
 function lpRender(){ const out=$('lpOut'); if(!out) return; if(!lpRows.length){ out.innerHTML=''; return; } const pt=getPt(), bw=+pt.bw||null;
   const ICON={flag:'⛔',warn:'⚠️',ok:'✅',info:'ℹ️'}, ORD={flag:0,warn:1,ok:2,info:3}, AGE=/อายุ\s*0\s*ปี|ระบุอายุเป็น|ไม่มีน้ำหนัก|ใส่น้ำหนัก|ไม่มีอายุ|^ทารกแรกเกิด \(อายุ/, k2=x=>fmtN(Math.round(x*100)/100);
   const ptNotes=new Set(); const sumTxt={flag:'ต้อง consult แพทย์',warn:'ทบทวนก่อนจ่าย',ok:'ขนาดเหมาะสม',none:'ไม่มีเกณฑ์ในฐาน — ตรวจเอง',nr:'ไม่มีเกณฑ์ในฐาน — ตรวจเอง'};
-  const cards=lpRows.map((r,i)=>{ const c=lpCalc(r), e=evaluate(r,pt,lpRows), u=c.x?c.x.u:'mg', fa=x=>u==='mg'&&x<1?fmtN(r1(x*1000))+' mcg':fmtN(r1(x))+' '+u;
+  const cards=lpRows.map((r,i)=>{ const c=lpCalc(r); let e=evaluate(r,pt,lpRows); if(c.amt!=null&&e.items.some(it=>/คำนวณ mg ไม่ได้/.test(it.txt))){ const r2=Object.assign({},r,{doseVal:c.amt,doseUnit:'mg',strength:null}); try{ const e2=evaluate(r2,pt,lpRows.map(x=>x===r?r2:x)); if(!e2.items.some(it=>/คำนวณ mg ไม่ได้/.test(it.txt))) e=e2; }catch(_){} }
+    const u=c.x?c.x.u:'mg', fa=x=>u==='mg'&&x<1?fmtN(r1(x*1000))+' mcg':fmtN(r1(x))+' '+u;
     const its=e.items.filter(it=>{ if(AGE.test(it.txt)){ ptNotes.add(it.txt); return false; } return true; }).sort((a,b)=>(ORD[a.lvl]??4)-(ORD[b.lvl]??4));
     const main=its.filter(it=>it.lvl!=='info'), info=its.filter(it=>it.lvl==='info');
     const st=main.some(x=>x.lvl==='flag')?'flag':main.some(x=>x.lvl==='warn')?'warn':main.some(x=>x.lvl==='ok')?'ok':(e.status==='flag'||e.status==='warn'?'none':e.status||'none');
     const freq=c.prn?'PRN '+c.label:(typeof llFreqTh==='function'&&c.F?llFreqTh(c.F,false):c.label), sig=(r.raw.match(/(?:รับประทาน|ทาน|กิน|หยด|ป้อน|ให้)[^\n]*/)||[''])[0];
     const L=[]; L.push(['คำสั่ง',esc(sig||r.raw)]);
+    if(r._lpMulti) L.push(['หมายเหตุ',`<span class="hint">ไม่ระบุความแรง — ใช้ ${esc(c.x.name)} (มี ${r._lpMulti.length} ขนาด: ${esc(r._lpMulti.join(' / '))})</span>`]);
     L.push(['ความแรง',c.conc?(u==='mg'&&c.conc<0.1?`${fmtN(r1(c.conc*1000))} mcg/ml`:`${fmtN(c.conc)} ${esc(u)}/ml`):'<span class="hint">ไม่ทราบความแรง — เลือกยาในเครื่องคำนวณด้านล่าง</span>']);
     if(c.ml!=null&&c.amt!=null){ const perDay=c.F&&!c.prn?c.amt*c.F:null;
       L.push(['ได้ยา',`${fmtMl(c.ml)} ml × ${fmtN(c.conc)} = <b>${fa(c.amt)}/ครั้ง</b>${perDay!=null?` · ${freq} = <b>${fa(perDay)}/วัน</b>`:` · ${esc(freq)}`}`]);

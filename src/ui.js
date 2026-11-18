@@ -361,13 +361,14 @@ function hadOtherNotes(){ if(hadList.length<2) return []; const pt=getPt(), bw=$
 
 /* ===== ยาน้ำเด็ก: แปลงขนาด ↔ ml และจำนวนขวด ===== */
 function bottleOf(name){const ms=[...name.matchAll(/(?<![\/\d.])(\d+(?:\.\d+)?)\s*ML\b(?!\s*\/)/gi)]; return ms.length?+ms[ms.length-1][1]:null;}
-const LIQ=DM.map(m=>{const kb=m[8]?KB.find(k=>k.id===m[8]):null; let conc=null,u='mg';
+const LIQ=DM.map(m=>{let kb=m[8]?KB.find(k=>k.id===m[8]):null; let conc=null,u='mg';
   const looksLiq=/syr|susp|drop|elixir|solution|sus\.|ml/i.test(m[1])&&!/inj|infusion|nss|\bd5|เบอร์|ล้าง/i.test(m[1]+m[4]);
   if(!looksLiq) return null;
+  if(!kb) kb=KB.find(k=>k.match&&k.match.test(m[1]+' '+(m[2]||'')))||null;
   if(kb&&kb.forms){const f=kb.noMasterStrength?kb.forms.find(f=>f[3]==='ml'&&f[0].test(m[1])):(m[7]&&m[7][0]==='ml'?null:kb.forms.find(f=>f[3]==='ml'&&f[0].test(m[1]))); if(f){conc=f[2];u=kb.unit||'mg';}}
   if(conc==null&&m[7]&&m[7][0]==='ml'){conc=m[7][1];u='mg';}
   if(conc==null){const iu=m[1].match(/(\d+(?:,\d+)?)\s*IU\s*\/\s*ML/i); if(iu){conc=+iu[1].replace(',','');u='IU';}}
-  return {code:m[0],name:m[1],conc,u:/^mg/.test(u)&&u!=='mg Fe'?'mg':u,bottle:bottleOf(m[1]),kb};}).filter(Boolean);
+  return {code:m[0],name:m[1],gname:m[2]||'',conc,u:/^mg/.test(u)&&u!=='mg Fe'?'mg':u,bottle:bottleOf(m[1]),kb};}).filter(Boolean);
 $('liqList').innerHTML=LIQ.map(x=>`<option value="${esc(x.code+' · '+x.name)}">`).join('');
 const LIQ_REG=FREQ_OPTS.map(([v,l])=>[v,l,v]);
 const LIQ_PRN=[['6','ทุก 4 ชั่วโมง','4'],['6','ทุก 4-6 ชั่วโมง','4-6'],['4','ทุก 6 ชั่วโมง','6'],['4','ทุก 6-8 ชั่วโมง','6-8'],['3','ทุก 8 ชั่วโมง','8'],['2','ทุก 12 ชั่วโมง','12'],['1','วันละ 1 ครั้ง','24']];
@@ -487,7 +488,7 @@ function pasteState(id,info){ const ta=$(id); if(!ta) return; let c=$(id+'St'); 
 ['hPaste','paste','lpPaste','dtPaste','ptPaste','labPaste'].forEach(id=>{ const ta=$(id); if(ta){ ta.addEventListener('input',()=>pasteState(id)); } });
 
 /* boot with marked example */
-$('ver').textContent=`ต้นแบบ v0.42.4 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
+$('ver').textContent=`ต้นแบบ v0.42.5 · กฎ ${KB.length} รายการ · บัญชียา ${DM.length.toLocaleString()}`;
 $('age').value=EX_PT.age;ageSyncIn();$('bw').value=EX_PT.bw;$('ht').value=EX_PT.ht;$('scr').value=EX_PT.scr;$('k').value=EX_PT.k; DEMO_IDS.forEach(id=>{ const el=$(id); if(el) el.dataset.demo='1'; });
 $('paste').value=EX_TXT; $('paste').placeholder='วางรายการยาจากระบบ paperless ที่นี่';
 doParse(true); loadHadEx(); renderHad(); renderKB(); demoBadge();

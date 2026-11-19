@@ -198,9 +198,11 @@ const KB=[
   {name:'Induction',bands:[B(70,999,'5 mg/kg q12h',5,10,{kg:true}),B(50,70,'2.5 mg/kg q12h',2.5,5,{kg:true}),B(25,50,'2.5 mg/kg q24h',2.5,2.5,{kg:true}),B(10,25,'1.25 mg/kg q24h',1.25,1.25,{kg:true}),B(0,10,'1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true})],
    HD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์ (วันฟอกให้หลังฟอก)',1.25,0.54,{kg:true}),CAPD:M('1.25 mg/kg 3 ครั้ง/สัปดาห์',1.25,0.54,{kg:true}),CRRT:M('2.5 mg/kg q24h',2.5,2.5,{kg:true})}],
  note:'ยืนยันแล้ว: "242h" ในคู่มือต้นฉบับ = q24h',src:SRC_RENAL},
-{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/susp|syr|20\s*mg\s*\/\s*ml/i,'20 mg/ml susp',20,'ml'],[/inj|100\s*mg\s*\/\s*50\s*ml/i,'IV 100 mg/50 ml',2,'ml'],[/200/,'200 mg cap',200],[/100/,'100 mg',100],[/50/,'50 mg',50],[/400/,'IV',200,'bottle']],
+{id:'fluconazole',name:'Fluconazole',match:/fluconazole|diflucan/i,unit:'mg',forms:[[/susp|syr|20\s*mg\s*\/\s*ml/i,'20 mg/ml susp',20,'ml'],[/inj|100\s*mg\s*\/\s*50\s*ml/i,'IV 100 mg/50 ml',2,'ml'],[/200/,'200 mg cap',200],[/150/,'150 mg cap',150],[/(^|[^\d])100\s*mg/i,'100 mg',100],[/(^|[^\d])50\s*mg/i,'50 mg',50],[/400/,'IV',200,'bottle']],
  renal:{bands:[B(50,999,'100-400 mg q24h (Crypto 800-1,200 mg/day)',1200,[400,1200]),B(0,50,'ลด 50% (ปกติ 50-200 mg/day)',600,[200,600])],
   HD:M('วันไม่ฟอกลด 50% / วันฟอกให้ขนาดเต็มหลังฟอก',1200,[400,1200]),CAPD:M('ลด 50%',600,[200,600]),CRRT:M('ขนาดเต็ม',1200,[400,1200])},src:SRC_RENAL},
+{id:'itraconazole',name:'Itraconazole',match:/itraconazole|sporal|sporanox|itracon/i,unit:'mg',forms:[[/syr|sol|10\s*mg\s*\/\s*ml/i,'10 mg/ml oral solution',10,'ml'],[/100/,'100 mg cap',100]],
+ adult:{d:200,t:400,txt:'100–200 mg q12–24h · loading 200 mg tid × 3 วัน (histo/talaromyces) · onychomycosis 200 mg OD (มือ 6 / เท้า 12 สัปดาห์) หรือ pulse 200 mg bid × 7 วัน/เดือน (มือ 2 / เท้า 3 รอบ) · ไม่ต้องปรับตามไต'},src:'IDSA · แนวทางโรคเชื้อราที่เล็บ สมาคมแพทย์ผิวหนังฯ 2568 ⚑'},
 
 /* ---------------- TB ---------------- */
 {id:'rifinah',name:'Rifinah (INH+RIF เม็ดรวม)',match:/rifinah/i,unit:'tab',note:'ยาเม็ดรวม INH+Rifampicin — ตรวจขนาดแต่ละตัวตามตาราง TB (เทียบ mg ของ INH และ R)',src:SRC_TB},

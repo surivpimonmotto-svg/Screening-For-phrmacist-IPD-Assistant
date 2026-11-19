@@ -35,4 +35,15 @@ evaluate=(orig=>function(row,pt,rows){ const r=orig(row,pt,rows); try{ if(!r||!r
       if(cr!=null&&cr<50) add('warn',`CrCl ${Math.round(cr)} (<50) → ลด fluconazole 50% = ${f(day/2)} mg/วัน (หลังให้ loading วันแรกขนาดเต็ม)`);
       add('info','ระยะต่อ: consolidation 400–800 mg/วัน × 8 สัปดาห์ → maintenance 200 mg/วัน ≥1 ปี (CD4 >100–200 + VL undetectable จึงหยุดได้) · AmB + fluconazole ↑ QT/ตับ — ตรวจ LFT, K'); }
   }
+  // ---------- Itraconazole ----------
+  if(/itraconazole|sporal|sporanox/i.test(raw)){ const oth=R.filter(x=>x!==row).map(x=>x.raw).join(' | '), pulse=/pulse|x\s*7\s*วัน|×\s*7\s*วัน|7\s*วัน\s*\/\s*เดือน|7\s*days/i.test(raw), load=/load|tid|วันละ\s*3\s*ครั้ง|x\s*3\s*วัน/i.test(raw);
+    r.items=r.items.filter(i=>!(pulse||load)||!/เกินขนาดสูงสุด|เกิน max|> ?max/i.test(i.txt));
+    if(pulse) add('ok','Pulse therapy (onychomycosis): 200 mg วันละ 2 ครั้ง × 7 วัน แล้วหยุด 3 สัปดาห์ = 1 รอบ · เล็บมือ 2 รอบ · เล็บเท้า 3 รอบ (แนวทางโรคเชื้อราที่เล็บ 2568 ⚑)');
+    if(/onycho|เชื้อราที่เล็บ|tinea\s*ungu/i.test(raw+' '+oth)&&!pulse) add('info','Onychomycosis: แบบต่อเนื่อง 200 mg วันละครั้ง — เล็บมือ 6 สัปดาห์ · เล็บเท้า 12 สัปดาห์ · ตรวจ LFT ก่อนและหลังใช้ยา 4–6 สัปดาห์');
+    const ddi=[[/simvastatin|lovastatin/i,'flag','Simvastatin/Lovastatin — ห้ามใช้ร่วม (CYP3A4 → rhabdomyolysis)'],[/atorvastatin/i,'warn','Atorvastatin — ระดับยาเพิ่ม จำกัด ≤20 mg/วัน หรือหยุดชั่วคราว'],[/midazolam|triazolam/i,'warn','Midazolam/Triazolam — ระดับยาเพิ่มมาก (oral ห้ามใช้ร่วม)'],[/colchicine/i,'warn','Colchicine — ระดับยาเพิ่ม (ห้ามถ้าไต/ตับบกพร่อง)'],[/ergot|ergotamine|cafergot/i,'flag','Ergotamine — ห้ามใช้ร่วม'],[/rivaroxaban|apixaban|ticagrelor/i,'warn','Rivaroxaban/Apixaban/Ticagrelor — ระดับยาเพิ่ม เลือดออกง่าย หลีกเลี่ยง'],[/digoxin/i,'warn','Digoxin — ระดับยาเพิ่ม ติดตามระดับยา/อาการพิษ'],[/rifampi|phenytoin|carbamazepine|phenobarb/i,'flag','Rifampicin/Phenytoin/Carbamazepine — ลดระดับ itraconazole จนไม่ได้ผล หลีกเลี่ยง'],[/omeprazole|pantoprazole|esomeprazole|lansoprazole|famotidine|ranitidine|antacid|alum/i,'warn','PPI/H2RA/ยาลดกรด — ลดการดูดซึม itraconazole แคปซูล (ใช้ชนิดน้ำตอนท้องว่าง หรือกินแคปซูลกับน้ำอัดลม/อาหาร)'],[/amiodarone|quinidine|dofetilide|methadone|domperidone/i,'flag','ยาที่ทำให้ QT ยาว (amiodarone/quinidine/domperidone/methadone) — ห้ามใช้ร่วม']];
+    ddi.forEach(([re,l,t])=>{ if(re.test(oth)) add(l,'Itraconazole + '+t); });
+    add('info',`Itraconazole: ${/sol|syr|10\s*mg\s*\/\s*ml/i.test(raw)?'ชนิดน้ำ กินตอนท้องว่าง':'แคปซูล กินหลังอาหารทันที'} · ห้ามใน CHF/ventricular dysfunction · ไม่ปรับตามไต · ตรวจ LFT`); }
+  // ---------- Fluconazole รายสัปดาห์ (onychomycosis) ----------
+  if(/fluconazole|diflucan/i.test(raw)&&/สัปดาห์ละ|weekly|ทุกสัปดาห์|once\s*a\s*week|\/\s*wk/i.test(raw)){ const mg=(row.doseUnit==='mg'?row.doseVal:(row.doseVal||1)*(row.strength||((raw.match(/(\d{2,3})\s*mg/i)||[])[1]||0)));
+    if(mg) add(mg>450?'warn':mg<150?'warn':'ok',`Fluconazole ${f(mg)} mg สัปดาห์ละครั้ง — onychomycosis 150–450 mg/สัปดาห์ (เล็บมือ 3–9 · เล็บเท้า 6–18 เดือน) · ประสิทธิภาพด้อยกว่า itraconazole/terbinafine (แนวทางโรคเชื้อราที่เล็บ 2568 ⚑)`); }
  }catch(e){} return r; })(evaluate);
